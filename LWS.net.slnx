@@ -10,7 +10,7 @@
     <Project Path="Suite/Model/Model.csproj" />
     <Project Path="Suite/Test/Test.csproj" />
   </Folder>
+  <Project Path="dotNetRDF.Wrapping/dotNetRDF.Wrapping.csproj" />
   <Project Path="Server/Server.csproj" />
   <Project Path="Test/Test.csproj" />
-  <Project Path="dotNetRDF.Wrapping/dotNetRDF.Wrapping.csproj" />
 </Solution>
