@@ -1,0 +1,109 @@
+﻿using Model.EARL;
+using Model.LWST;
+using Model.TestManifest;
+
+namespace Model;
+
+public static class Executor
+{
+    public static async Task<EarlGraph> Execute(ManifestGraph suite, Uri baseUri)
+    {
+        var result = new EarlGraph(new Graph());
+
+        var assertor = Assertor.Create(result);
+        assertor.Title = "NAME OF ASSERTOR"; // TODO: Don't hardcode
+
+        var suiteRequirement = TestRequirement.Create(result);
+        suiteRequirement.Title = "NAME OF TEST SUITE"; // TODO: Don't hardcode
+
+        foreach (var manifest in suite.Manifests)
+        {
+            var manifestRequirement = TestRequirement.Create(manifest.Id!, result);
+            manifestRequirement.Title = manifest.Label;
+            manifestRequirement.IsPartOf = suiteRequirement;
+
+            foreach (var entry in manifest.Entries)
+            {
+                var response = await Send(entry.Request, baseUri);
+                Process(response, result, assertor, entry, manifestRequirement);
+            }
+        }
+
+        return result;
+    }
+
+    private static async Task<HttpResponseMessage?> Send(Request request, Uri baseUri)
+    {
+        using var client = new HttpClient();
+        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(baseUri, request.Url));
+
+        try
+        {
+            return await client.SendAsync(requestMessage).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private static void Process(HttpResponseMessage? response, EarlGraph result, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
+    {
+        var entryRequirement = TestRequirement.Create(entry.Id!, result);
+        entryRequirement.Title = entry.Name;
+        entryRequirement.IsPartOf = manifestRequirement;
+
+        // TODO: Extract commonalities
+        if (entry.Response.StatusCode is not null)
+        {
+            var assertion = Assertion.Create(result);
+            assertion.AssertedBy = assertor;
+
+            assertion.Test = TestCase.Create(result);
+            assertion.Test.Title = $"{entry.Name} - status code";
+            assertion.Test.IsPartOf = entryRequirement;
+
+            assertion.Result = TestResult.Create(result);
+
+            if (response is null)
+            {
+                assertion.Result.Outcome = EARL.Vocabulary.Failed;
+                assertion.Result.Info = "No response";
+                return;
+            }
+
+            var correct = (long)response.StatusCode == entry.Response.StatusCode;
+            assertion.Result.Outcome = correct ? EARL.Vocabulary.Passed : EARL.Vocabulary.Failed;
+            if (!correct)
+            {
+                assertion.Result.Info = $"Expected status code [{entry.Response.StatusCode}], but got [{(long)response.StatusCode}]";
+            }
+        }
+
+        if (entry.Response.ContentType is not null)
+        {
+            var assertion = Assertion.Create(result);
+            assertion.AssertedBy = assertor;
+
+            assertion.Test = TestCase.Create(result);
+            assertion.Test.Title = $"{entry.Name} - content type";
+            assertion.Test.IsPartOf = entryRequirement;
+
+            assertion.Result = TestResult.Create(result);
+
+            if (response is null)
+            {
+                assertion.Result.Outcome = EARL.Vocabulary.Failed;
+                assertion.Result.Info = "No response";
+                return;
+            }
+
+            var correct = response.Content.Headers.ContentType?.MediaType.Equals(entry.Response.ContentType, StringComparison.OrdinalIgnoreCase) is true;
+            assertion.Result.Outcome = correct ? assertion.Result.Outcome = EARL.Vocabulary.Passed : assertion.Result.Outcome = EARL.Vocabulary.Failed;
+            if (!correct)
+            {
+                assertion.Result.Info = $"Expected content type [{entry.Response.ContentType}], but got [{response.Content.Headers.ContentType?.MediaType}]";
+            }
+        }
+    }
+}

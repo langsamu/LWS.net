@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Suite/">
+    <Project Path="Suite/Console/Console.csproj" />
+    <Project Path="Suite/Model/Model.csproj" />
+    <Project Path="Suite/Test/Test.csproj" />
+  </Folder>
+  <Project Path="Server/Server.csproj" />
+  <Project Path="Test/Test.csproj" />
+  <Project Path="dotNetRDF.Wrapping/dotNetRDF.Wrapping.csproj" />
+</Solution>

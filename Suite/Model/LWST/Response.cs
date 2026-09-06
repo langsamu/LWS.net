@@ -1,0 +1,20 @@
+﻿namespace Model.LWST;
+
+public class Response : GraphWrapperNode
+{
+    protected Response(INode node, IGraph graph) : base(node, graph) { }
+
+    public static Response Wrap(INode node, IGraph graph) => new(node, graph);
+
+    public static Response Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
+
+    public long? StatusCode => this.Singular(Vocabulary.StatusCode, ValueMappings.As<long>);
+
+    public string? ContentType => this.Singular(Vocabulary.ContentType, ValueMappings.As<string>);
+
+    public IList<LinkHeader> LinkHeaders => this.List(Vocabulary.LinkHeaders, LinkHeader.Wrap, LinkHeader.Wrap);
+
+    public Uri BodyURL => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
+
+    public AuthenticationChallenge AuthenticationChallenge => this.Singular(Vocabulary.AuthenticationChallenge, AuthenticationChallenge.Wrap);
+}
