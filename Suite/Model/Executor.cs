@@ -49,63 +49,52 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         }
     }
 
-    private static void Process(HttpResponseMessage? response, EarlGraph result, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
+    private static void Process(HttpResponseMessage? response, EarlGraph graph, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
     {
-        var entryRequirement = TestRequirement.Create(entry.Id!, result);
+        var entryRequirement = TestRequirement.Create(entry.Id!, graph);
         entryRequirement.Title = entry.Name;
         entryRequirement.IsPartOf = manifestRequirement;
 
-        // TODO: Extract commonalities
-        if (entry.Response.StatusCode is not null)
+        if (entry.Response.StatusCode is var statusCode)
         {
-            var assertion = Assertion.Create(result);
-            assertion.AssertedBy = assertor;
-
-            assertion.Test = TestCase.Create(result);
-            assertion.Test.Title = $"{entry.Name} - status code";
-            assertion.Test.IsPartOf = entryRequirement;
-
-            assertion.Result = TestResult.Create(result);
-
-            if (response is null)
-            {
-                assertion.Result.Outcome = EARL.Vocabulary.Failed;
-                assertion.Result.Info = "No response";
-                return;
-            }
-
-            var correct = (long)response.StatusCode == entry.Response.StatusCode;
-            assertion.Result.Outcome = correct ? EARL.Vocabulary.Passed : EARL.Vocabulary.Failed;
-            if (!correct)
-            {
-                assertion.Result.Info = $"Expected status code [{entry.Response.StatusCode}], but got [{(long)response.StatusCode}]";
-            }
+            Assert("status code", statusCode, response => (long)response.StatusCode);
         }
 
-        if (entry.Response.ContentType is not null)
+        if (entry.Response.ContentType is var contentType)
         {
-            var assertion = Assertion.Create(result);
+            Assert("content type", contentType, response => response.Content.Headers.ContentType?.MediaType, StringComparer.OrdinalIgnoreCase);
+        }
+
+        void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
+        {
+            var assertion = Assertion.Create(graph);
             assertion.AssertedBy = assertor;
 
-            assertion.Test = TestCase.Create(result);
-            assertion.Test.Title = $"{entry.Name} - content type";
-            assertion.Test.IsPartOf = entryRequirement;
+            var test = assertion.Test = TestCase.Create(graph);
+            test.Title = $"{entry.Name} - {aspect}";
+            test.IsPartOf = entryRequirement;
 
-            assertion.Result = TestResult.Create(result);
+            var result = assertion.Result = TestResult.Create(graph);
 
             if (response is null)
             {
-                assertion.Result.Outcome = EARL.Vocabulary.Failed;
-                assertion.Result.Info = "No response";
+                result.Outcome = EARL.Vocabulary.Failed;
+                result.Info = "No response";
+
                 return;
             }
 
-            var correct = response.Content.Headers.ContentType?.MediaType.Equals(entry.Response.ContentType, StringComparison.OrdinalIgnoreCase) is true;
-            assertion.Result.Outcome = correct ? assertion.Result.Outcome = EARL.Vocabulary.Passed : assertion.Result.Outcome = EARL.Vocabulary.Failed;
-            if (!correct)
+            var value = actual(response);
+
+            if (!(comparer ?? EqualityComparer<T>.Default).Equals(expected, value))
             {
-                assertion.Result.Info = $"Expected content type [{entry.Response.ContentType}], but got [{response.Content.Headers.ContentType?.MediaType}]";
+                result.Outcome = EARL.Vocabulary.Failed;
+                result.Info = $"Expected {aspect} [{expected}], but got [{value}]";
+
+                return;
             }
+
+            result.Outcome = EARL.Vocabulary.Passed;
         }
     }
 }
