@@ -5,7 +5,7 @@ using Model.TestManifest;
 
 namespace Model;
 
-public sealed class Executor(IOptions<SuiteOptions> options)
+public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 {
     private readonly SuiteOptions options = options.Value;
 
@@ -37,7 +37,6 @@ public sealed class Executor(IOptions<SuiteOptions> options)
 
     private async Task<HttpResponseMessage?> Send(Request request)
     {
-        using var client = new HttpClient();
         var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
 
         try

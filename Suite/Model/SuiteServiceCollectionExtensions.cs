@@ -9,5 +9,6 @@ public static class SuiteServiceCollectionExtensions
         services
             .AddSuiteOptions(configuration)
             .Services
-            .AddSingleton<Executor>();
+            .AddHttpClient<Executor>()
+            .Services;
 }
