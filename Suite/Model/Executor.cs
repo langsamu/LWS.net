@@ -1,12 +1,15 @@
-﻿using Model.EARL;
+﻿using Microsoft.Extensions.Options;
+using Model.EARL;
 using Model.LWST;
 using Model.TestManifest;
 
 namespace Model;
 
-public static class Executor
+public sealed class Executor(IOptions<SuiteOptions> options)
 {
-    public static async Task<EarlGraph> Execute(ManifestGraph suite, Uri baseUri)
+    private readonly SuiteOptions options = options.Value;
+
+    public async Task<EarlGraph> Execute(ManifestGraph suite)
     {
         var result = new EarlGraph(new Graph());
 
@@ -24,7 +27,7 @@ public static class Executor
 
             foreach (var entry in manifest.Entries)
             {
-                var response = await Send(entry.Request, baseUri);
+                var response = await Send(entry.Request);
                 Process(response, result, assertor, entry, manifestRequirement);
             }
         }
@@ -32,10 +35,10 @@ public static class Executor
         return result;
     }
 
-    private static async Task<HttpResponseMessage?> Send(Request request, Uri baseUri)
+    private async Task<HttpResponseMessage?> Send(Request request)
     {
         using var client = new HttpClient();
-        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(baseUri, request.Url));
+        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
 
         try
         {

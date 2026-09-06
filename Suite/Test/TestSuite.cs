@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Model;
 using Model.EARL;
 
@@ -19,12 +18,12 @@ public sealed class TestSuite
             ContentRootPath = AppContext.BaseDirectory,
         });
 
-        builder.Services.AddSuiteOptions(builder.Configuration);
+        builder.Services.AddSuite(builder.Configuration);
 
         using var host = builder.Build();
-        var options = host.Services.GetRequiredService<IOptions<SuiteOptions>>().Value;
+        var suite = host.Services.GetRequiredService<Executor>();
 
-        var report = await Executor.Execute(Resources.ManifestGraph, options.BaseUri);
+        var report = await suite.Execute(Resources.ManifestGraph);
         Assertions = report.Assertions.Select(assertion =>
             new TestDataRow<Assertion>(assertion)
             {
