@@ -81,12 +81,12 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         entryRequirement.Title = entry.Name;
         entryRequirement.IsPartOf = manifestRequirement;
 
-        if (entry.Response.StatusCode is var statusCode)
+        if (entry.Response.StatusCode is { } statusCode)
         {
             Assert("status code", statusCode, response => (long)response.StatusCode);
         }
 
-        if (entry.Response.ContentType is var contentType)
+        if (entry.Response.ContentType is { } contentType)
         {
             Assert("content type", contentType, response => response.Content.Headers.ContentType?.MediaType, StringComparer.OrdinalIgnoreCase);
         }
