@@ -44,7 +44,7 @@ public class Resources
             });
 
             var store = new TripleStore();
-            parser.Load(store, Reader("manifest.jsonld"));
+            Load(parser, store, "manifest.jsonld");
 
             var manifestG = new ManifestGraph(store);
 
@@ -55,11 +55,27 @@ public class Resources
                     var c = Base.MakeRelativeUri(include);
                     var d = c.ToString();
 
-                    parser.Load(store, Reader(d));
+                    Load(parser, store, d);
                 }
             }
 
             return manifestG;
+        }
+    }
+
+
+    // Workaround for https://github.com/dotnetrdf/dotnetrdf/issues/893: the JSON-LD parser
+    // numbers blank nodes from scratch per document, so loading one document after another
+    // straight into the same store conflates their blank nodes. Parsing into a throwaway store
+    // keeps each document's identifiers to itself, and merging relabels them on the way in.
+    private static void Load(IStoreReader parser, ITripleStore store, string name)
+    {
+        var document = new TripleStore();
+        parser.Load(document, Reader(name));
+
+        foreach (var graph in document.Graphs)
+        {
+            store.Add(graph, true);
         }
     }
 }
