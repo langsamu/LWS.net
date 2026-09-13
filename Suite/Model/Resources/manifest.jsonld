@@ -249,7 +249,6 @@
 						"url": "/alice/notes/",
 						"authentication": "https://id.example/alice",
 						"authorization": "Role-Owner",
-						"linkHeaders": [],
 						"otherHeaders": [
 							{
 								"headerName": "Accept",
@@ -306,7 +305,6 @@
 						"authorization": "Role-Owner",
 						"contentType": "text/plain",
 						"slug": "shoppinglist.txt",
-						"linkHeaders": [],
 						"otherHeaders": [
 							{
 								"headerName": "Content-Length",
@@ -705,7 +703,6 @@
 						"authentication": "https://id.example/alice",
 						"authorization": "Role-Owner",
 						"comment": "The Bearer token in the Authorization header is expired.",
-						"linkHeaders": [],
 						"otherHeaders": [
 							{
 								"headerName": "Authorization",
