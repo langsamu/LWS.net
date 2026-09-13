@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Model.EARL;
-using Model.LWST;
 using Model.TestManifest;
+using System.Net.Http.Headers;
 
 namespace Model;
 
@@ -27,7 +27,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 
             foreach (var entry in manifest.Entries)
             {
-                var response = await Send(entry.Request);
+                var response = await Send(entry);
                 Process(response, result, assertor, entry, manifestRequirement);
             }
         }
@@ -35,9 +35,35 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         return result;
     }
 
-    private async Task<HttpResponseMessage?> Send(Request request)
+    private async Task<HttpResponseMessage?> Send(LWST.Entry entry)
     {
+        var request = entry.Request;
         var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
+
+        foreach (var header in request.OtherHeaders)
+        {
+            requestMessage.Headers.TryAddWithoutValidation(header.HeaderName, header.HeaderValue);
+        }
+
+        if (request.Body is { } body)
+        {
+            requestMessage.Content = new StringContent(body);
+        }
+
+        if (request.ContentType is { } contentType)
+        {
+            if (requestMessage.Content is null)
+            {
+                throw new InvalidOperationException($"Content-Type [{request.ContentType}] without body in {entry.Name}");
+            }
+
+            requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        }
+
+        if (request.Slug is { } slug)
+        {
+            requestMessage.Headers.Add("Slug", slug);
+        }
 
         try
         {
