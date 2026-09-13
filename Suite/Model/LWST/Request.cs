@@ -24,4 +24,6 @@ public class Request : GraphWrapperNode
     }
 
     public Uri? BodyUrl => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
+
+    public string? Slug => this.Singular(Vocabulary.Slug, ValueMappings.As<string>);
 }
