@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using Model;
 using Model.EARL;
+using Model.TestManifest;
 
 namespace Test;
 
 [TestClass]
 public sealed class TestSuite
 {
-    private static IEnumerable<TestDataRow<Assertion>> Assertions;
+    private static IEnumerable<Assertion> Assertions;
 
     [AssemblyInitialize]
     public static async Task Initialize(TestContext _)
@@ -24,21 +25,43 @@ public sealed class TestSuite
         var suite = host.Services.GetRequiredService<Executor>();
 
         var report = await suite.Execute(Resources.ManifestGraph);
-        Assertions = report.Assertions.Select(assertion =>
-            new TestDataRow<Assertion>(assertion)
+        Assertions = report.Assertions;
+    }
+
+    public static IEnumerable<TestDataRow<string>> TestCases
+    {
+        get
+        {
+            foreach (var manifest in Resources.ManifestGraph.Manifests)
             {
-                DisplayName = assertion.Test.Title,
-                //TestCategories = [.. entry.Traits.Select(t => t.ToString())],
-                //IgnoreMessage =assertion.Result entry.Status == Status.Pending ? "Test ignored due to pending status" : null, // TODO: What's the real logic?
+                foreach (var entry in manifest.Entries)
+                {
+                    var categories = entry.Traits.Select(static t => t.ToString()).ToList();
+                    var ignore = entry.Status == Status.Pending ? "Test ignored due to pending status" : null;
+
+                    if (entry.Response.StatusCode is not null)
+                    {
+                        var name = Executor.TestName(manifest, entry, "status code");
+                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
+                    }
+
+                    if (entry.Response.ContentType is not null)
+                    {
+                        var name = Executor.TestName(manifest, entry, "content type");
+                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
+                    }
+                }
             }
-        );
+        }
     }
 
     [TestMethod]
     //[Something]
-    [DynamicData(nameof(Assertions))]
-    public void Entry(Assertion assertion)
+    [DynamicData(nameof(TestCases))]
+    public void Entry(string testCase)
     {
+        var assertion = Assertions.Single(assertion => assertion.Test.Title == testCase);
+
         if (assertion.Result.Outcome.Equals(Vocabulary.Failed))
         {
             Assert.Fail(assertion.Result.Info);
