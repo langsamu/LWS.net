@@ -28,7 +28,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
             foreach (var entry in manifest.Entries)
             {
                 var response = await Send(entry);
-                Process(response, result, assertor, entry, manifestRequirement);
+                Process(manifest, response, result, assertor, entry, manifestRequirement);
             }
         }
 
@@ -75,7 +75,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         }
     }
 
-    private static void Process(HttpResponseMessage? response, EarlGraph graph, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
+    private static void Process(Manifest manifest, HttpResponseMessage? response, EarlGraph graph, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
     {
         var entryRequirement = TestRequirement.Create(entry.Id!, graph);
         entryRequirement.Title = entry.Name;
@@ -97,7 +97,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
             assertion.AssertedBy = assertor;
 
             var test = assertion.Test = TestCase.Create(graph);
-            test.Title = $"{entry.Name} - {aspect}";
+            test.Title = TestName(manifest, entry, aspect);
             test.IsPartOf = entryRequirement;
 
             var result = assertion.Result = TestResult.Create(graph);
@@ -122,5 +122,10 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 
             result.Outcome = EARL.Vocabulary.Passed;
         }
+    }
+
+    public static string TestName(Manifest manifest, LWST.Entry entry, string aspect)
+    {
+        return $"{manifest.Label} - {entry.Name} - {aspect}";
     }
 }
