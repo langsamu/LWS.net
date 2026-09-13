@@ -24,6 +24,8 @@ internal static class Vocabulary
 
     internal static INode LinkHeaders { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}linkHeaders"));
 
+    internal static INode OtherHeaders { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}otherHeaders"));
+
     internal static INode Rel { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}rel"));
 
     internal static INode HrefTemplate { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}hrefTemplate"));
@@ -35,4 +37,10 @@ internal static class Vocabulary
     internal static INode Method { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}method"));
 
     internal static INode AuthenticationChallenge { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}authenticationChallenge"));
+
+    internal static INode HeaderName { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}headerName"));
+
+    internal static INode HeaderValue { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}headerValue"));
+
+    internal static INode Body { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}body"));
 }

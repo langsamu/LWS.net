@@ -11,4 +11,10 @@ public class Request : GraphWrapperNode
     public Uri Url => this.Singular(Vocabulary.Url, ValueMappings.As<Uri>);
 
     public string Method => this.Singular(Vocabulary.Method, ValueMappings.As<string>);
+
+    public IList<Header> OtherHeaders => this.List(Vocabulary.OtherHeaders, Header.Wrap, Header.Wrap);
+
+    public string? ContentType => this.Singular(Vocabulary.ContentType, ValueMappings.As<string>);
+
+    public string? Body => this.Singular(Vocabulary.Body, ValueMappings.As<string>);
 }
