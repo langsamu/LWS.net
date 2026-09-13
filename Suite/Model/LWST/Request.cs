@@ -16,5 +16,12 @@ public class Request : GraphWrapperNode
 
     public string? ContentType => this.Singular(Vocabulary.ContentType, ValueMappings.As<string>);
 
-    public string? Body => this.Singular(Vocabulary.Body, ValueMappings.As<string>);
+    public string? Body
+    {
+        get => this.Singular(Vocabulary.Body, ValueMappings.As<string>);
+
+        set => this.Overwrite(Vocabulary.Body, value);
+    }
+
+    public Uri? BodyUrl => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
 }

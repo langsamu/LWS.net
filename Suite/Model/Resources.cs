@@ -57,6 +57,15 @@ public class Resources
 
                     Load(parser, store, d);
                 }
+
+                foreach (var entry in manifest.Entries)
+                {
+                    if (entry.Request.BodyUrl is { } bodyUrl)
+                    {
+                        var c = Base.MakeRelativeUri(bodyUrl);
+                        entry.Request.Body = String(c.ToString());
+                    }
+                }
             }
 
             return manifestG;
