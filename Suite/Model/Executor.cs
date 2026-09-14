@@ -96,6 +96,18 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
             Assert("body", body, response => response.Content.ReadAsStringAsync().Result, StringComparer.OrdinalIgnoreCase);
         }
 
+        foreach (var header in entry.Response.OtherHeaders)
+        {
+            if (header.HeaderName == "Content-Length")
+            {
+                Assert($"header {header.HeaderName}", header.HeaderValue, response => response.Content.Headers.TryGetValues(header.HeaderName, out var values) ? string.Join(", ", values) : null, StringComparer.OrdinalIgnoreCase);
+            }
+            else
+            {
+                Assert($"header {header.HeaderName}", header.HeaderValue, response => response.Headers.TryGetValues(header.HeaderName, out var values) ? string.Join(", ", values) : null, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
         void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
         {
             var assertion = Assertion.Create(graph);

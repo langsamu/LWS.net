@@ -24,4 +24,6 @@ public class Response : GraphWrapperNode
     public Uri BodyUrl => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
 
     public AuthenticationChallenge AuthenticationChallenge => this.Singular(Vocabulary.AuthenticationChallenge, AuthenticationChallenge.Wrap);
+
+    public IList<Header> OtherHeaders => this.List(Vocabulary.OtherHeaders, Header.Wrap, Header.Wrap);
 }
