@@ -57,13 +57,22 @@ public class Resources
 
                     Load(parser, store, d);
                 }
+            }
 
+            foreach (var manifest in manifestG.Manifests)
+            {
                 foreach (var entry in manifest.Entries)
                 {
-                    if (entry.Request.BodyUrl is { } bodyUrl)
+                    if (entry.Request.BodyUrl is { } requestBodyUrl)
                     {
-                        var c = Base.MakeRelativeUri(bodyUrl);
+                        var c = Base.MakeRelativeUri(requestBodyUrl);
                         entry.Request.Body = String(c.ToString());
+                    }
+
+                    if (entry.Response.BodyUrl is { } responseBodyUrl)
+                    {
+                        var c = Base.MakeRelativeUri(responseBodyUrl);
+                        entry.Response.Body = String(c.ToString());
                     }
                 }
             }

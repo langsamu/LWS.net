@@ -50,6 +50,12 @@ public sealed class TestSuite
                         var name = Executor.TestName(manifest, entry, "content type");
                         yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
                     }
+
+                    if (entry.Response.Body is not null)
+                    {
+                        var name = Executor.TestName(manifest, entry, "body");
+                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
+                    }
                 }
             }
         }

@@ -14,7 +14,14 @@ public class Response : GraphWrapperNode
 
     public IList<LinkHeader> LinkHeaders => this.List(Vocabulary.LinkHeaders, LinkHeader.Wrap, LinkHeader.Wrap);
 
-    public Uri BodyURL => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
+    public string? Body
+    {
+        get => this.Singular(Vocabulary.Body, ValueMappings.As<string>);
+
+        set => this.Overwrite(Vocabulary.Body, value);
+    }
+
+    public Uri BodyUrl => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
 
     public AuthenticationChallenge AuthenticationChallenge => this.Singular(Vocabulary.AuthenticationChallenge, AuthenticationChallenge.Wrap);
 }

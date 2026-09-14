@@ -91,6 +91,11 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
             Assert("content type", contentType, response => response.Content.Headers.ContentType?.MediaType, StringComparer.OrdinalIgnoreCase);
         }
 
+        if (entry.Response.Body is { } body)
+        {
+            Assert("body", body, response => response.Content.ReadAsStringAsync().Result, StringComparer.OrdinalIgnoreCase);
+        }
+
         void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
         {
             var assertion = Assertion.Create(graph);
