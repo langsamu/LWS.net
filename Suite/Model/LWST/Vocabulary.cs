@@ -45,4 +45,12 @@ internal static class Vocabulary
     internal static INode Body { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}body"));
 
     internal static INode Slug { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}slug"));
+
+    internal static INode WwwAuthenticate { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}wwwAuthenticate"));
+
+    internal static INode AsUri { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}asUri"));
+
+    internal static INode Realm { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}realm"));
+
+    internal static INode Error { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}error"));
 }

@@ -6,5 +6,13 @@ public class AuthenticationChallenge : GraphWrapperNode
 
     public static AuthenticationChallenge Wrap(INode node, IGraph graph) => new(node, graph);
 
-    public static AuthenticationChallenge Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
+    public static AuthenticationChallenge? Wrap(GraphWrapperNode node) => node switch { null => default, _ => Wrap(node, node.Graph) };
+
+    public string Scheme => this.Singular(Vocabulary.WwwAuthenticate, ValueMappings.As<string>);
+
+    public Uri AsUri => this.Singular(Vocabulary.AsUri, ValueMappings.As<Uri>);
+
+    public Uri Realm => this.Singular(Vocabulary.Realm, ValueMappings.As<Uri>);
+
+    public string? Error => this.Singular(Vocabulary.Error, ValueMappings.As<string>);
 }

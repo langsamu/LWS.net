@@ -108,6 +108,11 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
             }
         }
 
+        if (entry.Response.AuthenticationChallenge is { } authenticationChallenge)
+        {
+            // TODO: Implement
+        }
+
         void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
         {
             var assertion = Assertion.Create(graph);

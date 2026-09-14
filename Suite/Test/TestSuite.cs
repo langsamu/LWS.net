@@ -62,6 +62,12 @@ public sealed class TestSuite
                         var name = Executor.TestName(manifest, entry, $"header {header.HeaderName}");
                         yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
                     }
+
+                    if (entry.Response.AuthenticationChallenge is not null)
+                    {
+                        var name = Executor.TestName(manifest, entry, "authentication challenge");
+                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
+                    }
                 }
             }
         }
