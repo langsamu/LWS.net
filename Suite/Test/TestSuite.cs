@@ -56,7 +56,6 @@ public sealed class TestSuite
     }
 
     [TestMethod]
-    //[Something]
     [DynamicData(nameof(TestCases))]
     public void Entry(string testCase)
     {
@@ -70,8 +69,5 @@ public sealed class TestSuite
         {
             Assert.Inconclusive(assertion.Result.Info);
         }
-
-        // TODO: Fail/pass based on assertion.Result.Outcome
-        //Console.WriteLine(assertion);
     }
 }
