@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\dotNetRdf.Wrapping\dotNetRdf.Wrapping.csproj" />
+    <ProjectReference Include="..\..\dotNetRDF.Wrapping\dotNetRDF.Wrapping.csproj" />
   </ItemGroup>
 
   <ItemGroup>
