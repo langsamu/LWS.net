@@ -4,7 +4,6 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="FluentAssertions.Web.v8" />
     <PackageReference Include="Meziantou.Framework.Http" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
