@@ -37,11 +37,11 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
-						"url": "/storage_1/metadata/",
+						"url": "/storage_1/metadata/"
 					},
 					"response": {
 						"statusCode": 401,
@@ -55,7 +55,7 @@
 								"rel": "storageDescription",
 								"hrefTemplate": "https://storage.example/storage_1/metadata"
 							}
-						],
+						]
 					}
 				},
 
@@ -76,7 +76,7 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
@@ -118,11 +118,11 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
-						"url": "/alice/notes/",
+						"url": "/alice/notes/"
 					},
 					"response": {
 						"statusCode": 200,
@@ -152,7 +152,7 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
@@ -207,11 +207,11 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
-						"url": "/alice/notes/",
+						"url": "/alice/notes/"
 					},
 					"response": {
 						"statusCode": 401,
@@ -356,7 +356,7 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "POST",
@@ -391,11 +391,11 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
-						"url": "/alice/notes/shoppinglist.txt",
+						"url": "/alice/notes/shoppinglist.txt"
 					},
 					"response": {
 						"statusCode": 200,
@@ -458,7 +458,7 @@
 								"rel": "up",
 								"hrefTemplate": "/alice/notes/"
 							}
-						],
+						]
 					}
 				},
 
@@ -486,10 +486,10 @@
 						"method": "DELETE",
 						"url": "/alice/notes/shoppinglist.txt",
 						"authentication": "https://id.example/alice",
-						"authorization": "Role-Owner",
+						"authorization": "Role-Owner"
 					},
 					"response": {
-						"statusCode": 200,
+						"statusCode": 200
 					}
 				},
 
@@ -510,11 +510,11 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "DELETE",
-						"url": "/alice/notes/shoppinglist.txt",
+						"url": "/alice/notes/shoppinglist.txt"
 					},
 					"response": {
 						"statusCode": 401,
@@ -543,7 +543,7 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
@@ -586,7 +586,7 @@
 									"write": "Role-Owner"
 								}
 							}
-						],
+						]
 					},
 					"request": {
 						"method": "GET",
@@ -771,7 +771,7 @@
 								"rel": "type",
 								"href": "https://www.w3.org/ns/lws#Container"
 							}
-						],
+						]
 					}
 				}
 
