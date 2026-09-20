@@ -39,6 +39,8 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
     {
         var request = entry.Request;
         var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
+        requestMessage.Headers.UserAgent.Clear();
+        requestMessage.Headers.UserAgent.Add(new ProductInfoHeaderValue("LwsTestSuite", "1.0")); // TODO: Don't hardcode, take param, make configurable
 
         foreach (var header in request.OtherHeaders)
         {
