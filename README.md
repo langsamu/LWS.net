@@ -1,3 +1,8 @@
+# Run suite console against ebremer/lws-server
+```bash
+docker compose -f Suite/Docker/ebremer-suite.yaml up
+```
+
 # Run suite console
 ```pwsh
 dotnet run --project Suite\Console --output Detailed --Suite:BaseUri=http://localhost:8080/

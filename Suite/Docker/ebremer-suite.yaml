@@ -1,0 +1,22 @@
+services:
+  ebremer-server:
+    build:
+      dockerfile: ebremer-server.Dockerfile
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Dlws.base-uri=http://ebremer-server:8080
+        -Dlws.dev.open=true
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080"]
+      interval: 5s
+      retries: 30
+
+  suite:
+    build:
+      context: ../..
+      dockerfile: Suite/Docker/suite.Dockerfile
+    environment:
+      Suite__BaseUri: http://ebremer-server:8080/
+    depends_on:
+      ebremer-server:
+        condition: service_healthy
