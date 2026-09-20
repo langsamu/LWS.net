@@ -68,6 +68,8 @@ public sealed class TestSuite
                         var name = Executor.TestName(manifest, entry, "authentication challenge");
                         yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
                     }
+
+                    // TODO: linkHeaders
                 }
             }
         }
