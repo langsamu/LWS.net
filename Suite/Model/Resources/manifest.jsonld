@@ -14,9 +14,9 @@
 				"https://www.w3.org/TR/lws10-authn-saml/"
 			],
 			"include": [
-				"mnt/user-data/outputs/lws-tests/auth/did_key/manifest.jsonld",
-				"mnt/user-data/outputs/lws-tests/auth/oidc/manifest.jsonld",
-				"mnt/user-data/outputs/lws-tests/auth/saml/manifest.jsonld"
+				"mnt/user_data/outputs/lws_tests/auth/did_key/manifest.jsonld",
+				"mnt/user_data/outputs/lws_tests/auth/oidc/manifest.jsonld",
+				"mnt/user_data/outputs/lws_tests/auth/saml/manifest.jsonld"
 			],
 			"entries": [
 
