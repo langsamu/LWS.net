@@ -53,4 +53,6 @@ internal static class Vocabulary
     internal static INode Realm { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}realm"));
 
     internal static INode Error { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}error"));
+
+    internal static INode Href { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}href"));
 }

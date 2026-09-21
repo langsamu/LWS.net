@@ -11,4 +11,6 @@ public class LinkHeader : GraphWrapperNode
     public string Rel => this.Singular(Vocabulary.Rel, ValueMappings.As<string>);
 
     public string HrefTemplate => this.Singular(Vocabulary.HrefTemplate, ValueMappings.As<string>);
+
+    public Uri? Href => this.Singular(Vocabulary.Href, ValueMappings.As<Uri>);
 }

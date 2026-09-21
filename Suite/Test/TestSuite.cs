@@ -69,7 +69,17 @@ public sealed class TestSuite
                         yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
                     }
 
-                    // TODO: linkHeaders
+                    foreach (var header in entry.Response.LinkHeaders)
+                    {
+                        var name = Executor.TestName(manifest, entry, $"link header {header.Rel} exists");
+                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
+
+                        if (header.Href is not null)
+                        {
+                            var name2 = Executor.TestName(manifest, entry, $"link header {header.Rel} href");
+                            yield return new TestDataRow<string>(name2) { DisplayName = name2, TestCategories = categories, IgnoreMessage = ignore };
+                        }
+                    }
                 }
             }
         }

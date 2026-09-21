@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Meziantou.Framework.Http;
+using Microsoft.Extensions.Options;
 using Model.EARL;
 using Model.TestManifest;
 using System.Net.Http.Headers;
@@ -113,6 +114,18 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         if (entry.Response.AuthenticationChallenge is { } authenticationChallenge)
         {
             // TODO: Implement
+        }
+
+        foreach (var link in entry.Response.LinkHeaders)
+        {
+            var links = response.Headers.EnumerateLinkHeaders().Where(l => l.Rel == link.Rel);
+            Assert($"link header {link.Rel} exists", true, response => links.Any());
+
+            if (link.Href is { } href)
+            {
+                var b = links.Where(l => l.Url == href.ToString());
+                Assert($"link header {link.Rel} href", true, response => b.Any());
+            }
         }
 
         void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
