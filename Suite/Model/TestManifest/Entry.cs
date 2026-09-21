@@ -10,5 +10,5 @@ public class Entry : GraphWrapperNode
 
     public string Name => this.Singular(Vocabulary.Name, ValueMappings.As<string>);
 
-    public Status Status => this.Singular(Vocabulary.Status, ValueMappings.EnumFromUri<Status>(Vocabulary.NS));
+    public Status? Status => this.Singular(Vocabulary.Status, ValueMappings.EnumFromUri<Status>(Vocabulary.NS));
 }
