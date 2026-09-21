@@ -8,7 +8,7 @@ public class Response : GraphWrapperNode
 
     public static Response Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
 
-    public long? StatusCode => this.Singular(Vocabulary.StatusCode, ValueMappings.As<long>);
+    public long? StatusCode => this.Singular(Vocabulary.StatusCode, ValueMappings.As<long?>);
 
     public string? ContentType => this.Singular(Vocabulary.ContentType, ValueMappings.As<string>);
 
