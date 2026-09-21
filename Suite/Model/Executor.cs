@@ -118,13 +118,11 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 
         foreach (var link in entry.Response.LinkHeaders)
         {
-            var links = response.Headers.EnumerateLinkHeaders().Where(l => l.Rel == link.Rel);
-            Assert($"link header {link.Rel} exists", true, response => links.Any());
+            Assert($"link header {link.Rel} exists", true, response => response.Headers.EnumerateLinkHeaders().Any(l => l.Rel == link.Rel));
 
             if (link.Href is { } href)
             {
-                var b = links.Where(l => l.Url == href.ToString());
-                Assert($"link header {link.Rel} href", true, response => b.Any());
+                Assert($"link header {link.Rel} href", true, response => response.Headers.EnumerateLinkHeaders().Any(l => l.Rel == link.Rel && l.Url == href.ToString()));
             }
         }
 
