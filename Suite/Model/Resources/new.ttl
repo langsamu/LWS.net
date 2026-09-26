@@ -1,0 +1,91 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :tests (
+        [
+            :name "Test1" ;
+            :steps (
+                [
+                    :request [
+                        :method "GET" ;
+                        :uri [
+                            :base [
+                                :param "baseUri" ;
+                            ] ;
+                            :relative [
+                                :value "/" ;
+                            ] ;
+                        ] ;
+                    ] ;
+                    :extractors (
+                        [
+                            :param "storageRoot" ;
+                            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+                        ]
+                    ) ;
+                ]
+                [
+                    :request [
+                        :method "POST" ;
+                        :uri [
+                            :param "storageRoot" ;
+                        ] ;
+                    ] ;
+                    :extractors (
+                        [
+                            :param "newResource" ;
+                            :header "Location" ;
+                        ]
+                    ) ;
+                ]
+                [
+                    :request [
+                        :method "GET" ;
+                        :uri [
+                            :param "newResource" ;
+                        ] ;
+                    ] ;
+                    :extractors (
+                        [
+                            a :StatusCodeExtractor ;
+                            :param "status1" ;
+                        ]
+                    ) ;
+                ]
+                [
+                    :request [
+                        :method "DELETE" ;
+                        :uri [
+                            :param "newResource" ;
+                        ] ;
+                    ] ;
+                    :extractors (
+                        [
+                            a :StatusCodeExtractor ;
+                            :param "status2" ;
+                        ]
+                    ) ;
+                ]
+                [
+                    :request [
+                        :method "GET" ;
+                        :uri [
+                            :param "newResource" ;
+                        ] ;
+                    ] ;
+                    :extractors (
+                        [
+                            a :StatusCodeExtractor ;
+                            :param "status3" ;
+                        ]
+                    ) ;
+                ]
+            ) ;
+            :assertion [
+                :type "EqualityAssertion" ;
+                :param "status3" ;
+                :value "404" ;
+            ] ;
+        ]
+    ) ;
+] .

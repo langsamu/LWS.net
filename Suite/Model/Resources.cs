@@ -81,6 +81,17 @@ public class Resources
         }
     }
 
+    public static NewModel.Graph Graph
+    {
+        get
+        {
+            var g = new Graph();
+            new TurtleParser().Load(g, Reader("new.ttl"));
+
+            return new NewModel.Graph(g);
+        }
+    }
+
 
     // Workaround for https://github.com/dotnetrdf/dotnetrdf/issues/893: the JSON-LD parser
     // numbers blank nodes from scratch per document, so loading one document after another
