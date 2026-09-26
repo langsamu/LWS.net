@@ -21,6 +21,42 @@
 			"entries": [
 
 				{
+					"@id": "#storage-content-type-is-lws-cid",
+					"name": "Storage content-type is LWS CID",
+					"source": "https://www.w3.org/TR/lws10-core/#storage-description-binding:~:text=MUST%20return%20a%20document%20that%20conforms%20to%20the%20storage%20description",
+					"request": {
+						"method": "GET",
+						"url": "/"
+					},
+					"response": {
+						"contentType": "application/lws+cid"
+					}
+				},
+
+				{
+					"@id": "#storage-root-is-container",
+					"name": "Storage root is container",
+					"request": [
+						{
+							"method": "GET",
+							"url": "/"
+						},
+						{
+							"method": "GET",
+							"url": "/"
+						}
+					],
+					"response": {
+						"linkHeaders": [
+							{
+								"rel": "type",
+								"href": "https://www.w3.org/ns/lws#Container"
+							}
+						]
+					}
+				},
+
+				{
 					"@type": "ValidationTest",
 					"@id": "#storage-root-is-container",
 					"name": "storage-root-is-container",
