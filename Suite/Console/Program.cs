@@ -9,8 +9,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSuite(builder.Configuration);
 
 using var host = builder.Build();
-var suite = host.Services.GetRequiredService<Executor>();
 
+var executor = host.Services.GetRequiredService<Executor>();
 var context = host.Services.GetRequiredService<Context>();
 
-(await suite.Execute(context)).SaveToStream(Console.Out, new CompressingTurtleWriter());
+(await executor.Execute(context)).SaveToStream(Console.Out, new CompressingTurtleWriter());
