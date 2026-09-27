@@ -1,75 +1,30 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Model;
-using Model.EARL;
-using Model.TestManifest;
+using Model.NewModel;
+using Test.NewTests;
 
 namespace Test;
 
 [TestClass]
-public sealed class TestSuite
+public sealed class TestSuite(TestContext testContext)
 {
-    private static IEnumerable<Assertion> Assertions;
+    private static IHost host;
+    private static Executor executor;
+    private static ILoggerFactory loggerFactory;
 
-    public static IEnumerable<TestDataRow<string>> TestCases
-    {
-        get
-        {
-            foreach (var manifest in Resources.ManifestGraph.Manifests)
+    private static IEnumerable<TestDataRow<string>> TestCases =>
+        Executor.Tests.Select(test =>
+            new TestDataRow<string>(test.Name)
             {
-                foreach (var entry in manifest.Entries)
-                {
-                    var categories = entry.Traits.Select(static t => t.ToString()).ToList();
-                    var ignore = entry.Status == Status.Pending ? "Test ignored due to pending status" : null;
-
-                    if (entry.Response.StatusCode is not null)
-                    {
-                        var name = Executor.TestName(manifest, entry, "status code");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-                    }
-
-                    if (entry.Response.ContentType is not null)
-                    {
-                        var name = Executor.TestName(manifest, entry, "content type");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-                    }
-
-                    if (entry.Response.Body is not null)
-                    {
-                        var name = Executor.TestName(manifest, entry, "body");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-                    }
-
-                    foreach (var header in entry.Response.OtherHeaders)
-                    {
-                        var name = Executor.TestName(manifest, entry, $"header {header.HeaderName}");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-                    }
-
-                    if (entry.Response.AuthenticationChallenge is not null)
-                    {
-                        var name = Executor.TestName(manifest, entry, "authentication challenge");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-                    }
-
-                    foreach (var header in entry.Response.LinkHeaders)
-                    {
-                        var name = Executor.TestName(manifest, entry, $"link header {header.Rel} exists");
-                        yield return new TestDataRow<string>(name) { DisplayName = name, TestCategories = categories, IgnoreMessage = ignore };
-
-                        if (header.Href is not null)
-                        {
-                            var name2 = Executor.TestName(manifest, entry, $"link header {header.Rel} href");
-                            yield return new TestDataRow<string>(name2) { DisplayName = name2, TestCategories = categories, IgnoreMessage = ignore };
-                        }
-                    }
-                }
-            }
-        }
-    }
+                DisplayName = test.Name
+                // TODO: ignore
+                // TODO: categories
+            });
 
     [AssemblyInitialize]
-    public static async Task Initialize(TestContext _)
+    public static async Task Initialize(TestContext testContext)
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
@@ -78,26 +33,35 @@ public sealed class TestSuite
 
         builder.Services.AddSuite(builder.Configuration);
 
-        using var host = builder.Build();
-        var suite = host.Services.GetRequiredService<Executor>();
+        host = builder.Build();
+        executor = host.Services.GetRequiredService<Executor>();
+        loggerFactory = LoggerFactory.Create(b => b.AddTestContext(testContext));
+    }
 
-        var report = await suite.Execute();
-        Assertions = report.Assertions;
+    [AssemblyCleanup]
+    public static void Cleanup()
+    {
+        host.Dispose();
+        loggerFactory.Dispose();
     }
 
     [TestMethod]
     [DynamicData(nameof(TestCases))]
-    public void Entry(string testCase)
+    public async Task Entry(string testCase)
     {
-        var assertion = Assertions.Single(assertion => assertion.Test.Title == testCase);
+        var context = new Context(loggerFactory);
+        context.Set("baseUri", "http://localhost:8080"); // TODO: make this configurable
 
-        if (assertion.Result.Outcome.Equals(Vocabulary.Failed))
+        var result = await executor.Execute(testCase, context);
+
+        switch (result.Outcome)
         {
-            Assert.Fail(assertion.Result.Info);
-        }
-        else if (assertion.Result.Outcome.Equals(Vocabulary.CantTell))
-        {
-            Assert.Inconclusive(assertion.Result.Info);
+            case "Fail":
+                Assert.Fail(result.Info);
+                break;
+            case "Inconclusive":
+                Assert.Inconclusive(result.Info);
+                break;
         }
     }
 }

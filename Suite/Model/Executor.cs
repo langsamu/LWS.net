@@ -1,8 +1,6 @@
-﻿using Meziantou.Framework.Http;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Model.EARL;
-using Model.TestManifest;
-using System.Net.Http.Headers;
+using Model.NewModel;
 
 namespace Model;
 
@@ -10,157 +8,54 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 {
     private readonly SuiteOptions options = options.Value;
 
-    public static string TestName(Manifest manifest, LWST.Entry entry, string aspect)
+    public static IEnumerable<NewModel.TestCase> Tests => Resources.Graph.Manifest.Tests;
+
+    public async Task<Result> Execute(string name, Context context)
     {
-        return $"{manifest.Label} - {entry.Name} - {aspect}";
+        var test = Tests.Single(test => test.Name == name);
+        return await Execute(test, context);
     }
 
-    public async Task<EarlGraph> Execute()
+    public async Task<Result> Execute(NewModel.TestCase test, Context context)
     {
-        var result = new EarlGraph(new Graph());
+        return await test.Execute(context, client);
+    }
 
-        var assertor = Assertor.Create(result);
+    public async Task<EarlGraph> Execute(Context context) // TODO: Client from DI
+    {
+        var graph = new EarlGraph(new VDS.RDF.Graph());
+
+        var assertor = Assertor.Create(graph);
         assertor.Title = "NAME OF ASSERTOR"; // TODO: Don't hardcode
 
-        var suiteRequirement = TestRequirement.Create(result);
+        var suiteRequirement = TestRequirement.Create(graph);
         suiteRequirement.Title = "NAME OF TEST SUITE"; // TODO: Don't hardcode
 
-        foreach (var manifest in Resources.ManifestGraph.Manifests)
+        foreach (var testCase in Tests)
         {
-            var manifestRequirement = TestRequirement.Create(manifest.Id!, result);
-            manifestRequirement.Title = manifest.Label;
-            manifestRequirement.IsPartOf = suiteRequirement;
+            var result3 = await Execute(testCase, context);
+            var entryRequirement = TestRequirement.Create(graph);
+            entryRequirement.Title = testCase.Name;
+            entryRequirement.IsPartOf = suiteRequirement;
 
-            foreach (var entry in manifest.Entries)
-            {
-                var response = await Send(entry);
-                Process(manifest, response, result, assertor, entry, manifestRequirement);
-            }
-        }
-
-        return result;
-    }
-
-    private static void Process(Manifest manifest, HttpResponseMessage? response, EarlGraph graph, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
-    {
-        var entryRequirement = TestRequirement.Create(entry.Id!, graph);
-        entryRequirement.Title = entry.Name;
-        entryRequirement.IsPartOf = manifestRequirement;
-
-        if (entry.Response.StatusCode is { } statusCode)
-        {
-            Assert("status code", statusCode, response => (long)response.StatusCode);
-        }
-
-        if (entry.Response.ContentType is { } contentType)
-        {
-            Assert("content type", contentType, response => response.Content.Headers.ContentType?.MediaType, StringComparer.OrdinalIgnoreCase);
-        }
-
-        if (entry.Response.Body is { } body)
-        {
-            Assert("body", body, response => response.Content.ReadAsStringAsync().Result, StringComparer.OrdinalIgnoreCase);
-        }
-
-        foreach (var header in entry.Response.OtherHeaders)
-        {
-            if (header.HeaderName == "Content-Length")
-            {
-                Assert($"header {header.HeaderName}", header.HeaderValue, response => response.Content.Headers.TryGetValues(header.HeaderName, out var values) ? string.Join(", ", values) : null, StringComparer.OrdinalIgnoreCase);
-            }
-            else
-            {
-                Assert($"header {header.HeaderName}", header.HeaderValue, response => response.Headers.TryGetValues(header.HeaderName, out var values) ? string.Join(", ", values) : null, StringComparer.OrdinalIgnoreCase);
-            }
-        }
-
-        if (entry.Response.AuthenticationChallenge is { } authenticationChallenge)
-        {
-            // TODO: Implement
-        }
-
-        foreach (var link in entry.Response.LinkHeaders)
-        {
-            Assert($"link header {link.Rel} exists", true, response => response.Headers.EnumerateLinkHeaders().Any(l => l.Rel == link.Rel));
-
-            if (link.Href is { } href)
-            {
-                Assert($"link header {link.Rel} href", true, response => response.Headers.EnumerateLinkHeaders().Any(l => l.Rel == link.Rel && l.Url == href.ToString()));
-            }
-        }
-
-        void Assert<T>(string aspect, T expected, Func<HttpResponseMessage, T> actual, IEqualityComparer<T>? comparer = null)
-        {
-            var assertion = Assertion.Create(graph);
+            var assertion = EARL.Assertion.Create(graph);
             assertion.AssertedBy = assertor;
 
-            var test = assertion.Test = TestCase.Create(graph);
-            test.Title = TestName(manifest, entry, aspect);
+            var test = assertion.Test = EARL.TestCase.Create(graph);
+            test.Title = testCase.Name;
             test.IsPartOf = entryRequirement;
 
             var result = assertion.Result = TestResult.Create(graph);
-
-            if (response is null)
+            result.Info = result3.Info;
+            result.Outcome = result3.Outcome switch
             {
-                result.Outcome = EARL.Vocabulary.Failed;
-                result.Info = "No response";
-
-                return;
-            }
-
-            var value = actual(response);
-
-            if (!(comparer ?? EqualityComparer<T>.Default).Equals(expected, value))
-            {
-                result.Outcome = EARL.Vocabulary.Failed;
-                result.Info = $"Expected {aspect} [{expected}], but got [{value}]";
-
-                return;
-            }
-
-            result.Outcome = EARL.Vocabulary.Passed;
-        }
-    }
-
-    private async Task<HttpResponseMessage?> Send(LWST.Entry entry)
-    {
-        var request = entry.Request;
-        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
-        requestMessage.Headers.UserAgent.Clear();
-        requestMessage.Headers.UserAgent.Add(new ProductInfoHeaderValue("LwsTestSuite", "1.0")); // TODO: Don't hardcode, take param, make configurable
-
-        foreach (var header in request.OtherHeaders)
-        {
-            requestMessage.Headers.TryAddWithoutValidation(header.HeaderName, header.HeaderValue);
+                "Pass" => EARL.Vocabulary.Passed,
+                "Fail" => EARL.Vocabulary.Failed,
+                "Inconclusive" => EARL.Vocabulary.CantTell,
+                _ => throw new InvalidOperationException($"Unknown outcome: {result3.Outcome}")
+            };
         }
 
-        if (request.Body is { } body)
-        {
-            requestMessage.Content = new StringContent(body);
-        }
-
-        if (request.ContentType is { } contentType)
-        {
-            if (requestMessage.Content is null)
-            {
-                throw new InvalidOperationException($"Content-Type [{request.ContentType}] without body in {entry.Name}");
-            }
-
-            requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-        }
-
-        if (request.Slug is { } slug)
-        {
-            requestMessage.Headers.Add("Slug", slug);
-        }
-
-        try
-        {
-            return await client.SendAsync(requestMessage).ConfigureAwait(false);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
+        return graph;
     }
 }
