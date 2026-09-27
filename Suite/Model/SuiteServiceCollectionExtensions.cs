@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Model.NewModel;
+using OpenTelemetry.Trace;
 
 namespace Model;
 
@@ -11,5 +12,8 @@ public static class SuiteServiceCollectionExtensions
             .AddSuiteOptions(configuration)
             .Services
             .AddHttpClient<Context>()
+            .Services
+            .AddOpenTelemetry()
+            .WithTracing(builder => builder.AddHttpClientInstrumentation())
             .Services;
 }

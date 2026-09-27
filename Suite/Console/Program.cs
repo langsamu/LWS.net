@@ -9,8 +9,11 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSuite(builder.Configuration);
 
 using var host = builder.Build();
+await host.StartAsync();
 
 var context = host.Services.GetRequiredService<Context>();
 
 var earlReport = await Executor.Execute(context);
 earlReport.SaveToStream(Console.Out, new CompressingTurtleWriter());
+
+await host.StopAsync();
