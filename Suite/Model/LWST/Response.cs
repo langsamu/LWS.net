@@ -4,10 +4,6 @@ public class Response : GraphWrapperNode
 {
     protected Response(INode node, IGraph graph) : base(node, graph) { }
 
-    public static Response Wrap(INode node, IGraph graph) => new(node, graph);
-
-    public static Response Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
-
     public long? StatusCode => this.Singular(Vocabulary.StatusCode, ValueMappings.As<long?>);
 
     public string? ContentType => this.Singular(Vocabulary.ContentType, ValueMappings.As<string>);
@@ -26,4 +22,8 @@ public class Response : GraphWrapperNode
     public AuthenticationChallenge? AuthenticationChallenge => this.Singular(Vocabulary.AuthenticationChallenge, AuthenticationChallenge.Wrap);
 
     public IList<Header> OtherHeaders => this.List(Vocabulary.OtherHeaders, Header.Wrap, Header.Wrap);
+
+    public static Response Wrap(INode node, IGraph graph) => new(node, graph);
+
+    public static Response Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
 }

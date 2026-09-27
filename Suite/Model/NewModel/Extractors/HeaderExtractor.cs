@@ -2,16 +2,8 @@
 
 namespace Model.NewModel.Extractors;
 
-public class HeaderExtractor : Extractor
+public partial class HeaderExtractor
 {
-    protected HeaderExtractor(INode node, IGraph graph) : base(node, graph) { }
-
-    public static HeaderExtractor Wrap(INode node, IGraph graph) => new(node, graph);
-
-    public static HeaderExtractor? Wrap(GraphWrapperNode node) => node switch { null => default, _ => Wrap(node, node.Graph) };
-
-    public string HeaderName => this.Singular(Vocabulary.Header, ValueMappings.As<string>);
-
     protected override async Task<string> Extract(Context context, HttpResponseMessage response)
     {
         // TODO: <1?

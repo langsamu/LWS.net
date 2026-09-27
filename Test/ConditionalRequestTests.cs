@@ -4,6 +4,7 @@
 public sealed class ConditionalRequestTests
 {
     private static readonly MyWebApplication app = new();
+
     public required TestContext TestContext { get; set; }
 
     [TestMethod]

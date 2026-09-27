@@ -12,6 +12,7 @@ public class InMemoryLwsStorage : ILwsStorage
         storage.TryGetValue(context.Request.Path, out var resource);
         return Task.FromResult(resource);
     }
+
     public Task<Stream?> GetContentAsync(HttpContext context)
     {
         contents.TryGetValue(context.Request.Path, out var content);
@@ -30,6 +31,7 @@ public class InMemoryLwsStorage : ILwsStorage
 
         return Task.FromResult(resource);
     }
+
     public async Task PutContentAsync(string id, Stream body, CancellationToken ct)
     {
         var stream = new MemoryStream();

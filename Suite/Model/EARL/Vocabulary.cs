@@ -29,7 +29,7 @@ public static class Vocabulary
     public static INode Info { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}info"));
 
     public static INode Passed { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}passed"));
-    
+
     public static INode Title { get; } = factory.CreateUriNode(UriFactory.Create("http://purl.org/dc/terms/title"));
 
     public static INode Description { get; } = factory.CreateUriNode(UriFactory.Create("http://purl.org/dc/terms/description"));

@@ -5,6 +5,7 @@ namespace Test.NewTests;
 sealed class TestContextLoggerProvider(TestContext testContext) : ILoggerProvider
 {
     ILogger ILoggerProvider.CreateLogger(string categoryName) => new TestContextLogger(testContext, categoryName);
+
     void IDisposable.Dispose() { }
 
     private sealed class TestContextLogger(TestContext testContext, string category) : ILogger

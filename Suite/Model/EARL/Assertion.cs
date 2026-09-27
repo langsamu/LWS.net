@@ -4,12 +4,6 @@ public class Assertion : GraphWrapperNode
 {
     protected Assertion(INode node, IGraph graph) : base(node, graph) { }
 
-    public static Assertion Wrap(INode node, IGraph graph) => new(node, graph);
-
-    public static Assertion Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
-
-    public static Assertion Create(IGraph g) => Wrap(g.CreateBlankNode(), g);
-
     public Assertor AssertedBy
     {
         get => this.Singular(Vocabulary.AssertedBy, Assertor.Wrap);
@@ -39,4 +33,10 @@ public class Assertion : GraphWrapperNode
 
         set => this.Overwrite(Vocabulary.Result, value);
     }
+
+    public static Assertion Wrap(INode node, IGraph graph) => new(node, graph);
+
+    public static Assertion Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
+
+    public static Assertion Create(IGraph g) => Wrap(g.CreateBlankNode(), g);
 }

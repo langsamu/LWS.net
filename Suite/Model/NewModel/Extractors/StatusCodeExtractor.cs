@@ -2,14 +2,8 @@
 
 namespace Model.NewModel.Extractors;
 
-public class StatusCodeExtractor : Extractor
+public partial class StatusCodeExtractor
 {
-    protected StatusCodeExtractor(INode node, IGraph graph) : base(node, graph) { }
-
-    public static StatusCodeExtractor Wrap(INode node, IGraph graph) => new(node, graph);
-
-    public static StatusCodeExtractor? Wrap(GraphWrapperNode node) => node switch { null => default, _ => Wrap(node, node.Graph) };
-
     protected override async Task<string> Extract(Context context, HttpResponseMessage response)
     {
         var value = ((int)response.StatusCode).ToString();

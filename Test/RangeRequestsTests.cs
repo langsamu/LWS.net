@@ -6,6 +6,7 @@ namespace Test;
 public sealed class RangeRequestTests
 {
     private static readonly MyWebApplication app = new();
+
     public required TestContext TestContext { get; set; }
 
     [TestMethod]

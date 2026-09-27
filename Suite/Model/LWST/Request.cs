@@ -4,10 +4,6 @@ public class Request : GraphWrapperNode
 {
     protected Request(INode node, IGraph graph) : base(node, graph) { }
 
-    public static Request Wrap(INode node, IGraph graph) => new(node, graph);
-
-    public static Request Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
-
     public Uri Url => this.Singular(Vocabulary.Url, ValueMappings.As<Uri>);
 
     public string Method => this.Singular(Vocabulary.Method, ValueMappings.As<string>);
@@ -26,4 +22,8 @@ public class Request : GraphWrapperNode
     public Uri? BodyUrl => this.Singular(Vocabulary.BodyURL, ValueMappings.As<Uri>);
 
     public string? Slug => this.Singular(Vocabulary.Slug, ValueMappings.As<string>);
+
+    public static Request Wrap(INode node, IGraph graph) => new(node, graph);
+
+    public static Request Wrap(GraphWrapperNode node) => Wrap(node, node.Graph);
 }

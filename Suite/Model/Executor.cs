@@ -10,6 +10,11 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
 {
     private readonly SuiteOptions options = options.Value;
 
+    public static string TestName(Manifest manifest, LWST.Entry entry, string aspect)
+    {
+        return $"{manifest.Label} - {entry.Name} - {aspect}";
+    }
+
     public async Task<EarlGraph> Execute(ManifestGraph suite)
     {
         var result = new EarlGraph(new Graph());
@@ -34,48 +39,6 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         }
 
         return result;
-    }
-
-    private async Task<HttpResponseMessage?> Send(LWST.Entry entry)
-    {
-        var request = entry.Request;
-        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
-        requestMessage.Headers.UserAgent.Clear();
-        requestMessage.Headers.UserAgent.Add(new ProductInfoHeaderValue("LwsTestSuite", "1.0")); // TODO: Don't hardcode, take param, make configurable
-
-        foreach (var header in request.OtherHeaders)
-        {
-            requestMessage.Headers.TryAddWithoutValidation(header.HeaderName, header.HeaderValue);
-        }
-
-        if (request.Body is { } body)
-        {
-            requestMessage.Content = new StringContent(body);
-        }
-
-        if (request.ContentType is { } contentType)
-        {
-            if (requestMessage.Content is null)
-            {
-                throw new InvalidOperationException($"Content-Type [{request.ContentType}] without body in {entry.Name}");
-            }
-
-            requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-        }
-
-        if (request.Slug is { } slug)
-        {
-            requestMessage.Headers.Add("Slug", slug);
-        }
-
-        try
-        {
-            return await client.SendAsync(requestMessage).ConfigureAwait(false);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 
     private static void Process(Manifest manifest, HttpResponseMessage? response, EarlGraph graph, Assertor assertor, LWST.Entry entry, TestRequirement manifestRequirement)
@@ -159,8 +122,45 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         }
     }
 
-    public static string TestName(Manifest manifest, LWST.Entry entry, string aspect)
+    private async Task<HttpResponseMessage?> Send(LWST.Entry entry)
     {
-        return $"{manifest.Label} - {entry.Name} - {aspect}";
+        var request = entry.Request;
+        var requestMessage = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(options.BaseUri, request.Url));
+        requestMessage.Headers.UserAgent.Clear();
+        requestMessage.Headers.UserAgent.Add(new ProductInfoHeaderValue("LwsTestSuite", "1.0")); // TODO: Don't hardcode, take param, make configurable
+
+        foreach (var header in request.OtherHeaders)
+        {
+            requestMessage.Headers.TryAddWithoutValidation(header.HeaderName, header.HeaderValue);
+        }
+
+        if (request.Body is { } body)
+        {
+            requestMessage.Content = new StringContent(body);
+        }
+
+        if (request.ContentType is { } contentType)
+        {
+            if (requestMessage.Content is null)
+            {
+                throw new InvalidOperationException($"Content-Type [{request.ContentType}] without body in {entry.Name}");
+            }
+
+            requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        }
+
+        if (request.Slug is { } slug)
+        {
+            requestMessage.Headers.Add("Slug", slug);
+        }
+
+        try
+        {
+            return await client.SendAsync(requestMessage).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }

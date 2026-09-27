@@ -11,23 +11,6 @@ public sealed class TestSuite
 {
     private static IEnumerable<Assertion> Assertions;
 
-    [AssemblyInitialize]
-    public static async Task Initialize(TestContext _)
-    {
-        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
-        {
-            ContentRootPath = AppContext.BaseDirectory,
-        });
-
-        builder.Services.AddSuite(builder.Configuration);
-
-        using var host = builder.Build();
-        var suite = host.Services.GetRequiredService<Executor>();
-
-        var report = await suite.Execute(Resources.ManifestGraph);
-        Assertions = report.Assertions;
-    }
-
     public static IEnumerable<TestDataRow<string>> TestCases
     {
         get
@@ -83,6 +66,23 @@ public sealed class TestSuite
                 }
             }
         }
+    }
+
+    [AssemblyInitialize]
+    public static async Task Initialize(TestContext _)
+    {
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            ContentRootPath = AppContext.BaseDirectory,
+        });
+
+        builder.Services.AddSuite(builder.Configuration);
+
+        using var host = builder.Build();
+        var suite = host.Services.GetRequiredService<Executor>();
+
+        var report = await suite.Execute(Resources.ManifestGraph);
+        Assertions = report.Assertions;
     }
 
     [TestMethod]
