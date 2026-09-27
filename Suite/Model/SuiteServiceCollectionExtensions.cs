@@ -10,7 +10,6 @@ public static class SuiteServiceCollectionExtensions
         services
             .AddSuiteOptions(configuration)
             .Services
-            .AddHttpClient<Executor>()
-            .Services
-            .AddTransient<Context>();
+            .AddHttpClient<Context>()
+            .Services;
 }

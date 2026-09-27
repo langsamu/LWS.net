@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Model.NewModel.Extractors;
+﻿namespace Model.NewModel.Extractors;
 
 public partial class HeaderExtractor
 {
@@ -9,8 +7,8 @@ public partial class HeaderExtractor
         // TODO: <1?
         // TODO: >1?
         var value = response.Headers.GetValues(HeaderName).Single();
-        var logger = context.LoggerFactory.CreateLogger<HeaderExtractor>();
-        logger.LogInformation("Extract: [{0}] = [{1}]", HeaderName, value);
+
+        context.Log<HeaderExtractor>("Extract: [{0}] = [{1}]", HeaderName, value);
 
         return value;
     }

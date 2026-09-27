@@ -10,7 +10,7 @@ builder.Services.AddSuite(builder.Configuration);
 
 using var host = builder.Build();
 
-var executor = host.Services.GetRequiredService<Executor>();
 var context = host.Services.GetRequiredService<Context>();
 
-(await executor.Execute(context)).SaveToStream(Console.Out, new CompressingTurtleWriter());
+var earlReport = await Executor.Execute(context);
+earlReport.SaveToStream(Console.Out, new CompressingTurtleWriter());

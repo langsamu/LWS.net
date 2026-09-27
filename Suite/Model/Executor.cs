@@ -1,27 +1,13 @@
-﻿using Microsoft.Extensions.Options;
-using Model.EARL;
+﻿using Model.EARL;
 using Model.NewModel;
 
 namespace Model;
 
-public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
+public static class Executor
 {
-    private readonly SuiteOptions options = options.Value;
-
     public static IEnumerable<NewModel.TestCase> Tests => Resources.Graph.Manifest.Tests;
 
-    public async Task<Result> Execute(string name, Context context)
-    {
-        var test = Tests.Single(test => test.Name == name);
-        return await Execute(test, context);
-    }
-
-    public async Task<Result> Execute(NewModel.TestCase test, Context context)
-    {
-        return await test.Execute(context, client);
-    }
-
-    public async Task<EarlGraph> Execute(Context context) // TODO: Client from DI
+    public static async Task<EarlGraph> Execute(Context context)
     {
         var graph = new EarlGraph(new VDS.RDF.Graph());
 
@@ -57,5 +43,16 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         }
 
         return graph;
+    }
+
+    public static async Task<Result> Execute(string name, Context context)
+    {
+        var test = Tests.Single(test => test.Name == name);
+        return await Execute(test, context);
+    }
+
+    private static async Task<Result> Execute(NewModel.TestCase test, Context context)
+    {
+        return await test.Execute(context);
     }
 }

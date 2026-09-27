@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Test.NewTests;
+namespace Test;
 
 internal static class TestContextLoggingExtensions
 {
