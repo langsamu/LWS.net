@@ -15,7 +15,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         return $"{manifest.Label} - {entry.Name} - {aspect}";
     }
 
-    public async Task<EarlGraph> Execute(ManifestGraph suite)
+    public async Task<EarlGraph> Execute()
     {
         var result = new EarlGraph(new Graph());
 
@@ -25,7 +25,7 @@ public sealed class Executor(HttpClient client, IOptions<SuiteOptions> options)
         var suiteRequirement = TestRequirement.Create(result);
         suiteRequirement.Title = "NAME OF TEST SUITE"; // TODO: Don't hardcode
 
-        foreach (var manifest in suite.Manifests)
+        foreach (var manifest in Resources.ManifestGraph.Manifests)
         {
             var manifestRequirement = TestRequirement.Create(manifest.Id!, result);
             manifestRequirement.Title = manifest.Label;

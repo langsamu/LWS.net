@@ -10,4 +10,4 @@ builder.Services.AddSuite(builder.Configuration);
 using var host = builder.Build();
 var suite = host.Services.GetRequiredService<Executor>();
 
-(await suite.Execute(Resources.ManifestGraph)).SaveToStream(Console.Out, new CompressingTurtleWriter());
+(await suite.Execute()).SaveToStream(Console.Out, new CompressingTurtleWriter());

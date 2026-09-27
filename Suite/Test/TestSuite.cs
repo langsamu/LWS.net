@@ -81,7 +81,7 @@ public sealed class TestSuite
         using var host = builder.Build();
         var suite = host.Services.GetRequiredService<Executor>();
 
-        var report = await suite.Execute(Resources.ManifestGraph);
+        var report = await suite.Execute();
         Assertions = report.Assertions;
     }
 
