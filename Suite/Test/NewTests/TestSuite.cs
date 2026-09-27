@@ -1,20 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using Model;
 using Model.NewModel;
-using Model.NewModel.Assertions;
-using Model.NewModel.Expressions;
-using Model.NewModel.Extractors;
-
 
 namespace Test.NewTests;
 
 [TestClass]
 public class TestSuite(TestContext testContext)
 {
-    private static IEnumerable<TestCase> Tests => Resources.Graph.Manifest.Tests;
-
     private static IEnumerable<TestDataRow<string>> TestNames =>
-        Tests.Select(test =>
+        Executor.Tests.Select(test =>
             new TestDataRow<string>(test.Name)
             {
                 DisplayName = test.Name
@@ -31,8 +24,7 @@ public class TestSuite(TestContext testContext)
         var context = new Context(loggerFactory);
         context.Set("baseUri", "http://localhost:8080"); // TODO: make this configurable
 
-        var test = Tests.Single(test => test.Name == name);
-        var result = await test.Execute(context, new HttpClient());
+        var result = await Executor.Execute(name, context);
 
         switch (result.Outcome)
         {
