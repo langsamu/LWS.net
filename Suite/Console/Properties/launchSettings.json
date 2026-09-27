@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+        "Console": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "HTTP_PROXY": "http://localhost:8081"
+            }
+        }
+    }
+}

@@ -1,0 +1,5 @@
+﻿{
+    "environmentVariables": {
+        "HTTP_PROXY": "http://localhost:8081"
+    }
+}
