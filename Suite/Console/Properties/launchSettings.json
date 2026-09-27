@@ -3,7 +3,11 @@
         "Console": {
             "commandName": "Project",
             "environmentVariables": {
-                "HTTP_PROXY": "http://localhost:8081"
+                "aHTTP_PROXY": "http://localhost:8081",
+
+                // OTEL incompatible with proxy
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "http://127.0.0.1:4317",
+                "OTEL_SERVICE_NAME": "LWS Test Suite (Console)"
             }
         }
     }
