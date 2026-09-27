@@ -1,22 +1,24 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Test.NewTests;
 
-sealed class TestContextLoggerProvider(TestContext testContext) : ILoggerProvider
+// Writes to the TestContext of whichever test is executing, so one provider serves the whole host
+#pragma warning disable MSTESTEXP // TestContext.Current is experimental
+sealed class TestContextLoggerProvider : ILoggerProvider
 {
-    ILogger ILoggerProvider.CreateLogger(string categoryName) => new TestContextLogger(testContext, categoryName);
+    ILogger ILoggerProvider.CreateLogger(string categoryName) => new TestContextLogger(categoryName);
 
     void IDisposable.Dispose() { }
 
-    private sealed class TestContextLogger(TestContext testContext, string category) : ILogger
+    private sealed class TestContextLogger(string category) : ILogger
     {
-        IDisposable? ILogger.BeginScope<TState>(TState state) => throw new NotImplementedException();
+        IDisposable? ILogger.BeginScope<TState>(TState state) => null;
 
-        bool ILogger.IsEnabled(LogLevel logLevel) => throw new NotImplementedException();
+        bool ILogger.IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None && TestContext.Current is not null;
 
         void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            testContext.WriteLine("[{0}] {1}: {2}", logLevel, category, formatter(state, exception));
+            TestContext.Current?.WriteLine("[{0}] {1}: {2}", logLevel, category, formatter(state, exception));
         }
     }
 }

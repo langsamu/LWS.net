@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Model.NewModel;
 
 namespace Model;
 
@@ -10,5 +11,6 @@ public static class SuiteServiceCollectionExtensions
             .AddSuiteOptions(configuration)
             .Services
             .AddHttpClient<Executor>()
-            .Services;
+            .Services
+            .AddTransient<Context>();
 }

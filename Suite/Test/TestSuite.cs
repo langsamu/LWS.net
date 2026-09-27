@@ -8,11 +8,10 @@ using Test.NewTests;
 namespace Test;
 
 [TestClass]
-public sealed class TestSuite(TestContext testContext)
+public sealed class TestSuite
 {
     private static IHost host;
     private static Executor executor;
-    private static ILoggerFactory loggerFactory;
 
     private static IEnumerable<TestDataRow<string>> TestCases =>
         Executor.Tests.Select(test =>
@@ -24,7 +23,7 @@ public sealed class TestSuite(TestContext testContext)
             });
 
     [AssemblyInitialize]
-    public static async Task Initialize(TestContext testContext)
+    public static async Task Initialize(TestContext _)
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
@@ -32,25 +31,23 @@ public sealed class TestSuite(TestContext testContext)
         });
 
         builder.Services.AddSuite(builder.Configuration);
+        builder.Logging.AddTestContext();
 
         host = builder.Build();
         executor = host.Services.GetRequiredService<Executor>();
-        loggerFactory = LoggerFactory.Create(b => b.AddTestContext(testContext));
     }
 
     [AssemblyCleanup]
     public static void Cleanup()
     {
         host.Dispose();
-        loggerFactory.Dispose();
     }
 
     [TestMethod]
     [DynamicData(nameof(TestCases))]
     public async Task Entry(string testCase)
     {
-        var context = new Context(loggerFactory);
-        context.Set("baseUri", "http://localhost:8080"); // TODO: make this configurable
+        var context = host.Services.GetRequiredService<Context>();
 
         var result = await executor.Execute(testCase, context);
 
