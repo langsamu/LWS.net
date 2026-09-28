@@ -1,6 +1,7 @@
 ﻿@prefix : <http://example.com/> .
 
 [
+    :name "LWS Test Suite" ;
     :tests (
         [
             :name "Test1" ;
@@ -155,7 +156,7 @@
             :assertion [
                 :type "EqualityAssertion" ;
                 :param "status2" ;
-                :value "204" ;
+                :value "999" ;
             ] ;
         ]
     ) ;

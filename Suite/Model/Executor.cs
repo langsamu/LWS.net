@@ -10,7 +10,7 @@ public static class Executor
 
     public static IEnumerable<NewModel.TestCase> Tests => Resources.Graph.Manifest.Tests;
 
-    public static Activity? StartSuiteActivity() => ActivitySource.StartActivity("Suite");
+    public static Activity? StartSuiteActivity() => ActivitySource.StartActivity("Suite", ActivityKind.Internal, parentContext: default, tags: [new("test.suite.name", Resources.Graph.Manifest.Name)]);
 
     public static async Task<EarlGraph> Execute(Context context)
     {
@@ -22,7 +22,7 @@ public static class Executor
         assertor.Title = "NAME OF ASSERTOR"; // TODO: Don't hardcode
 
         var suiteRequirement = TestRequirement.Create(graph);
-        suiteRequirement.Title = "NAME OF TEST SUITE"; // TODO: Don't hardcode
+        suiteRequirement.Title = Resources.Graph.Manifest.Name;
 
         foreach (var testCase in Tests)
         {
@@ -60,8 +60,17 @@ public static class Executor
 
     private static async Task<Result> Execute(NewModel.TestCase test, Context context, ActivityContext parentContext = default)
     {
-        using var activity = ActivitySource.StartActivity(test.Name, ActivityKind.Internal, parentContext);
+        using var activity = ActivitySource.StartActivity(test.Name, ActivityKind.Internal, parentContext, [new("test.case.name", test.Name)]);
 
-        return await test.Execute(context);
+        var result = await test.Execute(context);
+
+        activity?.SetTag("test.case.result.status", result.Outcome.ToLowerInvariant());
+
+        if (result.Outcome == "Fail")
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, result.Info);
+        }
+
+        return result;
     }
 }
