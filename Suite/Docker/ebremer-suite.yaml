@@ -17,6 +17,8 @@ services:
         -Dlws.dev.open=true
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
       OTEL_SERVICE_NAME: ebremer lws-server (Docker)
+      OTEL_LOGS_EXPORTER: none
+      OTEL_METRICS_EXPORTER: none
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080"]
       interval: 5s
