@@ -14,6 +14,6 @@ public static class SuiteServiceCollectionExtensions
             .AddHttpClient<Context>()
             .Services
             .AddOpenTelemetry()
-            .WithTracing(builder => builder.AddHttpClientInstrumentation().AddOtlpExporter())
+            .WithTracing(builder => builder.AddSource(Executor.ActivitySource.Name).AddHttpClientInstrumentation().AddOtlpExporter())
             .Services;
 }

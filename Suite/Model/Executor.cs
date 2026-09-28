@@ -1,10 +1,13 @@
 ﻿using Model.EARL;
 using Model.NewModel;
+using System.Diagnostics;
 
 namespace Model;
 
 public static class Executor
 {
+    internal static readonly ActivitySource ActivitySource = new(typeof(Executor).FullName!);
+
     public static IEnumerable<NewModel.TestCase> Tests => Resources.Graph.Manifest.Tests;
 
     public static async Task<EarlGraph> Execute(Context context)
@@ -53,6 +56,8 @@ public static class Executor
 
     private static async Task<Result> Execute(NewModel.TestCase test, Context context)
     {
+        using var activity = ActivitySource.StartActivity(test.Name);
+
         return await test.Execute(context);
     }
 }
