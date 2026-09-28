@@ -2,6 +2,7 @@
 ```bash
 docker compose -f Suite/Docker/ebremer-suite.yaml up
 ```
+Traces from the suite and the server are in Jaeger at http://localhost:16686.
 
 # Run suite console
 ```pwsh
