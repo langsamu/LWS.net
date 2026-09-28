@@ -10,8 +10,12 @@ public static class Executor
 
     public static IEnumerable<NewModel.TestCase> Tests => Resources.Graph.Manifest.Tests;
 
+    public static Activity? StartSuiteActivity() => ActivitySource.StartActivity("Suite");
+
     public static async Task<EarlGraph> Execute(Context context)
     {
+        using var activity = StartSuiteActivity();
+
         var graph = new EarlGraph(new VDS.RDF.Graph());
 
         var assertor = Assertor.Create(graph);
@@ -48,15 +52,15 @@ public static class Executor
         return graph;
     }
 
-    public static async Task<Result> Execute(string name, Context context)
+    public static async Task<Result> Execute(string name, Context context, ActivityContext parentContext = default)
     {
         var test = Tests.Single(test => test.Name == name);
-        return await Execute(test, context);
+        return await Execute(test, context, parentContext);
     }
 
-    private static async Task<Result> Execute(NewModel.TestCase test, Context context)
+    private static async Task<Result> Execute(NewModel.TestCase test, Context context, ActivityContext parentContext = default)
     {
-        using var activity = ActivitySource.StartActivity(test.Name);
+        using var activity = ActivitySource.StartActivity(test.Name, ActivityKind.Internal, parentContext);
 
         return await test.Execute(context);
     }

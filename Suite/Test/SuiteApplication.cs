@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Testing.Platform.Services;
 using Model;
 using Model.NewModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Test;
@@ -10,6 +11,7 @@ namespace Test;
 internal static class SuiteApplication
 {
     private static IHost? host;
+    private static Activity? activity;
 
     [AssemblyInitialize]
     [SuppressMessage("Usage", "MSTEST0012:AssemblyInitialize methods should have valid layout", Justification = "Analyzer doesn't know AssemblyFixtureProvider")]
@@ -25,12 +27,16 @@ internal static class SuiteApplication
 
         host = builder.Build();
         await host.StartAsync(context.CancellationToken);
+
+        activity = Executor.StartSuiteActivity();
     }
 
     [AssemblyCleanup]
     [SuppressMessage("Usage", "MSTEST0013:AssemblyCleanup methods should have valid layout", Justification = "Analyzer doesn't know AssemblyFixtureProvider")]
     public static async Task Cleanup(TestContext context)
     {
+        activity?.Dispose();
+
         if (host is null)
         {
             return;
@@ -46,6 +52,6 @@ internal static class SuiteApplication
 
         var context = services.GetRequiredService<Context>();
 
-        return await Executor.Execute(name, context);
+        return await Executor.Execute(name, context, activity?.Context ?? default);
     }
 }
