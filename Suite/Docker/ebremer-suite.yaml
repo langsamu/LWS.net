@@ -16,7 +16,7 @@ services:
         -Dlws.base-uri=http://ebremer-server:8080
         -Dlws.dev.open=true
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
-      OTEL_SERVICE_NAME: ebremer lws-server (Docker)
+      OTEL_SERVICE_NAME: server-ebremer
       OTEL_LOGS_EXPORTER: none
       OTEL_METRICS_EXPORTER: none
     healthcheck:
@@ -34,7 +34,7 @@ services:
     environment:
       Suite__BaseUri: http://ebremer-server:8080/
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
-      OTEL_SERVICE_NAME: LWS Test Suite (Console) (Docker)
+      OTEL_SERVICE_NAME: test-langsamu
     depends_on:
       jaeger:
         condition: service_healthy
