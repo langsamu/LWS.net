@@ -1,4 +1,6 @@
-﻿namespace Model.NewModel;
+﻿using System.Net.Http.Headers;
+
+namespace Model.NewModel;
 
 public partial class Request
 {
@@ -7,9 +9,17 @@ public partial class Request
         var u = await Uri.Evaluate(context);
         var re = new HttpRequestMessage(new HttpMethod(Method), u);
 
+        if (Body is { } body)
+        {
+            re.Content = new StringContent(body, null as MediaTypeHeaderValue);
+        }
+
         foreach (var header in Headers)
         {
-            re.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            if (!re.Headers.TryAddWithoutValidation(header.Name, header.Value))
+            {
+                re.Content?.Headers.TryAddWithoutValidation(header.Name, header.Value);
+            }
         }
 
         context.Log<Request>("Execute: [{Method}] [{Uri}]", Method, u);
