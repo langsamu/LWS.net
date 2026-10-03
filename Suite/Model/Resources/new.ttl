@@ -43,53 +43,8 @@ _:core-containers-getContainer-status
     :name "getContainer-status" ;
     :steps (
         _:getStorageRoot
-        [
-            :name "Create test container" ;
-            :request [
-                :method "POST" ;
-                :uri [
-                    :param "storageRoot" ;
-                ] ;
-                :headers (
-                    [
-                        :header "Link" ;
-                        :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
-                    ]
-                ) ;
-            ] ;
-            :extractors (
-                [
-                    :param "testContainerLocation" ;
-                    :header "Location" ;
-                ]
-            ) ;
-        ]
-        [
-            :name "Get test container" ;
-            :request [
-                :method "GET" ;
-                :uri [
-                    :base [
-                        :param "storageRoot" ;
-                    ] ;
-                    :relative [
-                        :param "testContainerLocation" ;
-                    ] ;
-                ] ;
-                :headers (
-                    [
-                        :header "Accept" ;
-                        :value "application/lws+json" ;
-                    ]
-                ) ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status" ;
-                ]
-            ) ;
-        ]
+        _:createContainer
+        _:getCreatedContainer
     ) ;
     :assertion [
         :type "EqualityAssertion" ;
@@ -158,6 +113,55 @@ _:deleteCreatedResource
         :uri [
             :param "newResource" ;
         ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :name "Create test container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :param "storageRoot" ;
+        ] ;
+        :headers (
+            [
+                :header "Link" ;
+                :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+            ]
+        ) ;
+    ] ;
+    :extractors (
+        [
+            :param "testContainerLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:getCreatedContainer
+    :name "Get test container" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "testContainerLocation" ;
+            ] ;
+        ] ;
+        :headers (
+            [
+                :header "Accept" ;
+                :value "application/lws+json" ;
+            ]
+        ) ;
     ] ;
     :extractors (
         [
