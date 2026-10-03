@@ -48,7 +48,8 @@ _:test1
         :type "EqualityAssertion" ;
         :param "status3" ;
         :value "404" ;
-    ] .
+    ] ;
+.
 
 _:test2
     :name "Test2" ;
@@ -131,7 +132,8 @@ _:core-containers-getContainer-status
         :type "EqualityAssertion" ;
         :param "status" ;
         :value "200" ;
-    ] .
+    ] ;
+.
 
 _:getStorageRoot
     :request [
