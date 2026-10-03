@@ -13,20 +13,7 @@ _:test1
     :name "Test1" ;
     :steps (
         _:getStorageRoot
-        [
-            :request [
-                :method "POST" ;
-                :uri [
-                    :param "storageRoot" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    :param "newResource" ;
-                    :header "Location" ;
-                ]
-            ) ;
-        ]
+        _:createResource
         [
             :request [
                 :method "GET" ;
@@ -80,20 +67,7 @@ _:test2
     :name "Test2" ;
     :steps (
         _:getStorageRoot
-        [
-            :request [
-                :method "POST" ;
-                :uri [
-                    :param "storageRoot" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    :param "newResource" ;
-                    :header "Location" ;
-                ]
-            ) ;
-        ]
+        _:createResource
         [
             :request [
                 :method "GET" ;
@@ -203,3 +177,19 @@ _:getStorageRoot
             :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
         ]
     ) ;
+.
+
+_:createResource
+    :request [
+        :method "POST" ;
+        :uri [
+            :param "storageRoot" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            :param "newResource" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
