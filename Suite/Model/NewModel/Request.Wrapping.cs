@@ -6,6 +6,8 @@ public partial class Request : GraphWrapperNode
 
     public Expression Uri => this.Singular(Vocabulary.Uri, Expression.Choose);
 
+    public IList<RequestHeader> Headers => this.List(Vocabulary.Headers, RequestHeader.Wrap, RequestHeader.Wrap);
+
     public string Method => this.Singular(Vocabulary.Method, ValueMappings.As<string>);
 
     public static Request Wrap(INode node, IGraph graph) => new(node, graph);

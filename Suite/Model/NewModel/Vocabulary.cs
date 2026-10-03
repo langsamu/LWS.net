@@ -14,6 +14,8 @@ internal static class Vocabulary
 
     internal static INode Request { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}request"));
 
+    internal static INode Headers { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}headers"));
+
     internal static INode Method { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}method"));
 
     internal static INode Uri { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}uri"));
