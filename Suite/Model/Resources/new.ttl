@@ -159,5 +159,80 @@
                 :value "999" ;
             ] ;
         ]
+        _:core-containers-getContainer-status
     ) ;
 ] .
+
+_:core-containers-getContainer-status
+    :name "getContainer-status" ;
+    :steps (
+        [
+            :request [
+                :method "GET" ;
+                :uri [
+                    :base [
+                        :param "baseUri" ;
+                    ] ;
+                    :relative [
+                        :value "/" ;
+                    ] ;
+                ] ;
+            ] ;
+            :extractors (
+                [
+                    :param "storageRoot" ;
+                    :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+                ]
+            ) ;
+        ]
+        [
+            :request [
+                :method "POST" ;
+                :uri [
+                    :param "storageRoot" ;
+                ] ;
+                :headers (
+                    [
+                        :header "Link" ;
+                        :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+                    ]
+                ) ;
+            ] ;
+            :extractors (
+                [
+                    :param "testContainerLocation" ;
+                    :header "Location" ;
+                ]
+            ) ;
+        ]
+        [
+            :request [
+                :method "GET" ;
+                :uri [
+                    :base [
+                        :param "storageRoot" ;
+                    ] ;
+                    :relative [
+                        :param "testContainerLocation" ;
+                    ] ;
+                ] ;
+                :headers (
+                    [
+                        :header "Accept" ;
+                        :value "application/lws+json" ;
+                    ]
+                ) ;
+            ] ;
+            :extractors (
+                [
+                    a :StatusCodeExtractor ;
+                    :param "status" ;
+                ]
+            ) ;
+        ]
+    ) ;
+    :assertion [
+        :type "EqualityAssertion" ;
+        :param "status" ;
+        :value "200" ;
+    ] .
