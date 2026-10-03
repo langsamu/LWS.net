@@ -16,24 +16,11 @@ _:test1
         _:createResource
         _:getCreatedResource
         _:deleteCreatedResource
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :param "newResource" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status3" ;
-                ]
-            ) ;
-        ]
+        _:getCreatedResource
     ) ;
     :assertion [
         :type "EqualityAssertion" ;
-        :param "status3" ;
+        :param "status" ;
         :value "404" ;
     ] ;
 .
