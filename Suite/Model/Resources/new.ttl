@@ -14,20 +14,7 @@ _:test1
     :steps (
         _:getStorageRoot
         _:createResource
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :param "newResource" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status1" ;
-                ]
-            ) ;
-        ]
+        _:getCreatedResource
         [
             :request [
                 :method "DELETE" ;
@@ -68,20 +55,7 @@ _:test2
     :steps (
         _:getStorageRoot
         _:createResource
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :param "newResource" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status1" ;
-                ]
-            ) ;
-        ]
+        _:getCreatedResource
         [
             :request [
                 :method "DELETE" ;
@@ -190,6 +164,21 @@ _:createResource
         [
             :param "newResource" ;
             :header "Location" ;
+        ]
+    ) ;
+.
+
+_:getCreatedResource
+    :request [
+        :method "GET" ;
+        :uri [
+            :param "newResource" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
         ]
     ) ;
 .
