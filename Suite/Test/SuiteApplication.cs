@@ -22,8 +22,8 @@ internal static class SuiteApplication
             ContentRootPath = AppContext.BaseDirectory,
         });
 
-        builder.Services.AddSuite(builder.Configuration);
         builder.Logging.ClearProviders().AddTestContext();
+        builder.Services.AddSuite(builder.Configuration);
 
         host = builder.Build();
         await host.StartAsync(context.CancellationToken);

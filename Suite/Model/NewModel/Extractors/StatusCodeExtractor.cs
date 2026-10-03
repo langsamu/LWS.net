@@ -6,7 +6,7 @@ public partial class StatusCodeExtractor
     {
         var value = ((int)response.StatusCode).ToString();
 
-        context.Log<StatusCodeExtractor>("Extract: value = [{0}]", value);
+        context.Log<StatusCodeExtractor>("Extract: value = [{Value}]", value);
 
         return value;
     }

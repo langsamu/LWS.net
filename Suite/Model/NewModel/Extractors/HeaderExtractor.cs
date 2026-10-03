@@ -8,7 +8,7 @@ public partial class HeaderExtractor
         // TODO: >1?
         var value = response.Headers.GetValues(HeaderName).Single();
 
-        context.Log<HeaderExtractor>("Extract: [{0}] = [{1}]", HeaderName, value);
+        context.Log<HeaderExtractor>("Extract: [{HeaderName}] = [{Value}]", HeaderName, value);
 
         return value;
     }

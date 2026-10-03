@@ -7,7 +7,7 @@ public partial class Request
         var u = await Uri.Evaluate(context);
         var re = new HttpRequestMessage(new HttpMethod(Method), u);
 
-        context.Log<Request>("Execute: [{0}] [{1}]", Method, u);
+        context.Log<Request>("Execute: [{Method}] [{Uri}]", Method, u);
 
         return await context.Client.SendAsync(re);
     }

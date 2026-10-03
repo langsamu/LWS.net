@@ -16,7 +16,7 @@ public partial class JsonPathExtractor
         // TODO: >1?
         var value = result.Matches.Single().Value;
 
-        context.Log<JsonPathExtractor>("Extract: path = [{0}], value = [{1}]", Path, value);
+        context.Log<JsonPathExtractor>("Extract: path = [{Path}], value = [{Value}]", Path, value);
 
         return value.ToString();
     }

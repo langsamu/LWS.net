@@ -15,7 +15,7 @@ public class Context(ILoggerFactory loggerFactory, IOptions<SuiteOptions> option
 
     public string Get(string name)
     {
-        Log<Context>("Get: [{0}] = [{1}]", name, data[name]);
+        Log<Context>("Get: [{Name}] = [{Value}]", name, data[name]);
 
         return data[name];
     }

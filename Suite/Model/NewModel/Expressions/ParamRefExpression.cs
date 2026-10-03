@@ -6,7 +6,7 @@ public partial class ParamRefExpression
     {
         var value = context.Get(Param);
 
-        context.Log<ParamRefExpression>("Evaluate: [{0}] = [{1}]", Param, value);
+        context.Log<ParamRefExpression>("Evaluate: [{Param}] = [{Value}]", Param, value);
 
         return value;
     }
