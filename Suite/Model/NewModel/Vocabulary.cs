@@ -1,4 +1,6 @@
-﻿namespace Model.NewModel;
+﻿using VDS.RDF.Parsing;
+
+namespace Model.NewModel;
 
 internal static class Vocabulary
 {
@@ -15,6 +17,8 @@ internal static class Vocabulary
     internal static INode Request { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}request"));
 
     internal static INode Headers { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}headers"));
+
+    internal static INode RdfType { get; } = factory.CreateUriNode(UriFactory.Create(RdfSpecsHelper.RdfType));
 
     internal static INode Method { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}method"));
 
@@ -37,4 +41,6 @@ internal static class Vocabulary
     internal static INode Assertion { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}assertion"));
 
     internal static INode Type { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}type"));
+
+    internal static INode StatusCodeExtractor { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}StatusCodeExtractor"));
 }

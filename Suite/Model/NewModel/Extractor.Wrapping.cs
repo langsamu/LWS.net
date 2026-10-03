@@ -20,8 +20,7 @@ public abstract partial class Extractor : GraphWrapperNode
             return JsonPathExtractor.Wrap(node);
         }
 
-        // TODO: Match on something
-        if (true)
+        if (node.Graph.GetTriplesWithSubjectPredicate(node, Vocabulary.RdfType).WithObject(Vocabulary.StatusCodeExtractor).Any())
         {
             return StatusCodeExtractor.Wrap(node);
         }
