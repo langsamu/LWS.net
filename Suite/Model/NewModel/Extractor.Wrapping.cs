@@ -10,6 +10,11 @@ public abstract partial class Extractor : GraphWrapperNode
 
     internal static Extractor? Choose(GraphWrapperNode node)
     {
+        if (node.Graph.GetTriplesWithSubjectPredicate(node, Vocabulary.RdfType).WithObject(Vocabulary.BodyExtractor).Any())
+        {
+            return BodyExtractor.Wrap(node);
+        }
+
         if (node.Graph.GetTriplesWithSubjectPredicate(node, Vocabulary.Header).Any())
         {
             return HeaderExtractor.Wrap(node);

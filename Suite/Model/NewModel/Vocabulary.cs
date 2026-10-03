@@ -20,6 +20,8 @@ internal static class Vocabulary
 
     internal static INode RdfType { get; } = factory.CreateUriNode(UriFactory.Create(RdfSpecsHelper.RdfType));
 
+    internal static INode BodyExtractor { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}BodyExtractor"));
+
     internal static INode Method { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}method"));
 
     internal static INode Uri { get; } = factory.CreateUriNode(UriFactory.Create($"{NS}uri"));
