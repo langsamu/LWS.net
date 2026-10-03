@@ -12,25 +12,7 @@
 _:test1
     :name "Test1" ;
     :steps (
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :base [
-                        :param "baseUri" ;
-                    ] ;
-                    :relative [
-                        :value "/" ;
-                    ] ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    :param "storageRoot" ;
-                    :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
-                ]
-            ) ;
-        ]
+        _:getStorageRoot
         [
             :request [
                 :method "POST" ;
@@ -97,25 +79,7 @@ _:test1
 _:test2
     :name "Test2" ;
     :steps (
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :base [
-                        :param "baseUri" ;
-                    ] ;
-                    :relative [
-                        :value "/" ;
-                    ] ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    :param "storageRoot" ;
-                    :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
-                ]
-            ) ;
-        ]
+        _:getStorageRoot
         [
             :request [
                 :method "POST" ;
@@ -168,25 +132,7 @@ _:test2
 _:core-containers-getContainer-status
     :name "getContainer-status" ;
     :steps (
-        [
-            :request [
-                :method "GET" ;
-                :uri [
-                    :base [
-                        :param "baseUri" ;
-                    ] ;
-                    :relative [
-                        :value "/" ;
-                    ] ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    :param "storageRoot" ;
-                    :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
-                ]
-            ) ;
-        ]
+        _:getStorageRoot
         [
             :request [
                 :method "POST" ;
@@ -238,3 +184,22 @@ _:core-containers-getContainer-status
         :param "status" ;
         :value "200" ;
     ] .
+
+_:getStorageRoot
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "baseUri" ;
+            ] ;
+            :relative [
+                :value "/" ;
+            ] ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            :param "storageRoot" ;
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+        ]
+    ) ;
