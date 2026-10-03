@@ -44,6 +44,7 @@ _:core-containers-getContainer-status
     :steps (
         _:getStorageRoot
         [
+            :name "Create test container" ;
             :request [
                 :method "POST" ;
                 :uri [
@@ -64,6 +65,7 @@ _:core-containers-getContainer-status
             ) ;
         ]
         [
+            :name "Get test container" ;
             :request [
                 :method "GET" ;
                 :uri [
@@ -97,6 +99,7 @@ _:core-containers-getContainer-status
 .
 
 _:getStorageRoot
+    :name "Get storage root" ;
     :request [
         :method "GET" ;
         :uri [
@@ -117,6 +120,7 @@ _:getStorageRoot
 .
 
 _:createResource
+    :name "Create resource" ;
     :request [
         :method "POST" ;
         :uri [
@@ -132,6 +136,7 @@ _:createResource
 .
 
 _:getCreatedResource
+    :name "Get created resource" ;
     :request [
         :method "GET" ;
         :uri [
@@ -147,6 +152,7 @@ _:getCreatedResource
 .
 
 _:deleteCreatedResource
+    :name "Delete created resource" ;
     :request [
         :method "DELETE" ;
         :uri [

@@ -4,6 +4,8 @@ public partial class Step : GraphWrapperNode
 {
     protected Step(INode node, IGraph graph) : base(node, graph) { }
 
+    public string Name => this.Singular(Vocabulary.Name, ValueMappings.As<string>);
+
     public Request Request => this.Singular(Vocabulary.Request, Request.Wrap);
 
     public IList<Extractor> Extractors => this.List(Vocabulary.Extractors, (value, graph) => null!, Extractor.Choose);
