@@ -15,20 +15,7 @@ _:test1
         _:getStorageRoot
         _:createResource
         _:getCreatedResource
-        [
-            :request [
-                :method "DELETE" ;
-                :uri [
-                    :param "newResource" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status2" ;
-                ]
-            ) ;
-        ]
+        _:deleteCreatedResource
         [
             :request [
                 :method "GET" ;
@@ -57,24 +44,11 @@ _:test2
         _:getStorageRoot
         _:createResource
         _:getCreatedResource
-        [
-            :request [
-                :method "DELETE" ;
-                :uri [
-                    :param "newResource" ;
-                ] ;
-            ] ;
-            :extractors (
-                [
-                    a :StatusCodeExtractor ;
-                    :param "status2" ;
-                ]
-            ) ;
-        ]
+        _:deleteCreatedResource
     ) ;
     :assertion [
         :type "EqualityAssertion" ;
-        :param "status2" ;
+        :param "status" ;
         :value "999" ;
     ] .
 
@@ -173,6 +147,21 @@ _:createResource
 _:getCreatedResource
     :request [
         :method "GET" ;
+        :uri [
+            :param "newResource" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
+.
+
+_:deleteCreatedResource
+    :request [
+        :method "DELETE" ;
         :uri [
             :param "newResource" ;
         ] ;
