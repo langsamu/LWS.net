@@ -10,6 +10,7 @@
         _:core-data_resources-data-resource-range-unsatisfiable
         _:core-containers-createContainer-items-empty
         _:core-data_resources-data-resource-range-request-first-status
+        _:core-containers-getContainer-containmentIntegrity-initial-items-empty
     ) ;
 ] .
 
@@ -88,6 +89,16 @@ _:core-data_resources-data-resource-range-request-first-status
         _:getDigitsResourceFirstBytes
     ) ;
     :assertion _:206 ;
+.
+
+_:core-containers-getContainer-containmentIntegrity-initial-items-empty
+    :name "getContainer-containmentIntegrity-initial-items-empty" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getTestContainerItems
+    ) ;
+    :assertion _:emptyItems ;
 .
 
 _:getStorageRoot
@@ -417,4 +428,29 @@ _:206
     :type "EqualityAssertion" ;
     :param "status" ;
     :value "206" ;
+.
+
+_:getTestContainerItems
+    :name "Get items of test container" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "testContainerLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Accept" ;
+            :value "application/lws+json" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            :param "items" ;
+            :path "$.items" ;
+        ]
+    ) ;
 .
