@@ -75,7 +75,7 @@ _:core-containers-createContainer-items-empty
         _:getStorageRoot
         _:createContainer
         _:createSubContainer
-        _:getSubContainerItems
+        _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
 .
@@ -96,7 +96,7 @@ _:core-containers-getContainer-containmentIntegrity-initial-items-empty
     :steps (
         _:getStorageRoot
         _:createContainer
-        _:getTestContainerItems
+        _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
 .
@@ -184,7 +184,7 @@ _:createContainer
     ] ;
     :extractors (
         [
-            :param "testContainerLocation" ;
+            :param "containerLocation" ;
             :header "Location" ;
         ]
     ) ;
@@ -199,7 +199,7 @@ _:getCreatedContainer
                 :param "storageRoot" ;
             ] ;
             :relative [
-                :param "testContainerLocation" ;
+                :param "containerLocation" ;
             ] ;
         ] ;
         :headers [
@@ -242,7 +242,7 @@ _:createTextResource
                 :param "storageRoot" ;
             ] ;
             :relative [
-                :param "testContainerLocation" ;
+                :param "containerLocation" ;
             ] ;
         ] ;
         :headers [
@@ -295,7 +295,7 @@ _:createDigitsResource
                 :param "storageRoot" ;
             ] ;
             :relative [
-                :param "testContainerLocation" ;
+                :param "containerLocation" ;
             ] ;
         ] ;
         :headers [
@@ -352,7 +352,7 @@ _:createSubContainer
                 :param "storageRoot" ;
             ] ;
             :relative [
-                :param "testContainerLocation" ;
+                :param "containerLocation" ;
             ] ;
         ] ;
         :headers [
@@ -362,33 +362,8 @@ _:createSubContainer
     ] ;
     :extractors (
         [
-            :param "subContainerLocation" ;
+            :param "containerLocation" ;
             :header "Location" ;
-        ]
-    ) ;
-.
-
-_:getSubContainerItems
-    :name "Get items of sub-container" ;
-    :request [
-        :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "subContainerLocation" ;
-            ] ;
-        ] ;
-        :headers [
-            :header "Accept" ;
-            :value "application/lws+json" ;
-        ] ;
-    ] ;
-    :extractors (
-        [
-            :param "items" ;
-            :path "$.items" ;
         ]
     ) ;
 .
@@ -430,8 +405,8 @@ _:206
     :value "206" ;
 .
 
-_:getTestContainerItems
-    :name "Get items of test container" ;
+_:getContainerItems
+    :name "Get items of container" ;
     :request [
         :method "GET" ;
         :uri [
@@ -439,7 +414,7 @@ _:getTestContainerItems
                 :param "storageRoot" ;
             ] ;
             :relative [
-                :param "testContainerLocation" ;
+                :param "containerLocation" ;
             ] ;
         ] ;
         :headers [
