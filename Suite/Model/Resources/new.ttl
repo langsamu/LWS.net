@@ -12,6 +12,7 @@
         _:core-data_resources-data-resource-range-request-first-status
         _:core-containers-getContainer-containmentIntegrity-initial-items-empty
         _:core-data_resources-data-resource-range-request-suffix-status
+        _:core-data_resources-data-resource-head-parity-head-body-empty
     ) ;
 ] .
 
@@ -111,6 +112,17 @@ _:core-data_resources-data-resource-range-request-suffix-status
         _:getDigitsResourceLastBytes
     ) ;
     :assertion _:206 ;
+.
+
+_:core-data_resources-data-resource-head-parity-head-body-empty
+    :name "data-resource-head-parity-head-body-empty" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceBody
+    ) ;
+    :assertion _:emptyBody ;
 .
 
 _:getStorageRoot
@@ -465,4 +477,31 @@ _:getDigitsResourceLastBytes
             :param "status" ;
         ]
     ) ;
+.
+
+_:headTextResourceBody
+    :name "Head text resource" ;
+    :request [
+        :method "HEAD" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "textResourceLocation" ;
+            ] ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
+        ]
+    ) ;
+.
+
+_:emptyBody
+    :type "EqualityAssertion" ;
+    :param "body" ;
+    :value "" ;
 .
