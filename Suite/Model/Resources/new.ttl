@@ -8,6 +8,7 @@
         _:core-containers-getContainer-status
         _:core-data_resources-createDataResource-body
         _:core-data_resources-data-resource-range-unsatisfiable
+        _:core-containers-createContainer-items-empty
     ) ;
 ] .
 
@@ -64,6 +65,17 @@ _:core-data_resources-data-resource-range-unsatisfiable
         _:getDigitsResourceBeyondEnd
     ) ;
     :assertion _:416 ;
+.
+
+_:core-containers-createContainer-items-empty
+    :name "createContainer-items-empty" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createSubContainer
+        _:getSubContainerItems
+    ) ;
+    :assertion _:emptyItems ;
 .
 
 _:getStorageRoot
@@ -316,4 +328,64 @@ _:416
     :type "EqualityAssertion" ;
     :param "status" ;
     :value "416" ;
+.
+
+_:createSubContainer
+    :name "Create sub-container in test container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "testContainerLocation" ;
+            ] ;
+        ] ;
+        :headers (
+            [
+                :header "Link" ;
+                :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+            ]
+        ) ;
+    ] ;
+    :extractors (
+        [
+            :param "subContainerLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:getSubContainerItems
+    :name "Get items of sub-container" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "subContainerLocation" ;
+            ] ;
+        ] ;
+        :headers (
+            [
+                :header "Accept" ;
+                :value "application/lws+json" ;
+            ]
+        ) ;
+    ] ;
+    :extractors (
+        [
+            :param "items" ;
+            :path "$.items" ;
+        ]
+    ) ;
+.
+
+_:emptyItems
+    :type "EqualityAssertion" ;
+    :param "items" ;
+    :value "[]" ;
 .
