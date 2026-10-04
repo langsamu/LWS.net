@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Model.NewModel.Extractors;
+﻿namespace Model.NewModel.Extractors;
 
 public partial class BodyExtractor
 {
