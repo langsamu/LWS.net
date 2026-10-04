@@ -205,10 +205,7 @@ _:getCreatedResource
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -221,10 +218,7 @@ _:deleteCreatedResource
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -260,10 +254,7 @@ _:getCreatedContainer
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -376,10 +367,7 @@ _:getDigitsResourceBeyondEnd
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -435,10 +423,7 @@ _:getDigitsResourceFirstBytes
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -488,10 +473,7 @@ _:getDigitsResourceLastBytes
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -580,10 +562,7 @@ _:createResourceWithForgedLinkset
         :body "metadata override attempt" ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
 .
 
@@ -611,9 +590,11 @@ _:getContainerWithWeightedAccept
         ] ;
     ] ;
     :extractors (
-        [
-            a :StatusCodeExtractor ;
-            :param "status" ;
-        ]
+        _:status
     ) ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :param "status" ;
 .
