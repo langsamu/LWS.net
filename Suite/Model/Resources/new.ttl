@@ -15,6 +15,7 @@
         _:core-data_resources-data-resource-head-parity-head-body-empty
         _:core-containers-container-head-parity-head-body-empty
         _:core-data_resources-create-server-managed-links-protected-post-status
+        _:core-containers-container-conneg-weighted-status
     ) ;
 ] .
 
@@ -146,6 +147,16 @@ _:core-data_resources-create-server-managed-links-protected-post-status
         _:createResourceWithForgedLinkset
     ) ;
     :assertion _:201 ;
+.
+
+_:core-containers-container-conneg-weighted-status
+    :name "container-conneg-weighted-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getContainerWithWeightedAccept
+    ) ;
+    :assertion _:200 ;
 .
 
 _:getStorageRoot
@@ -580,4 +591,29 @@ _:201
     :type "EqualityAssertion" ;
     :param "status" ;
     :value "201" ;
+.
+
+_:getContainerWithWeightedAccept
+    :name "Get container with weighted Accept" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Accept" ;
+            :value "text/html;q=0.9, application/ld+json;q=0.5" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
 .
