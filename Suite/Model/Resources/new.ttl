@@ -9,6 +9,7 @@
         _:core-data_resources-createDataResource-body
         _:core-data_resources-data-resource-range-unsatisfiable
         _:core-containers-createContainer-items-empty
+        _:core-data_resources-data-resource-range-request-first-status
     ) ;
 ] .
 
@@ -76,6 +77,17 @@ _:core-containers-createContainer-items-empty
         _:getSubContainerItems
     ) ;
     :assertion _:emptyItems ;
+.
+
+_:core-data_resources-data-resource-range-request-first-status
+    :name "data-resource-range-request-first-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstBytes
+    ) ;
+    :assertion _:206 ;
 .
 
 _:getStorageRoot
@@ -374,4 +386,35 @@ _:emptyItems
     :type "EqualityAssertion" ;
     :param "items" ;
     :value "[]" ;
+.
+
+_:getDigitsResourceFirstBytes
+    :name "Get first four bytes of text resource" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "digitsResourceLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Range" ;
+            :value "bytes=0-3" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
+.
+
+_:206
+    :type "EqualityAssertion" ;
+    :param "status" ;
+    :value "206" ;
 .
