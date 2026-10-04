@@ -16,6 +16,7 @@
         _:core-containers-container-head-parity-head-body-empty
         _:core-data_resources-create-server-managed-links-protected-post-status
         _:core-containers-container-conneg-weighted-status
+        _:core-containers-container-ld-json-lws-profile-status
     ) ;
 ] .
 
@@ -155,6 +156,16 @@ _:core-containers-container-conneg-weighted-status
         _:getStorageRoot
         _:createContainer
         _:getContainerWithWeightedAccept
+    ) ;
+    :assertion _:200 ;
+.
+
+_:core-containers-container-ld-json-lws-profile-status
+    :name "container-ld-json-lws-profile-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getContainerWithLwsProfileAccept
     ) ;
     :assertion _:200 ;
 .
@@ -597,4 +608,26 @@ _:getContainerWithWeightedAccept
 _:status
     a :StatusCodeExtractor ;
     :param "status" ;
+.
+
+_:getContainerWithLwsProfileAccept
+    :name "Get container with LWS profile Accept" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Accept" ;
+            :value "application/ld+json; profile=\"https://www.w3.org/ns/lws/v1\"" ;
+        ] ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
 .
