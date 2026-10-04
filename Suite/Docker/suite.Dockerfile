@@ -3,6 +3,6 @@ WORKDIR /src
 COPY . .
 RUN dotnet publish Suite/Console -o /app
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled
 COPY --from=build /app /app
 ENTRYPOINT ["dotnet", "/app/Console.dll"]
