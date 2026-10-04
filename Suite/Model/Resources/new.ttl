@@ -13,6 +13,7 @@
         _:core-containers-getContainer-containmentIntegrity-initial-items-empty
         _:core-data_resources-data-resource-range-request-suffix-status
         _:core-data_resources-data-resource-head-parity-head-body-empty
+        _:core-containers-container-head-parity-head-body-empty
     ) ;
 ] .
 
@@ -121,6 +122,17 @@ _:core-data_resources-data-resource-head-parity-head-body-empty
         _:createContainer
         _:createTextResource
         _:headTextResourceBody
+    ) ;
+    :assertion _:emptyBody ;
+.
+
+_:core-containers-container-head-parity-head-body-empty
+    :name "container-head-parity-head-body-empty" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getCreatedContainer
+        _:headContainerBody
     ) ;
     :assertion _:emptyBody ;
 .
@@ -504,4 +516,29 @@ _:emptyBody
     :type "EqualityAssertion" ;
     :param "body" ;
     :value "" ;
+.
+
+_:headContainerBody
+    :name "Head container" ;
+    :request [
+        :method "HEAD" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Accept" ;
+            :value "application/lws+json" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
+        ]
+    ) ;
 .
