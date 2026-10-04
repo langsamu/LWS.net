@@ -14,6 +14,7 @@
         _:core-data_resources-data-resource-range-request-suffix-status
         _:core-data_resources-data-resource-head-parity-head-body-empty
         _:core-containers-container-head-parity-head-body-empty
+        _:core-data_resources-create-server-managed-links-protected-post-status
     ) ;
 ] .
 
@@ -135,6 +136,16 @@ _:core-containers-container-head-parity-head-body-empty
         _:headContainerBody
     ) ;
     :assertion _:emptyBody ;
+.
+
+_:core-data_resources-create-server-managed-links-protected-post-status
+    :name "create-server-managed-links-protected-post-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createResourceWithForgedLinkset
+    ) ;
+    :assertion _:201 ;
 .
 
 _:getStorageRoot
@@ -535,4 +546,38 @@ _:acceptLwsJson
 _:contentTypeTextPlain
     :header "Content-Type" ;
     :value "text/plain" ;
+.
+
+_:createResourceWithForgedLinkset
+    :name "Create resource claiming a forged linkset" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers
+            _:textPlainHeader ,
+            [
+                :header "Link" ;
+                :value "<https://linkset.invalid/forged>; rel=\"linkset\"" ;
+            ] ;
+        :body "metadata override attempt" ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
+.
+
+_:201
+    :type "EqualityAssertion" ;
+    :param "status" ;
+    :value "201" ;
 .
