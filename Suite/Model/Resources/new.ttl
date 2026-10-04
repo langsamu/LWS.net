@@ -21,6 +21,7 @@
         _:core-data_resources-data-resource-accept-ranges
         _:core-data_resources-data-resource-range-request-suffix-body
         _:core-data_resources-data-resource-range-request-first-content-range
+        _:core-data_resources-data-resource-range-request-first-body
     ) ;
 ] .
 
@@ -220,6 +221,20 @@ _:core-data_resources-data-resource-range-request-first-content-range
     :assertion [
         :param "contentRange" ;
         :regex "^bytes 0-3/10$" ;
+    ] ;
+.
+
+_:core-data_resources-data-resource-range-request-first-body
+    :name "data-resource-range-request-first-body" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstBytesBody
+    ) ;
+    :assertion [
+        :param "body" ;
+        :regex "^0123$" ;
     ] ;
 .
 
@@ -775,6 +790,31 @@ _:getDigitsResourceFirstBytesContentRange
         [
             :param "contentRange" ;
             :header "Content-Range" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceFirstBytesBody
+    :name "Get first four bytes of text resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "digitsResourceLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Range" ;
+            :value "bytes=0-3" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
         ]
     ) ;
 .
