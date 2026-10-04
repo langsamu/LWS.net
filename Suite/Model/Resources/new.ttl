@@ -270,19 +270,16 @@ _:getCreatedContainer
 .
 
 _:404
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "404" ;
 .
 
 _:200
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "200" ;
 .
 
 _:999
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "999" ;
 .
@@ -332,7 +329,6 @@ _:getTextResourceBody
 .
 
 _:shoppingListBody
-    :type "EqualityAssertion" ;
     :param "body" ;
     :value "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
 .
@@ -383,7 +379,6 @@ _:getDigitsResourceBeyondEnd
 .
 
 _:416
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "416" ;
 .
@@ -411,7 +406,6 @@ _:createSubContainer
 .
 
 _:emptyItems
-    :type "EqualityAssertion" ;
     :param "items" ;
     :value "[]" ;
 .
@@ -439,7 +433,6 @@ _:getDigitsResourceFirstBytes
 .
 
 _:206
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "206" ;
 .
@@ -510,7 +503,6 @@ _:headTextResourceBody
 .
 
 _:emptyBody
-    :type "EqualityAssertion" ;
     :param "body" ;
     :value "" ;
 .
@@ -578,7 +570,6 @@ _:createResourceWithForgedLinkset
 .
 
 _:201
-    :type "EqualityAssertion" ;
     :param "status" ;
     :value "201" ;
 .
