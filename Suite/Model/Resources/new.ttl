@@ -7,6 +7,7 @@
         _:test2
         _:core-containers-getContainer-status
         _:core-data_resources-createDataResource-body
+        _:core-data_resources-data-resource-range-unsatisfiable
     ) ;
 ] .
 
@@ -52,6 +53,17 @@ _:core-data_resources-createDataResource-body
         _:getTextResourceBody
     ) ;
     :assertion _:shoppingListBody ;
+.
+
+_:core-data_resources-data-resource-range-unsatisfiable
+    :name "Data resource range unsatisfiable" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceBeyondEnd
+    ) ;
+    :assertion _:416 ;
 .
 
 _:getStorageRoot
@@ -243,4 +255,65 @@ _:shoppingListBody
     :type "EqualityAssertion" ;
     :param "body" ;
     :value "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
+.
+
+_:createDigitsResource
+    :name "Create ten-byte text resource in test container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "testContainerLocation" ;
+            ] ;
+        ] ;
+        :headers (
+            [
+                :header "Content-Type" ;
+                :value "text/plain" ;
+            ]
+        ) ;
+        :body "0123456789" ;
+    ] ;
+    :extractors (
+        [
+            :param "digitsResourceLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceBeyondEnd
+    :name "Get range beyond end of text resource" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "digitsResourceLocation" ;
+            ] ;
+        ] ;
+        :headers (
+            [
+                :header "Range" ;
+                :value "bytes=100-200" ;
+            ]
+        ) ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
+        ]
+    ) ;
+.
+
+_:416
+    :type "EqualityAssertion" ;
+    :param "status" ;
+    :value "416" ;
 .
