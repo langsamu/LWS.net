@@ -11,6 +11,7 @@
         _:core-containers-createContainer-items-empty
         _:core-data_resources-data-resource-range-request-first-status
         _:core-containers-getContainer-containmentIntegrity-initial-items-empty
+        _:core-data_resources-data-resource-range-request-suffix-status
     ) ;
 ] .
 
@@ -99,6 +100,17 @@ _:core-containers-getContainer-containmentIntegrity-initial-items-empty
         _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
+.
+
+_:core-data_resources-data-resource-range-request-suffix-status
+    :name "data-resource-range-request-suffix-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceLastBytes
+    ) ;
+    :assertion _:206 ;
 .
 
 _:getStorageRoot
@@ -426,6 +438,31 @@ _:getContainerItems
         [
             :param "items" ;
             :path "$.items" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceLastBytes
+    :name "Get last two bytes of text resource" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "digitsResourceLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Range" ;
+            :value "bytes=-2" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :StatusCodeExtractor ;
+            :param "status" ;
         ]
     ) ;
 .
