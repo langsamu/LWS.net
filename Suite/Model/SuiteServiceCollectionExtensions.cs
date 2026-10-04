@@ -12,7 +12,7 @@ public static class SuiteServiceCollectionExtensions
         services
             .AddSuiteOptions(configuration)
             .Services
-            .AddHttpClient<Context>()
+            .AddHttpClient<Executor>()
             .Services
             .AddOpenTelemetry()
             .WithTracing(builder => builder.AddSource(Executor.ActivitySource.Name).AddHttpClientInstrumentation())

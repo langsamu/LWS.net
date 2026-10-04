@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Model;
-using Model.NewModel;
 using VDS.RDF;
 using VDS.RDF.Writing;
 
@@ -11,9 +10,7 @@ builder.Services.AddSuite(builder.Configuration);
 using var host = builder.Build();
 await host.StartAsync();
 
-var context = host.Services.GetRequiredService<Context>();
-
-var earlReport = await Executor.Execute(context);
+var earlReport = await host.Services.GetRequiredService<Executor>().Execute();
 earlReport.SaveToStream(Console.Out, new CompressingTurtleWriter());
 
 await host.StopAsync();

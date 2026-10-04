@@ -1,10 +1,12 @@
-﻿using Model.EARL;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Model.EARL;
 using Model.NewModel;
 using System.Diagnostics;
 
 namespace Model;
 
-public static class Executor
+public class Executor(ILoggerFactory loggerFactory, IOptions<SuiteOptions> options, HttpClient client)
 {
     internal static readonly ActivitySource ActivitySource = new(typeof(Executor).FullName!);
 
@@ -12,7 +14,7 @@ public static class Executor
 
     public static Activity? StartSuiteActivity() => ActivitySource.StartActivity("Suite", ActivityKind.Internal, parentContext: default, tags: [new("test.suite.name", Resources.Graph.Manifest.Name)]);
 
-    public static async Task<EarlGraph> Execute(Context context)
+    public async Task<EarlGraph> Execute()
     {
         using var activity = StartSuiteActivity();
 
@@ -26,7 +28,7 @@ public static class Executor
 
         foreach (var testCase in Tests)
         {
-            var result3 = await Execute(testCase, context);
+            var result3 = await Execute(testCase);
             var entryRequirement = TestRequirement.Create(graph);
             entryRequirement.Title = testCase.Name;
             entryRequirement.IsPartOf = suiteRequirement;
@@ -52,17 +54,17 @@ public static class Executor
         return graph;
     }
 
-    public static async Task<Result> Execute(string name, Context context, ActivityContext parentContext = default)
+    public async Task<Result> Execute(string name, ActivityContext parentContext = default)
     {
         var test = Tests.Single(test => test.Name == name);
-        return await Execute(test, context, parentContext);
+        return await Execute(test, parentContext);
     }
 
-    private static async Task<Result> Execute(NewModel.TestCase test, Context context, ActivityContext parentContext = default)
+    private async Task<Result> Execute(NewModel.TestCase test, ActivityContext parentContext = default)
     {
         using var activity = ActivitySource.StartActivity(test.Name, ActivityKind.Internal, parentContext, [new("test.case.name", test.Name)]);
 
-        var result = await test.Execute(context);
+        var result = await test.Execute(new Context(loggerFactory, options, client));
 
         activity?.SetTag("test.case.result.status", result.Outcome.ToLowerInvariant());
 

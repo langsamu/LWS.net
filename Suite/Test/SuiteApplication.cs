@@ -50,8 +50,8 @@ internal static class SuiteApplication
     {
         var services = host?.Services ?? throw new InvalidOperationException("Host not initialised");
 
-        var context = services.GetRequiredService<Context>();
+        var executor = services.GetRequiredService<Executor>();
 
-        return await Executor.Execute(name, context, activity?.Context ?? default);
+        return await executor.Execute(name, activity?.Context ?? default);
     }
 }
