@@ -6,7 +6,7 @@ public partial class Request : GraphWrapperNode
 
     public Expression Uri => this.Singular(Vocabulary.Uri, Expression.Choose);
 
-    public IList<RequestHeader> Headers => this.List(Vocabulary.Headers, RequestHeader.Wrap, RequestHeader.Wrap);
+    public ISet<RequestHeader> Headers => this.Objects(Vocabulary.Headers, RequestHeader.Wrap, RequestHeader.Wrap);
 
     public string? Body => this.Singular(Vocabulary.Body, ValueMappings.As<string>);
 

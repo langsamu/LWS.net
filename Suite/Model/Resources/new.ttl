@@ -154,12 +154,10 @@ _:createContainer
         :uri [
             :param "storageRoot" ;
         ] ;
-        :headers (
-            [
-                :header "Link" ;
-                :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
-            ]
-        ) ;
+        :headers [
+            :header "Link" ;
+            :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+        ] ;
     ] ;
     :extractors (
         [
@@ -181,12 +179,10 @@ _:getCreatedContainer
                 :param "testContainerLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Accept" ;
-                :value "application/lws+json" ;
-            ]
-        ) ;
+        :headers [
+            :header "Accept" ;
+            :value "application/lws+json" ;
+        ] ;
     ] ;
     :extractors (
         [
@@ -226,12 +222,10 @@ _:createTextResource
                 :param "testContainerLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Content-Type" ;
-                :value "text/plain" ;
-            ]
-        ) ;
+        :headers [
+            :header "Content-Type" ;
+            :value "text/plain" ;
+        ] ;
         :body "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
     ] ;
     :extractors (
@@ -281,12 +275,10 @@ _:createDigitsResource
                 :param "testContainerLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Content-Type" ;
-                :value "text/plain" ;
-            ]
-        ) ;
+        :headers [
+            :header "Content-Type" ;
+            :value "text/plain" ;
+        ] ;
         :body "0123456789" ;
     ] ;
     :extractors (
@@ -309,12 +301,10 @@ _:getDigitsResourceBeyondEnd
                 :param "digitsResourceLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Range" ;
-                :value "bytes=100-200" ;
-            ]
-        ) ;
+        :headers [
+            :header "Range" ;
+            :value "bytes=100-200" ;
+        ] ;
     ] ;
     :extractors (
         [
@@ -342,12 +332,10 @@ _:createSubContainer
                 :param "testContainerLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Link" ;
-                :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
-            ]
-        ) ;
+        :headers [
+            :header "Link" ;
+            :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+        ] ;
     ] ;
     :extractors (
         [
@@ -369,12 +357,10 @@ _:getSubContainerItems
                 :param "subContainerLocation" ;
             ] ;
         ] ;
-        :headers (
-            [
-                :header "Accept" ;
-                :value "application/lws+json" ;
-            ]
-        ) ;
+        :headers [
+            :header "Accept" ;
+            :value "application/lws+json" ;
+        ] ;
     ] ;
     :extractors (
         [
