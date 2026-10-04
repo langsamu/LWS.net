@@ -19,6 +19,7 @@
         _:core-containers-container-ld-json-lws-profile-status
         _:core-containers-container-conneg-vary
         _:core-data_resources-data-resource-accept-ranges
+        _:core-data_resources-data-resource-range-request-suffix-body
     ) ;
 ] .
 
@@ -191,6 +192,20 @@ _:core-data_resources-data-resource-accept-ranges
         _:getDigitsResourceAcceptRanges
     ) ;
     :assertion _:advertisesBytesRanges ;
+.
+
+_:core-data_resources-data-resource-range-request-suffix-body
+    :name "data-resource-range-request-suffix-body" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceLastBytesBody
+    ) ;
+    :assertion [
+        :param "body" ;
+        :regex "^89$" ;
+    ] ;
 .
 
 _:getStorageRoot
@@ -697,4 +712,29 @@ _:getDigitsResourceAcceptRanges
 _:advertisesBytesRanges
     :param "acceptRanges" ;
     :regex "(?i)\\bbytes\\b" ;
+.
+
+_:getDigitsResourceLastBytesBody
+    :name "Get last two bytes of text resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "digitsResourceLocation" ;
+            ] ;
+        ] ;
+        :headers [
+            :header "Range" ;
+            :value "bytes=-2" ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
+        ]
+    ) ;
 .
