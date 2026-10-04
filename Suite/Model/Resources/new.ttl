@@ -17,6 +17,7 @@
         _:core-data_resources-create-server-managed-links-protected-post-status
         _:core-containers-container-conneg-weighted-status
         _:core-containers-container-ld-json-lws-profile-status
+        _:core-containers-container-conneg-vary
     ) ;
 ] .
 
@@ -168,6 +169,16 @@ _:core-containers-container-ld-json-lws-profile-status
         _:getContainerWithLwsProfileAccept
     ) ;
     :assertion _:200 ;
+.
+
+_:core-containers-container-conneg-vary
+    :name "container-conneg-vary" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getContainerVary
+    ) ;
+    :assertion _:variesByAccept ;
 .
 
 _:getStorageRoot
@@ -621,4 +632,31 @@ _:getContainerWithLwsProfileAccept
     :extractors (
         _:status
     ) ;
+.
+
+_:getContainerVary
+    :name "Get container Vary header" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers _:acceptLwsJson ;
+    ] ;
+    :extractors (
+        [
+            :param "vary" ;
+            :header "Vary" ;
+        ]
+    ) ;
+.
+
+_:variesByAccept
+    :param "vary" ;
+    :regex "(?i)(^|[\\s,])accept($|[\\s,])" ;
 .
