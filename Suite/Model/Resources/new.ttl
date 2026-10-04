@@ -213,10 +213,7 @@ _:createContainer
         :uri [
             :param "storageRoot" ;
         ] ;
-        :headers [
-            :header "Link" ;
-            :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
-        ] ;
+        :headers _:linkTypeContainer ;
     ] ;
     :extractors (
         [
@@ -238,10 +235,7 @@ _:getCreatedContainer
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Accept" ;
-            :value "application/lws+json" ;
-        ] ;
+        :headers _:acceptLwsJson ;
     ] ;
     :extractors (
         [
@@ -281,10 +275,7 @@ _:createTextResource
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Content-Type" ;
-            :value "text/plain" ;
-        ] ;
+        :headers _:contentTypeTextPlain ;
         :body "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
     ] ;
     :extractors (
@@ -334,10 +325,7 @@ _:createDigitsResource
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Content-Type" ;
-            :value "text/plain" ;
-        ] ;
+        :headers _:contentTypeTextPlain ;
         :body "0123456789" ;
     ] ;
     :extractors (
@@ -391,10 +379,7 @@ _:createSubContainer
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Link" ;
-            :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
-        ] ;
+        :headers _:linkTypeContainer ;
     ] ;
     :extractors (
         [
@@ -453,10 +438,7 @@ _:getContainerItems
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Accept" ;
-            :value "application/lws+json" ;
-        ] ;
+        :headers _:acceptLwsJson ;
     ] ;
     :extractors (
         [
@@ -530,10 +512,7 @@ _:headContainerBody
                 :param "containerLocation" ;
             ] ;
         ] ;
-        :headers [
-            :header "Accept" ;
-            :value "application/lws+json" ;
-        ] ;
+        :headers _:acceptLwsJson ;
     ] ;
     :extractors (
         [
@@ -541,4 +520,19 @@ _:headContainerBody
             :param "body" ;
         ]
     ) ;
+.
+
+_:linkTypeContainer
+    :header "Link" ;
+    :value "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ;
+.
+
+_:acceptLwsJson
+    :header "Accept" ;
+    :value "application/lws+json" ;
+.
+
+_:contentTypeTextPlain
+    :header "Content-Type" ;
+    :value "text/plain" ;
 .
