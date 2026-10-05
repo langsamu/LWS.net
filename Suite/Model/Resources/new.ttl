@@ -331,11 +331,13 @@ _:createContainer
         :headers _:linkTypeContainer ;
     ] ;
     :extractors (
-        [
-            :param "containerLocation" ;
-            :header "Location" ;
-        ]
+        _:containerLocation
     ) ;
+.
+
+_:containerLocation
+    :param "containerLocation" ;
+    :header "Location" ;
 .
 
 _:getCreatedContainer
@@ -455,10 +457,7 @@ _:createSubContainer
         :headers _:linkTypeContainer ;
     ] ;
     :extractors (
-        [
-            :param "containerLocation" ;
-            :header "Location" ;
-        ]
+        _:containerLocation
     ) ;
 .
 
