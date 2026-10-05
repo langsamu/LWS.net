@@ -41,6 +41,7 @@
         _:core-discovery-discovery-storage-description-status
         _:core-discovery-discovery-storage-description-content-type
         _:core-discovery-discovery-storage-description-context-cid
+        _:core-discovery-discovery-storage-description-context-lws
     ) ;
 ] .
 
@@ -1441,6 +1442,32 @@ _:getStorageDescriptionFirstContext
         [
             :param "context" ;
             :path "$['@context'][0]" ;
+        ]
+    ) ;
+.
+
+_:core-discovery-discovery-storage-description-context-lws
+    :name "discovery-storage-description-context-lws" ;
+    :steps (
+        _:getStorageDescriptionSecondContext
+    ) ;
+    :assertion [
+        :param "context" ;
+        :value "https://www.w3.org/ns/lws/v1" ;
+    ] ;
+.
+
+_:getStorageDescriptionSecondContext
+    :name "Get storage description second context" ;
+    :request [
+        :method "GET" ;
+        :uri _:storage ;
+        :headers _:acceptLwsCid ;
+    ] ;
+    :extractors (
+        [
+            :param "context" ;
+            :path "$['@context'][1]" ;
         ]
     ) ;
 .
