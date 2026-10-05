@@ -29,6 +29,7 @@
         _:core-data_resources-post-to-non-container-405-status
         _:core-data_resources-error-problem-details-status
         _:core-data_resources-error-problem-details-content-type
+        _:core-data_resources-readDataResource-status
     ) ;
 ] .
 
@@ -1110,4 +1111,35 @@ _:getMissingResourceContentType
 _:contentType
     :param "contentType" ;
     :header "Content-Type" ;
+.
+
+_:core-data_resources-readDataResource-status
+    :name "readDataResource-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceStatus
+    ) ;
+    :assertion _:200 ;
+.
+
+_:getTextResourceStatus
+    :name "Get text resource status" ;
+    :request [
+        :method "GET" ;
+        :uri _:textResource ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
+.
+
+_:textResource
+    :base [
+        :param "storageRoot" ;
+    ] ;
+    :relative [
+        :param "textResourceLocation" ;
+    ] ;
 .
