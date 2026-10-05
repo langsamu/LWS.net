@@ -23,6 +23,7 @@
         _:core-data_resources-data-resource-range-request-first-content-range
         _:core-data_resources-data-resource-range-request-first-body
         _:core-data_resources-create-in-missing-container-404
+        _:core-data_resources-create-in-missing-container-rejected-items-empty
     ) ;
 ] .
 
@@ -853,4 +854,15 @@ _:postToMissingContainer
     :extractors (
         _:status
     ) ;
+.
+
+_:core-data_resources-create-in-missing-container-rejected-items-empty
+    :name "create-in-missing-container-rejected-items-empty" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:postToMissingContainer
+        _:getContainerItems
+    ) ;
+    :assertion _:emptyItems ;
 .
