@@ -28,6 +28,7 @@
         _:core-data_resources-create-post-twice-distinct-second-body
         _:core-data_resources-post-to-non-container-405-status
         _:core-data_resources-error-problem-details-status
+        _:core-data_resources-error-problem-details-content-type
     ) ;
 ] .
 
@@ -1080,4 +1081,33 @@ _:missingResource
     :relative [
         :value "missing-resource" ;
     ] ;
+.
+
+_:core-data_resources-error-problem-details-content-type
+    :name "error-problem-details-content-type" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getMissingResourceContentType
+    ) ;
+    :assertion [
+        :param "contentType" ;
+        :regex "(?i)^application/problem\+json\s*(;|$)" ;
+    ] ;
+.
+
+_:getMissingResourceContentType
+    :name "Get Content-Type of resource that does not exist" ;
+    :request [
+        :method "GET" ;
+        :uri _:missingResource ;
+    ] ;
+    :extractors (
+        _:contentType
+    ) ;
+.
+
+_:contentType
+    :param "contentType" ;
+    :header "Content-Type" ;
 .
