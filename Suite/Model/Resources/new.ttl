@@ -3,49 +3,49 @@
 [
     :name "LWS Test Suite" ;
     :tests (
-        _:test1
-        _:test2
-        _:core-containers-getContainer-status
-        _:core-data_resources-createDataResource-body
-        _:core-data_resources-data-resource-range-unsatisfiable
-        _:core-containers-createContainer-items-empty
-        _:core-data_resources-data-resource-range-request-first-status
-        _:core-containers-getContainer-containmentIntegrity-initial-items-empty
-        _:core-data_resources-data-resource-range-request-suffix-status
-        _:core-data_resources-data-resource-head-parity-head-body-empty
-        _:core-containers-container-head-parity-head-body-empty
-        _:core-data_resources-create-server-managed-links-protected-post-status
-        _:core-containers-container-conneg-weighted-status
-        _:core-containers-container-ld-json-lws-profile-status
-        _:core-containers-container-conneg-vary
-        _:core-data_resources-data-resource-accept-ranges
-        _:core-data_resources-data-resource-range-request-suffix-body
-        _:core-data_resources-data-resource-range-request-first-content-range
-        _:core-data_resources-data-resource-range-request-first-body
-        _:core-data_resources-create-in-missing-container-404
-        _:core-data_resources-create-in-missing-container-rejected-items-empty
-        _:core-data_resources-create-post-twice-distinct-first-body
-        _:core-data_resources-create-post-twice-distinct-second-body
-        _:core-data_resources-post-to-non-container-405-status
-        _:core-data_resources-error-problem-details-status
-        _:core-data_resources-error-problem-details-content-type
-        _:core-data_resources-readDataResource-status
-        _:core-data_resources-readDataResource-content-type
-        _:core-data_resources-readDataResource-etag
-        _:core-data_resources-data-resource-head-parity-head-status
-        _:core-data_resources-data-resource-head-parity-head-content-type
-        _:core-containers-createContainer-content-type
-        _:core-containers-container-head-parity-head-status
-        _:core-containers-container-head-parity-head-content-type
-        _:core-discovery-discovery-storage-description-default-media-type
-        _:core-discovery-discovery-storage-description-status
-        _:core-discovery-discovery-storage-description-content-type
-        _:core-discovery-discovery-storage-description-context-cid
-        _:core-discovery-discovery-storage-description-context-lws
+        _:deletedResourceReturns404
+        _:deleteReturns999IntentionallyFailing
+        _:containerGetReturns200
+        _:createdDataResourceReturnsPostedBody
+        _:rangeBeyondEndReturns416
+        _:newNestedContainerHasNoItems
+        _:byteRangeReturns206
+        _:newContainerHasNoItems
+        _:suffixByteRangeReturns206
+        _:dataResourceHeadReturnsNoBody
+        _:containerHeadReturnsNoBody
+        _:createWithForgedLinksetLinkReturns201
+        _:containerGetWithWeightedAcceptReturns200
+        _:containerGetAsJsonLdWithLwsProfileReturns200
+        _:containerResponseVariesByAccept
+        _:dataResourceAdvertisesByteRanges
+        _:suffixByteRangeReturnsLastBytes
+        _:byteRangeReturnsContentRange
+        _:byteRangeReturnsRequestedBytes
+        _:createInMissingContainerReturns404
+        _:rejectedCreateLeavesContainerEmpty
+        _:firstOfTwoIdenticalCreatesKeepsItsBody
+        _:secondOfTwoIdenticalCreatesKeepsItsBody
+        _:createBeneathDataResourceReturns405
+        _:missingResourceReturns404
+        _:missingResourceReturnsProblemDetails
+        _:dataResourceGetReturns200
+        _:dataResourceGetReturnsItsMediaType
+        _:dataResourceGetReturnsETag
+        _:dataResourceHeadReturns200
+        _:dataResourceHeadReturnsItsMediaType
+        _:nestedContainerGetReturnsLwsMediaType
+        _:containerHeadReturns200
+        _:containerHeadReturnsLwsMediaType
+        _:storageDescriptionDefaultsToCidMediaType
+        _:storageDescriptionAsCidReturns200
+        _:storageDescriptionAsCidReturnsCidMediaType
+        _:storageDescriptionFirstContextIsCid
+        _:storageDescriptionSecondContextIsLws
     ) ;
 ] .
 
-_:test1
+_:deletedResourceReturns404
     :name "Deleted resource returns 404" ;
     :steps (
         _:getStorageRoot
@@ -57,7 +57,7 @@ _:test1
     :assertion _:404 ;
 .
 
-_:test2
+_:deleteReturns999IntentionallyFailing
     :name "Delete returns 999 (intentionally failing)" ;
     :steps (
         _:getStorageRoot
@@ -68,7 +68,7 @@ _:test2
     :assertion _:999 ; # Intentionally bogus
 .
 
-_:core-containers-getContainer-status
+_:containerGetReturns200
     :name "Container GET returns 200" ;
     :steps (
         _:getStorageRoot
@@ -78,7 +78,7 @@ _:core-containers-getContainer-status
     :assertion _:200 ;
 .
 
-_:core-data_resources-createDataResource-body
+_:createdDataResourceReturnsPostedBody
     :name "Created data resource returns posted body" ;
     :steps (
         _:getStorageRoot
@@ -92,7 +92,7 @@ _:core-data_resources-createDataResource-body
     ] ;
 .
 
-_:core-data_resources-data-resource-range-unsatisfiable
+_:rangeBeyondEndReturns416
     :name "Range beyond end returns 416" ;
     :steps (
         _:getStorageRoot
@@ -103,7 +103,7 @@ _:core-data_resources-data-resource-range-unsatisfiable
     :assertion _:416 ;
 .
 
-_:core-containers-createContainer-items-empty
+_:newNestedContainerHasNoItems
     :name "New nested container has no items" ;
     :steps (
         _:getStorageRoot
@@ -114,7 +114,7 @@ _:core-containers-createContainer-items-empty
     :assertion _:emptyItems ;
 .
 
-_:core-data_resources-data-resource-range-request-first-status
+_:byteRangeReturns206
     :name "Byte range returns 206" ;
     :steps (
         _:getStorageRoot
@@ -125,7 +125,7 @@ _:core-data_resources-data-resource-range-request-first-status
     :assertion _:206 ;
 .
 
-_:core-containers-getContainer-containmentIntegrity-initial-items-empty
+_:newContainerHasNoItems
     :name "New container has no items" ;
     :steps (
         _:getStorageRoot
@@ -135,7 +135,7 @@ _:core-containers-getContainer-containmentIntegrity-initial-items-empty
     :assertion _:emptyItems ;
 .
 
-_:core-data_resources-data-resource-range-request-suffix-status
+_:suffixByteRangeReturns206
     :name "Suffix byte range returns 206" ;
     :steps (
         _:getStorageRoot
@@ -146,7 +146,7 @@ _:core-data_resources-data-resource-range-request-suffix-status
     :assertion _:206 ;
 .
 
-_:core-data_resources-data-resource-head-parity-head-body-empty
+_:dataResourceHeadReturnsNoBody
     :name "Data resource HEAD returns no body" ;
     :steps (
         _:getStorageRoot
@@ -157,7 +157,7 @@ _:core-data_resources-data-resource-head-parity-head-body-empty
     :assertion _:emptyBody ;
 .
 
-_:core-containers-container-head-parity-head-body-empty
+_:containerHeadReturnsNoBody
     :name "Container HEAD returns no body" ;
     :steps (
         _:getStorageRoot
@@ -168,7 +168,7 @@ _:core-containers-container-head-parity-head-body-empty
     :assertion _:emptyBody ;
 .
 
-_:core-data_resources-create-server-managed-links-protected-post-status
+_:createWithForgedLinksetLinkReturns201
     :name "Create with forged linkset Link returns 201" ;
     :steps (
         _:getStorageRoot
@@ -178,7 +178,7 @@ _:core-data_resources-create-server-managed-links-protected-post-status
     :assertion _:201 ;
 .
 
-_:core-containers-container-conneg-weighted-status
+_:containerGetWithWeightedAcceptReturns200
     :name "Container GET with weighted Accept returns 200" ;
     :steps (
         _:getStorageRoot
@@ -188,7 +188,7 @@ _:core-containers-container-conneg-weighted-status
     :assertion _:200 ;
 .
 
-_:core-containers-container-ld-json-lws-profile-status
+_:containerGetAsJsonLdWithLwsProfileReturns200
     :name "Container GET as JSON-LD with LWS profile returns 200" ;
     :steps (
         _:getStorageRoot
@@ -198,7 +198,7 @@ _:core-containers-container-ld-json-lws-profile-status
     :assertion _:200 ;
 .
 
-_:core-containers-container-conneg-vary
+_:containerResponseVariesByAccept
     :name "Container response varies by Accept" ;
     :steps (
         _:getStorageRoot
@@ -211,7 +211,7 @@ _:core-containers-container-conneg-vary
     ] ;
 .
 
-_:core-data_resources-data-resource-accept-ranges
+_:dataResourceAdvertisesByteRanges
     :name "Data resource advertises byte ranges" ;
     :steps (
         _:getStorageRoot
@@ -225,7 +225,7 @@ _:core-data_resources-data-resource-accept-ranges
     ] ;
 .
 
-_:core-data_resources-data-resource-range-request-suffix-body
+_:suffixByteRangeReturnsLastBytes
     :name "Suffix byte range returns last bytes" ;
     :steps (
         _:getStorageRoot
@@ -239,7 +239,7 @@ _:core-data_resources-data-resource-range-request-suffix-body
     ] ;
 .
 
-_:core-data_resources-data-resource-range-request-first-content-range
+_:byteRangeReturnsContentRange
     :name "Byte range returns Content-Range" ;
     :steps (
         _:getStorageRoot
@@ -253,7 +253,7 @@ _:core-data_resources-data-resource-range-request-first-content-range
     ] ;
 .
 
-_:core-data_resources-data-resource-range-request-first-body
+_:byteRangeReturnsRequestedBytes
     :name "Byte range returns requested bytes" ;
     :steps (
         _:getStorageRoot
@@ -693,7 +693,7 @@ _:getDigitsResourceFirstBytesBody
     ) ;
 .
 
-_:core-data_resources-create-in-missing-container-404
+_:createInMissingContainerReturns404
     :name "Create in missing container returns 404" ;
     :steps (
         _:getStorageRoot
@@ -721,7 +721,7 @@ _:postToMissingContainer
     ) ;
 .
 
-_:core-data_resources-create-in-missing-container-rejected-items-empty
+_:rejectedCreateLeavesContainerEmpty
     :name "Rejected create leaves container empty" ;
     :steps (
         _:getStorageRoot
@@ -732,7 +732,7 @@ _:core-data_resources-create-in-missing-container-rejected-items-empty
     :assertion _:emptyItems ;
 .
 
-_:core-data_resources-create-post-twice-distinct-first-body
+_:firstOfTwoIdenticalCreatesKeepsItsBody
     :name "First of two identical creates keeps its body" ;
     :steps (
         _:getStorageRoot
@@ -799,7 +799,7 @@ _:sameBytesBody
     :regex "^same bytes$" ;
 .
 
-_:core-data_resources-create-post-twice-distinct-second-body
+_:secondOfTwoIdenticalCreatesKeepsItsBody
     :name "Second of two identical creates keeps its body" ;
     :steps (
         _:getStorageRoot
@@ -829,7 +829,7 @@ _:getSecondSameBytesResourceBody
     ) ;
 .
 
-_:core-data_resources-post-to-non-container-405-status
+_:createBeneathDataResourceReturns405
     :name "Create beneath data resource returns 405" ;
     :steps (
         _:getStorageRoot
@@ -881,7 +881,7 @@ _:405
     :value "405" ;
 .
 
-_:core-data_resources-error-problem-details-status
+_:missingResourceReturns404
     :name "Missing resource returns 404" ;
     :steps (
         _:getStorageRoot
@@ -909,7 +909,7 @@ _:missingResource
     ] ;
 .
 
-_:core-data_resources-error-problem-details-content-type
+_:missingResourceReturnsProblemDetails
     :name "Missing resource returns problem details" ;
     :steps (
         _:getStorageRoot
@@ -938,7 +938,7 @@ _:contentType
     :header "Content-Type" ;
 .
 
-_:core-data_resources-readDataResource-status
+_:dataResourceGetReturns200
     :name "Data resource GET returns 200" ;
     :steps (
         _:getStorageRoot
@@ -969,7 +969,7 @@ _:textResource
     ] ;
 .
 
-_:core-data_resources-readDataResource-content-type
+_:dataResourceGetReturnsItsMediaType
     :name "Data resource GET returns its media type" ;
     :steps (
         _:getStorageRoot
@@ -996,7 +996,7 @@ _:textPlainContentType
     :regex "(?i)^text/plain\\s*(;|$)" ;
 .
 
-_:core-data_resources-readDataResource-etag
+_:dataResourceGetReturnsETag
     :name "Data resource GET returns ETag" ;
     :steps (
         _:getStorageRoot
@@ -1024,7 +1024,7 @@ _:getTextResourceEtag
     ) ;
 .
 
-_:core-data_resources-data-resource-head-parity-head-status
+_:dataResourceHeadReturns200
     :name "Data resource HEAD returns 200" ;
     :steps (
         _:getStorageRoot
@@ -1046,7 +1046,7 @@ _:headTextResourceStatus
     ) ;
 .
 
-_:core-data_resources-data-resource-head-parity-head-content-type
+_:dataResourceHeadReturnsItsMediaType
     :name "Data resource HEAD returns its media type" ;
     :steps (
         _:getStorageRoot
@@ -1068,7 +1068,7 @@ _:headTextResourceContentType
     ) ;
 .
 
-_:core-containers-createContainer-content-type
+_:nestedContainerGetReturnsLwsMediaType
     :name "Nested container GET returns LWS media type" ;
     :steps (
         _:getStorageRoot
@@ -1105,7 +1105,7 @@ _:lwsJsonContentType
     :regex "(?i)^application/lws\\+json\\s*(;|$)" ;
 .
 
-_:core-containers-container-head-parity-head-status
+_:containerHeadReturns200
     :name "Container HEAD returns 200" ;
     :steps (
         _:getStorageRoot
@@ -1128,7 +1128,7 @@ _:headContainerStatus
     ) ;
 .
 
-_:core-containers-container-head-parity-head-content-type
+_:containerHeadReturnsLwsMediaType
     :name "Container HEAD returns LWS media type" ;
     :steps (
         _:getStorageRoot
@@ -1151,7 +1151,7 @@ _:headContainerContentType
     ) ;
 .
 
-_:core-discovery-discovery-storage-description-default-media-type
+_:storageDescriptionDefaultsToCidMediaType
     :name "Storage description defaults to CID media type" ;
     :steps (
         _:getStorageDescriptionContentType
@@ -1184,7 +1184,7 @@ _:lwsCidContentType
     :regex "(?i)^application/lws\\+cid\\s*(;|$)" ;
 .
 
-_:core-discovery-discovery-storage-description-status
+_:storageDescriptionAsCidReturns200
     :name "Storage description as CID returns 200" ;
     :steps (
         _:getStorageDescriptionAsCidStatus
@@ -1209,7 +1209,7 @@ _:acceptLwsCid
     :value "application/lws+cid" ;
 .
 
-_:core-discovery-discovery-storage-description-content-type
+_:storageDescriptionAsCidReturnsCidMediaType
     :name "Storage description as CID returns CID media type" ;
     :steps (
         _:getStorageDescriptionAsCidContentType
@@ -1229,7 +1229,7 @@ _:getStorageDescriptionAsCidContentType
     ) ;
 .
 
-_:core-discovery-discovery-storage-description-context-cid
+_:storageDescriptionFirstContextIsCid
     :name "Storage description first context is CID" ;
     :steps (
         _:getStorageDescriptionFirstContext
@@ -1255,7 +1255,7 @@ _:getStorageDescriptionFirstContext
     ) ;
 .
 
-_:core-discovery-discovery-storage-description-context-lws
+_:storageDescriptionSecondContextIsLws
     :name "Storage description second context is LWS" ;
     :steps (
         _:getStorageDescriptionSecondContext
