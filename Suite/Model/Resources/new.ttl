@@ -51,7 +51,6 @@ _:deletedResourceReturns404
     :steps (
         _:discoverStorageRoot
         _:createResource
-        _:getResourceStatus
         _:deleteResource
         _:getResourceStatus
     ) ;
@@ -63,7 +62,6 @@ _:deleteReturns999IntentionallyFailing
     :steps (
         _:discoverStorageRoot
         _:createResource
-        _:getResourceStatus
         _:deleteResource
     ) ;
     :assertion _:999 ; # Intentionally bogus
