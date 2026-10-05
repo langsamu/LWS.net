@@ -40,6 +40,7 @@
         _:core-discovery-discovery-storage-description-default-media-type
         _:core-discovery-discovery-storage-description-status
         _:core-discovery-discovery-storage-description-content-type
+        _:core-discovery-discovery-storage-description-context-cid
     ) ;
 ] .
 
@@ -1415,5 +1416,31 @@ _:getStorageDescriptionAsCidContentType
     ] ;
     :extractors (
         _:contentType
+    ) ;
+.
+
+_:core-discovery-discovery-storage-description-context-cid
+    :name "discovery-storage-description-context-cid" ;
+    :steps (
+        _:getStorageDescriptionFirstContext
+    ) ;
+    :assertion [
+        :param "context" ;
+        :value "https://www.w3.org/ns/cid/v1" ;
+    ] ;
+.
+
+_:getStorageDescriptionFirstContext
+    :name "Get storage description first context" ;
+    :request [
+        :method "GET" ;
+        :uri _:storage ;
+        :headers _:acceptLwsCid ;
+    ] ;
+    :extractors (
+        [
+            :param "context" ;
+            :path "$['@context'][0]" ;
+        ]
     ) ;
 .
