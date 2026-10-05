@@ -22,6 +22,7 @@
         _:core-data_resources-data-resource-range-request-suffix-body
         _:core-data_resources-data-resource-range-request-first-content-range
         _:core-data_resources-data-resource-range-request-first-body
+        _:core-data_resources-create-in-missing-container-404
     ) ;
 ] .
 
@@ -816,5 +817,40 @@ _:getDigitsResourceFirstBytesBody
             a :BodyExtractor ;
             :param "body" ;
         ]
+    ) ;
+.
+
+_:core-data_resources-create-in-missing-container-404
+    :name "create-in-missing-container-404" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:postToMissingContainer
+    ) ;
+    :assertion _:404 ;
+.
+
+_:postToMissingContainer
+    :name "Create text resource beneath a container that does not exist" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :base [
+                    :param "storageRoot" ;
+                ] ;
+                :relative [
+                    :param "containerLocation" ;
+                ] ;
+            ] ;
+            :relative [
+                :value "missing-container/" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body "lost letter" ;
+    ] ;
+    :extractors (
+        _:status
     ) ;
 .
