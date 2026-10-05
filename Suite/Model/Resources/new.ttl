@@ -37,6 +37,7 @@
         _:core-containers-createContainer-content-type
         _:core-containers-container-head-parity-head-status
         _:core-containers-container-head-parity-head-content-type
+        _:core-discovery-discovery-storage-description-default-media-type
     ) ;
 ] .
 
@@ -1335,4 +1336,37 @@ _:headContainerContentType
     :extractors (
         _:contentType
     ) ;
+.
+
+_:core-discovery-discovery-storage-description-default-media-type
+    :name "discovery-storage-description-default-media-type" ;
+    :steps (
+        _:getStorageDescriptionContentType
+    ) ;
+    :assertion _:lwsCidContentType ;
+.
+
+_:getStorageDescriptionContentType
+    :name "Get storage description Content-Type" ;
+    :request [
+        :method "GET" ;
+        :uri _:storage ;
+    ] ;
+    :extractors (
+        _:contentType
+    ) ;
+.
+
+_:storage
+    :base [
+        :param "baseUri" ;
+    ] ;
+    :relative [
+        :value "/" ;
+    ] ;
+.
+
+_:lwsCidContentType
+    :param "contentType" ;
+    :regex "(?i)^application/lws\+cid\s*(;|$)" ;
 .
