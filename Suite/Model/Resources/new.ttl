@@ -25,6 +25,7 @@
         _:core-data_resources-create-in-missing-container-404
         _:core-data_resources-create-in-missing-container-rejected-items-empty
         _:core-data_resources-create-post-twice-distinct-first-body
+        _:core-data_resources-create-post-twice-distinct-second-body
     ) ;
 ] .
 
@@ -950,4 +951,37 @@ _:getFirstSameBytesResourceBody
 _:sameBytesBody
     :param "body" ;
     :regex "^same bytes$" ;
+.
+
+_:core-data_resources-create-post-twice-distinct-second-body
+    :name "create-post-twice-distinct-second-body" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+        _:getSecondSameBytesResourceBody
+    ) ;
+    :assertion _:sameBytesBody ;
+.
+
+_:getSecondSameBytesResourceBody
+    :name "Get second same-bytes resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "secondSameBytesLocation" ;
+            ] ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
+        ]
+    ) ;
 .
