@@ -86,7 +86,10 @@ _:core-data_resources-createDataResource-body
         _:createTextResource
         _:getTextResourceBody
     ) ;
-    :assertion _:shoppingListBody ;
+    :assertion [
+        :param "body" ;
+        :value "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
+    ] ;
 .
 
 _:core-data_resources-data-resource-range-unsatisfiable
@@ -202,7 +205,10 @@ _:core-containers-container-conneg-vary
         _:createContainer
         _:getContainerVary
     ) ;
-    :assertion _:variesByAccept ;
+    :assertion [
+        :param "vary" ;
+        :regex "(?i)(^|[\\s,])accept($|[\\s,])" ;
+    ] ;
 .
 
 _:core-data_resources-data-resource-accept-ranges
@@ -213,7 +219,10 @@ _:core-data_resources-data-resource-accept-ranges
         _:createDigitsResource
         _:getDigitsResourceAcceptRanges
     ) ;
-    :assertion _:advertisesBytesRanges ;
+    :assertion [
+        :param "acceptRanges" ;
+        :regex "(?i)\\bbytes\\b" ;
+    ] ;
 .
 
 _:core-data_resources-data-resource-range-request-suffix-body
@@ -397,11 +406,6 @@ _:getTextResourceBody
 _:body
     a :BodyExtractor ;
     :param "body" ;
-.
-
-_:shoppingListBody
-    :param "body" ;
-    :value "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
 .
 
 _:createDigitsResource
@@ -632,11 +636,6 @@ _:getContainerVary
     ) ;
 .
 
-_:variesByAccept
-    :param "vary" ;
-    :regex "(?i)(^|[\\s,])accept($|[\\s,])" ;
-.
-
 _:getDigitsResourceAcceptRanges
     :name "Get text resource Accept-Ranges header" ;
     :request [
@@ -649,11 +648,6 @@ _:getDigitsResourceAcceptRanges
             :header "Accept-Ranges" ;
         ]
     ) ;
-.
-
-_:advertisesBytesRanges
-    :param "acceptRanges" ;
-    :regex "(?i)\\bbytes\\b" ;
 .
 
 _:getDigitsResourceLastBytesBody
@@ -1015,7 +1009,10 @@ _:core-data_resources-readDataResource-etag
         _:createTextResource
         _:getTextResourceEtag
     ) ;
-    :assertion _:etagPresent ;
+    :assertion [
+        :param "etag" ;
+        :regex "." ;
+    ] ;
 .
 
 _:getTextResourceEtag
@@ -1025,18 +1022,11 @@ _:getTextResourceEtag
         :uri _:textResource ;
     ] ;
     :extractors (
-        _:etag
+        [
+            :param "etag" ;
+            :header "ETag" ;
+        ]
     ) ;
-.
-
-_:etag
-    :param "etag" ;
-    :header "ETag" ;
-.
-
-_:etagPresent
-    :param "etag" ;
-    :regex "." ;
 .
 
 _:core-data_resources-data-resource-head-parity-head-status
