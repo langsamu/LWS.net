@@ -512,14 +512,16 @@ _:getDigitsResourceLastBytes
     :request [
         :method "GET" ;
         :uri _:digitsResource ;
-        :headers [
-            :header "Range" ;
-            :value "bytes=-2" ;
-        ] ;
+        :headers _:rangeLastTwoBytes ;
     ] ;
     :extractors (
         _:status
     ) ;
+.
+
+_:rangeLastTwoBytes
+    :header "Range" ;
+    :value "bytes=-2" ;
 .
 
 _:headTextResourceBody
@@ -657,10 +659,7 @@ _:getDigitsResourceLastBytesBody
     :request [
         :method "GET" ;
         :uri _:digitsResource ;
-        :headers [
-            :header "Range" ;
-            :value "bytes=-2" ;
-        ] ;
+        :headers _:rangeLastTwoBytes ;
     ] ;
     :extractors (
         _:body
