@@ -24,6 +24,7 @@
         _:core-data_resources-data-resource-range-request-first-body
         _:core-data_resources-create-in-missing-container-404
         _:core-data_resources-create-in-missing-container-rejected-items-empty
+        _:core-data_resources-create-post-twice-distinct-first-body
     ) ;
 ] .
 
@@ -865,4 +866,88 @@ _:core-data_resources-create-in-missing-container-rejected-items-empty
         _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
+.
+
+_:core-data_resources-create-post-twice-distinct-first-body
+    :name "create-post-twice-distinct-first-body" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+        _:getFirstSameBytesResourceBody
+    ) ;
+    :assertion _:sameBytesBody ;
+.
+
+_:createFirstSameBytesResource
+    :name "Create first same-bytes resource in test container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body "same bytes" ;
+    ] ;
+    :extractors (
+        [
+            :param "firstSameBytesLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:createSecondSameBytesResource
+    :name "Create second same-bytes resource in test container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body "same bytes" ;
+    ] ;
+    :extractors (
+        [
+            :param "secondSameBytesLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:getFirstSameBytesResourceBody
+    :name "Get first same-bytes resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "firstSameBytesLocation" ;
+            ] ;
+        ] ;
+    ] ;
+    :extractors (
+        [
+            a :BodyExtractor ;
+            :param "body" ;
+        ]
+    ) ;
+.
+
+_:sameBytesBody
+    :param "body" ;
+    :regex "^same bytes$" ;
 .
