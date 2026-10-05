@@ -34,6 +34,7 @@
         _:core-data_resources-readDataResource-etag
         _:core-data_resources-data-resource-head-parity-head-status
         _:core-data_resources-data-resource-head-parity-head-content-type
+        _:core-containers-createContainer-content-type
     ) ;
 ] .
 
@@ -1249,4 +1250,41 @@ _:headTextResourceContentType
     :extractors (
         _:contentType
     ) ;
+.
+
+_:core-containers-createContainer-content-type
+    :name "createContainer-content-type" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createSubContainer
+        _:getContainerContentType
+    ) ;
+    :assertion _:lwsJsonContentType ;
+.
+
+_:getContainerContentType
+    :name "Get container Content-Type" ;
+    :request [
+        :method "GET" ;
+        :uri _:container ;
+        :headers _:acceptLwsJson ;
+    ] ;
+    :extractors (
+        _:contentType
+    ) ;
+.
+
+_:container
+    :base [
+        :param "storageRoot" ;
+    ] ;
+    :relative [
+        :param "containerLocation" ;
+    ] ;
+.
+
+_:lwsJsonContentType
+    :param "contentType" ;
+    :regex "(?i)^application/lws\+json\s*(;|$)" ;
 .
