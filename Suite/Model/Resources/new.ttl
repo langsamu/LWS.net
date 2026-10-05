@@ -38,6 +38,7 @@
         _:core-containers-container-head-parity-head-status
         _:core-containers-container-head-parity-head-content-type
         _:core-discovery-discovery-storage-description-default-media-type
+        _:core-discovery-discovery-storage-description-status
     ) ;
 ] .
 
@@ -1369,4 +1370,29 @@ _:storage
 _:lwsCidContentType
     :param "contentType" ;
     :regex "(?i)^application/lws\+cid\s*(;|$)" ;
+.
+
+_:core-discovery-discovery-storage-description-status
+    :name "discovery-storage-description-status" ;
+    :steps (
+        _:getStorageDescriptionAsCidStatus
+    ) ;
+    :assertion _:200 ;
+.
+
+_:getStorageDescriptionAsCidStatus
+    :name "Get storage description as CID status" ;
+    :request [
+        :method "GET" ;
+        :uri _:storage ;
+        :headers _:acceptLwsCid ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
+.
+
+_:acceptLwsCid
+    :header "Accept" ;
+    :value "application/lws+cid" ;
 .
