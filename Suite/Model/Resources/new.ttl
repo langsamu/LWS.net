@@ -1105,7 +1105,7 @@ _:core-data_resources-error-problem-details-content-type
     ) ;
     :assertion [
         :param "contentType" ;
-        :regex "(?i)^application/problem\+json\s*(;|$)" ;
+        :regex "(?i)^application/problem\\+json\\s*(;|$)" ;
     ] ;
 .
 
@@ -1180,7 +1180,7 @@ _:getTextResourceContentType
 
 _:textPlainContentType
     :param "contentType" ;
-    :regex "(?i)^text/plain\s*(;|$)" ;
+    :regex "(?i)^text/plain\\s*(;|$)" ;
 .
 
 _:core-data_resources-readDataResource-etag
@@ -1293,7 +1293,7 @@ _:container
 
 _:lwsJsonContentType
     :param "contentType" ;
-    :regex "(?i)^application/lws\+json\s*(;|$)" ;
+    :regex "(?i)^application/lws\\+json\\s*(;|$)" ;
 .
 
 _:core-containers-container-head-parity-head-status
@@ -1372,7 +1372,7 @@ _:storage
 
 _:lwsCidContentType
     :param "contentType" ;
-    :regex "(?i)^application/lws\+cid\s*(;|$)" ;
+    :regex "(?i)^application/lws\\+cid\\s*(;|$)" ;
 .
 
 _:core-discovery-discovery-storage-description-status
