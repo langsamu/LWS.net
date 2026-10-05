@@ -388,11 +388,13 @@ _:getTextResourceBody
         :uri _:textResource ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :param "body" ;
 .
 
 _:shoppingListBody
@@ -522,10 +524,7 @@ _:headTextResourceBody
         :uri _:textResource ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
@@ -542,10 +541,7 @@ _:headContainerBody
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
@@ -672,10 +668,7 @@ _:getDigitsResourceLastBytesBody
         ] ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
@@ -708,10 +701,7 @@ _:getDigitsResourceFirstBytesBody
         ] ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
@@ -812,10 +802,7 @@ _:getFirstSameBytesResourceBody
         ] ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
@@ -850,10 +837,7 @@ _:getSecondSameBytesResourceBody
         ] ;
     ] ;
     :extractors (
-        [
-            a :BodyExtractor ;
-            :param "body" ;
-        ]
+        _:body
     ) ;
 .
 
