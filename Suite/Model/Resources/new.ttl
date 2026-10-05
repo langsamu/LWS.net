@@ -26,6 +26,7 @@
         _:core-data_resources-create-in-missing-container-rejected-items-empty
         _:core-data_resources-create-post-twice-distinct-first-body
         _:core-data_resources-create-post-twice-distinct-second-body
+        _:core-data_resources-post-to-non-container-405-status
     ) ;
 ] .
 
@@ -984,4 +985,63 @@ _:getSecondSameBytesResourceBody
             :param "body" ;
         ]
     ) ;
+.
+
+_:core-data_resources-post-to-non-container-405-status
+    :name "post-to-non-container-405-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createNotAContainerResource
+        _:postBeneathDataResource
+    ) ;
+    :assertion _:405 ;
+.
+
+_:createNotAContainerResource
+    :name "Create data resource to post beneath" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "containerLocation" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body "not a container" ;
+    ] ;
+    :extractors (
+        [
+            :param "notAContainerLocation" ;
+            :header "Location" ;
+        ]
+    ) ;
+.
+
+_:postBeneathDataResource
+    :name "Post beneath data resource" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base [
+                :param "storageRoot" ;
+            ] ;
+            :relative [
+                :param "notAContainerLocation" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body "should be refused" ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
+.
+
+_:405
+    :param "status" ;
+    :value "405" ;
 .
