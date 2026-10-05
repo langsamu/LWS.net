@@ -32,6 +32,7 @@
         _:core-data_resources-readDataResource-status
         _:core-data_resources-readDataResource-content-type
         _:core-data_resources-readDataResource-etag
+        _:core-data_resources-data-resource-head-parity-head-status
     ) ;
 ] .
 
@@ -1203,4 +1204,26 @@ _:etag
 _:etagPresent
     :param "etag" ;
     :regex "." ;
+.
+
+_:core-data_resources-data-resource-head-parity-head-status
+    :name "data-resource-head-parity-head-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceStatus
+    ) ;
+    :assertion _:200 ;
+.
+
+_:headTextResourceStatus
+    :name "Head text resource status" ;
+    :request [
+        :method "HEAD" ;
+        :uri _:textResource ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
 .
