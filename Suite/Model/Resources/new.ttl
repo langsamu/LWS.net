@@ -1162,39 +1162,9 @@ _:contentType
 .
 
 # Assertions
-_:404
-    :param "status" ;
-    :value "404" ;
-.
-
-_:999
-    :param "status" ;
-    :value "999" ;
-.
-
 _:200
     :param "status" ;
     :value "200" ;
-.
-
-_:416
-    :param "status" ;
-    :value "416" ;
-.
-
-_:emptyItems
-    :param "items" ;
-    :value "[]" ;
-.
-
-_:206
-    :param "status" ;
-    :value "206" ;
-.
-
-_:emptyBody
-    :param "body" ;
-    :value "" ;
 .
 
 _:201
@@ -1202,14 +1172,44 @@ _:201
     :value "201" ;
 .
 
-_:sameBytesBody
-    :param "body" ;
-    :regex "^same bytes$" ;
+_:206
+    :param "status" ;
+    :value "206" ;
+.
+
+_:404
+    :param "status" ;
+    :value "404" ;
 .
 
 _:405
     :param "status" ;
     :value "405" ;
+.
+
+_:416
+    :param "status" ;
+    :value "416" ;
+.
+
+_:999
+    :param "status" ;
+    :value "999" ;
+.
+
+_:emptyItems
+    :param "items" ;
+    :value "[]" ;
+.
+
+_:emptyBody
+    :param "body" ;
+    :value "" ;
+.
+
+_:sameBytesBody
+    :param "body" ;
+    :regex "^same bytes$" ;
 .
 
 _:textPlainContentType
