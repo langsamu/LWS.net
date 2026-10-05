@@ -1025,13 +1025,19 @@ _:getTextResource
 _:getDigitsResourceFirstFourBytes
     :method "GET" ;
     :uri _:digitsResource ;
-    :headers _:rangeFirstFourBytes ;
+    :headers [
+        :header "Range" ;
+        :value "bytes=0-3" ;
+    ] ;
 .
 
 _:getDigitsResourceLastTwoBytes
     :method "GET" ;
     :uri _:digitsResource ;
-    :headers _:rangeLastTwoBytes ;
+    :headers [
+        :header "Range" ;
+        :value "bytes=-2" ;
+    ] ;
 .
 
 _:headTextResource
@@ -1047,13 +1053,21 @@ _:headContainer
 
 _:getMissingResource
     :method "GET" ;
-    :uri _:missingResource ;
+    :uri [
+        :base _:container ;
+        :relative [
+            :value "missing-resource" ;
+        ] ;
+    ] ;
 .
 
 _:getStorageDescriptionAsCid
     :method "GET" ;
     :uri _:storage ;
-    :headers _:acceptLwsCid ;
+    :headers [
+        :header "Accept" ;
+        :value "application/lws+cid" ;
+    ] ;
 .
 
 _:createSameBytesResource
@@ -1093,13 +1107,6 @@ _:digitsResource
     ] ;
 .
 
-_:missingResource
-    :base _:container ;
-    :relative [
-        :value "missing-resource" ;
-    ] ;
-.
-
 _:storage
     :base [
         :param "baseUri" ;
@@ -1123,21 +1130,6 @@ _:acceptLwsJson
 _:contentTypeTextPlain
     :header "Content-Type" ;
     :value "text/plain" ;
-.
-
-_:rangeFirstFourBytes
-    :header "Range" ;
-    :value "bytes=0-3" ;
-.
-
-_:rangeLastTwoBytes
-    :header "Range" ;
-    :value "bytes=-2" ;
-.
-
-_:acceptLwsCid
-    :header "Accept" ;
-    :value "application/lws+cid" ;
 .
 
 # Extractors
