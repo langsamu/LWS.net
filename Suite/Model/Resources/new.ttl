@@ -385,14 +385,7 @@ _:getTextResourceBody
     :name "Get text resource" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "textResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:textResource ;
     ] ;
     :extractors (
         [
@@ -538,14 +531,7 @@ _:headTextResourceBody
     :name "Head text resource" ;
     :request [
         :method "HEAD" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "textResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:textResource ;
     ] ;
     :extractors (
         [
