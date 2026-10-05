@@ -163,7 +163,6 @@ _:containerHeadReturnsNoBody
     :steps (
         _:discoverStorageRoot
         _:createContainer
-        _:getContainerStatus
         _:headContainerBody
     ) ;
     :assertion _:emptyBody ;
@@ -421,7 +420,6 @@ _:containerHeadReturns200
     :steps (
         _:discoverStorageRoot
         _:createContainer
-        _:getContainerStatus
         _:headContainerStatus
     ) ;
     :assertion _:200 ;
@@ -432,7 +430,6 @@ _:containerHeadReturnsLwsMediaType
     :steps (
         _:discoverStorageRoot
         _:createContainer
-        _:getContainerStatus
         _:headContainerContentType
     ) ;
     :assertion _:lwsJsonContentType ;
