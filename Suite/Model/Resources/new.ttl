@@ -30,6 +30,7 @@
         _:core-data_resources-error-problem-details-status
         _:core-data_resources-error-problem-details-content-type
         _:core-data_resources-readDataResource-status
+        _:core-data_resources-readDataResource-content-type
     ) ;
 ] .
 
@@ -1142,4 +1143,31 @@ _:textResource
     :relative [
         :param "textResourceLocation" ;
     ] ;
+.
+
+_:core-data_resources-readDataResource-content-type
+    :name "readDataResource-content-type" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceContentType
+    ) ;
+    :assertion _:textPlainContentType ;
+.
+
+_:getTextResourceContentType
+    :name "Get text resource Content-Type" ;
+    :request [
+        :method "GET" ;
+        :uri _:textResource ;
+    ] ;
+    :extractors (
+        _:contentType
+    ) ;
+.
+
+_:textPlainContentType
+    :param "contentType" ;
+    :regex "(?i)^text/plain\s*(;|$)" ;
 .
