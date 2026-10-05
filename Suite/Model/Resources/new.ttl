@@ -33,6 +33,7 @@
         _:core-data_resources-readDataResource-content-type
         _:core-data_resources-readDataResource-etag
         _:core-data_resources-data-resource-head-parity-head-status
+        _:core-data_resources-data-resource-head-parity-head-content-type
     ) ;
 ] .
 
@@ -1225,5 +1226,27 @@ _:headTextResourceStatus
     ] ;
     :extractors (
         _:status
+    ) ;
+.
+
+_:core-data_resources-data-resource-head-parity-head-content-type
+    :name "data-resource-head-parity-head-content-type" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceContentType
+    ) ;
+    :assertion _:textPlainContentType ;
+.
+
+_:headTextResourceContentType
+    :name "Head text resource Content-Type" ;
+    :request [
+        :method "HEAD" ;
+        :uri _:textResource ;
+    ] ;
+    :extractors (
+        _:contentType
     ) ;
 .
