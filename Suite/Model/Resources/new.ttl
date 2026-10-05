@@ -625,7 +625,7 @@ _:createResourceWithForgedLinkset
             ] ;
         ] ;
         :headers
-            _:textPlainHeader ,
+            _:contentTypeTextPlain ,
             [
                 :header "Link" ;
                 :value "<https://linkset.invalid/forged>; rel=\"linkset\"" ;
