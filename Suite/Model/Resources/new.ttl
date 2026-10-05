@@ -420,14 +420,7 @@ _:getDigitsResourceBeyondEnd
     :name "Get range beyond end of text resource" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=100-200" ;
@@ -436,6 +429,15 @@ _:getDigitsResourceBeyondEnd
     :extractors (
         _:status
     ) ;
+.
+
+_:digitsResource
+    :base [
+        :param "storageRoot" ;
+    ] ;
+    :relative [
+        :param "digitsResourceLocation" ;
+    ] ;
 .
 
 _:416
@@ -467,14 +469,7 @@ _:getDigitsResourceFirstBytes
     :name "Get first four bytes of text resource" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=0-3" ;
@@ -509,14 +504,7 @@ _:getDigitsResourceLastBytes
     :name "Get last two bytes of text resource" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=-2" ;
@@ -658,14 +646,7 @@ _:getDigitsResourceAcceptRanges
     :name "Get text resource Accept-Ranges header" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
     ] ;
     :extractors (
         [
@@ -684,14 +665,7 @@ _:getDigitsResourceLastBytesBody
     :name "Get last two bytes of text resource body" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=-2" ;
@@ -709,14 +683,7 @@ _:getDigitsResourceFirstBytesContentRange
     :name "Get first four bytes of text resource Content-Range header" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=0-3" ;
@@ -734,14 +701,7 @@ _:getDigitsResourceFirstBytesBody
     :name "Get first four bytes of text resource body" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "digitsResourceLocation" ;
-            ] ;
-        ] ;
+        :uri _:digitsResource ;
         :headers [
             :header "Range" ;
             :value "bytes=0-3" ;
