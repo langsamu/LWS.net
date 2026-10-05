@@ -342,14 +342,7 @@ _:getCreatedContainer
     :name "Get test container" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
@@ -376,14 +369,7 @@ _:createTextResource
     :name "Create text resource in test container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:contentTypeTextPlain ;
         :body "milk\neggs\nbread\nbutter\napples\norange juice\n" ;
     ] ;
@@ -425,14 +411,7 @@ _:createDigitsResource
     :name "Create ten-byte text resource in test container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:contentTypeTextPlain ;
         :body "0123456789" ;
     ] ;
@@ -475,14 +454,7 @@ _:createSubContainer
     :name "Create sub-container in test container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:linkTypeContainer ;
     ] ;
     :extractors (
@@ -529,14 +501,7 @@ _:getContainerItems
     :name "Get items of container" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
@@ -599,14 +564,7 @@ _:headContainerBody
     :name "Head container" ;
     :request [
         :method "HEAD" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
@@ -636,14 +594,7 @@ _:createResourceWithForgedLinkset
     :name "Create resource claiming a forged linkset" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers
             _:contentTypeTextPlain ,
             [
@@ -666,14 +617,7 @@ _:getContainerWithWeightedAccept
     :name "Get container with weighted Accept" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers [
             :header "Accept" ;
             :value "text/html;q=0.9, application/ld+json;q=0.5" ;
@@ -693,14 +637,7 @@ _:getContainerWithLwsProfileAccept
     :name "Get container with LWS profile Accept" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers [
             :header "Accept" ;
             :value "application/ld+json; profile=\"https://www.w3.org/ns/lws/v1\"" ;
@@ -715,14 +652,7 @@ _:getContainerVary
     :name "Get container Vary header" ;
     :request [
         :method "GET" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:acceptLwsJson ;
     ] ;
     :extractors (
@@ -854,14 +784,7 @@ _:postToMissingContainer
     :request [
         :method "POST" ;
         :uri [
-            :base [
-                :base [
-                    :param "storageRoot" ;
-                ] ;
-                :relative [
-                    :param "containerLocation" ;
-                ] ;
-            ] ;
+            :base _:container ;
             :relative [
                 :value "missing-container/" ;
             ] ;
@@ -901,14 +824,7 @@ _:createFirstSameBytesResource
     :name "Create first same-bytes resource in test container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:contentTypeTextPlain ;
         :body "same bytes" ;
     ] ;
@@ -924,14 +840,7 @@ _:createSecondSameBytesResource
     :name "Create second same-bytes resource in test container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:contentTypeTextPlain ;
         :body "same bytes" ;
     ] ;
@@ -1017,14 +926,7 @@ _:createNotAContainerResource
     :name "Create data resource to post beneath" ;
     :request [
         :method "POST" ;
-        :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
-            :relative [
-                :param "containerLocation" ;
-            ] ;
-        ] ;
+        :uri _:container ;
         :headers _:contentTypeTextPlain ;
         :body "not a container" ;
     ] ;
@@ -1083,14 +985,7 @@ _:getMissingResource
 .
 
 _:missingResource
-    :base [
-        :base [
-            :param "storageRoot" ;
-        ] ;
-        :relative [
-            :param "containerLocation" ;
-        ] ;
-    ] ;
+    :base _:container ;
     :relative [
         :value "missing-resource" ;
     ] ;
