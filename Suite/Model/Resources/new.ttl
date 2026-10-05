@@ -564,11 +564,7 @@ _:createContainer
 
 _:getContainerStatus
     :name "Get container status" ;
-    :request [
-        :method "GET" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:getContainer ;
     :extractors (
         _:status
     ) ;
@@ -592,10 +588,7 @@ _:createTextResource
 
 _:getTextResourceBody
     :name "Get text resource body" ;
-    :request [
-        :method "GET" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:getTextResource ;
     :extractors (
         _:body
     ) ;
@@ -646,11 +639,7 @@ _:createNestedContainer
 
 _:getContainerItems
     :name "Get container items" ;
-    :request [
-        :method "GET" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:getContainer ;
     :extractors (
         [
             :param "items" ;
@@ -661,11 +650,7 @@ _:getContainerItems
 
 _:getDigitsResourceFirstFourBytesStatus
     :name "Get digits resource first four bytes status" ;
-    :request [
-        :method "GET" ;
-        :uri _:digitsResource ;
-        :headers _:rangeFirstFourBytes ;
-    ] ;
+    :request _:getDigitsResourceFirstFourBytes ;
     :extractors (
         _:status
     ) ;
@@ -673,11 +658,7 @@ _:getDigitsResourceFirstFourBytesStatus
 
 _:getDigitsResourceLastTwoBytesStatus
     :name "Get digits resource last two bytes status" ;
-    :request [
-        :method "GET" ;
-        :uri _:digitsResource ;
-        :headers _:rangeLastTwoBytes ;
-    ] ;
+    :request _:getDigitsResourceLastTwoBytes ;
     :extractors (
         _:status
     ) ;
@@ -685,10 +666,7 @@ _:getDigitsResourceLastTwoBytesStatus
 
 _:headTextResourceBody
     :name "Head text resource body" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:headTextResource ;
     :extractors (
         _:body
     ) ;
@@ -696,11 +674,7 @@ _:headTextResourceBody
 
 _:headContainerBody
     :name "Head container body" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:headContainer ;
     :extractors (
         _:body
     ) ;
@@ -756,11 +730,7 @@ _:getContainerWithLwsProfileAcceptStatus
 
 _:getContainerVary
     :name "Get container Vary" ;
-    :request [
-        :method "GET" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:getContainer ;
     :extractors (
         [
             :param "vary" ;
@@ -785,11 +755,7 @@ _:getDigitsResourceAcceptRanges
 
 _:getDigitsResourceLastTwoBytesBody
     :name "Get digits resource last two bytes body" ;
-    :request [
-        :method "GET" ;
-        :uri _:digitsResource ;
-        :headers _:rangeLastTwoBytes ;
-    ] ;
+    :request _:getDigitsResourceLastTwoBytes ;
     :extractors (
         _:body
     ) ;
@@ -797,11 +763,7 @@ _:getDigitsResourceLastTwoBytesBody
 
 _:getDigitsResourceFirstFourBytesContentRange
     :name "Get digits resource first four bytes Content-Range" ;
-    :request [
-        :method "GET" ;
-        :uri _:digitsResource ;
-        :headers _:rangeFirstFourBytes ;
-    ] ;
+    :request _:getDigitsResourceFirstFourBytes ;
     :extractors (
         [
             :param "contentRange" ;
@@ -812,11 +774,7 @@ _:getDigitsResourceFirstFourBytesContentRange
 
 _:getDigitsResourceFirstFourBytesBody
     :name "Get digits resource first four bytes body" ;
-    :request [
-        :method "GET" ;
-        :uri _:digitsResource ;
-        :headers _:rangeFirstFourBytes ;
-    ] ;
+    :request _:getDigitsResourceFirstFourBytes ;
     :extractors (
         _:body
     ) ;
@@ -842,12 +800,7 @@ _:createResourceInMissingContainer
 
 _:createFirstSameBytesResource
     :name "Create first same-bytes resource" ;
-    :request [
-        :method "POST" ;
-        :uri _:container ;
-        :headers _:contentTypeTextPlain ;
-        :body "same bytes" ;
-    ] ;
+    :request _:createSameBytesResource ;
     :extractors (
         [
             :param "firstSameBytesLocation" ;
@@ -858,12 +811,7 @@ _:createFirstSameBytesResource
 
 _:createSecondSameBytesResource
     :name "Create second same-bytes resource" ;
-    :request [
-        :method "POST" ;
-        :uri _:container ;
-        :headers _:contentTypeTextPlain ;
-        :body "same bytes" ;
-    ] ;
+    :request _:createSameBytesResource ;
     :extractors (
         [
             :param "secondSameBytesLocation" ;
@@ -946,10 +894,7 @@ _:createResourceBeneathDataResource
 
 _:getMissingResourceStatus
     :name "Get missing resource status" ;
-    :request [
-        :method "GET" ;
-        :uri _:missingResource ;
-    ] ;
+    :request _:getMissingResource ;
     :extractors (
         _:status
     ) ;
@@ -957,10 +902,7 @@ _:getMissingResourceStatus
 
 _:getMissingResourceContentType
     :name "Get missing resource Content-Type" ;
-    :request [
-        :method "GET" ;
-        :uri _:missingResource ;
-    ] ;
+    :request _:getMissingResource ;
     :extractors (
         _:contentType
     ) ;
@@ -968,10 +910,7 @@ _:getMissingResourceContentType
 
 _:getTextResourceStatus
     :name "Get text resource status" ;
-    :request [
-        :method "GET" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:getTextResource ;
     :extractors (
         _:status
     ) ;
@@ -979,10 +918,7 @@ _:getTextResourceStatus
 
 _:getTextResourceContentType
     :name "Get text resource Content-Type" ;
-    :request [
-        :method "GET" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:getTextResource ;
     :extractors (
         _:contentType
     ) ;
@@ -990,10 +926,7 @@ _:getTextResourceContentType
 
 _:getTextResourceETag
     :name "Get text resource ETag" ;
-    :request [
-        :method "GET" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:getTextResource ;
     :extractors (
         [
             :param "etag" ;
@@ -1004,10 +937,7 @@ _:getTextResourceETag
 
 _:headTextResourceStatus
     :name "Head text resource status" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:headTextResource ;
     :extractors (
         _:status
     ) ;
@@ -1015,10 +945,7 @@ _:headTextResourceStatus
 
 _:headTextResourceContentType
     :name "Head text resource Content-Type" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:textResource ;
-    ] ;
+    :request _:headTextResource ;
     :extractors (
         _:contentType
     ) ;
@@ -1026,11 +953,7 @@ _:headTextResourceContentType
 
 _:getContainerContentType
     :name "Get container Content-Type" ;
-    :request [
-        :method "GET" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:getContainer ;
     :extractors (
         _:contentType
     ) ;
@@ -1038,11 +961,7 @@ _:getContainerContentType
 
 _:headContainerStatus
     :name "Head container status" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:headContainer ;
     :extractors (
         _:status
     ) ;
@@ -1050,11 +969,7 @@ _:headContainerStatus
 
 _:headContainerContentType
     :name "Head container Content-Type" ;
-    :request [
-        :method "HEAD" ;
-        :uri _:container ;
-        :headers _:acceptLwsJson ;
-    ] ;
+    :request _:headContainer ;
     :extractors (
         _:contentType
     ) ;
@@ -1073,11 +988,7 @@ _:getStorageDescriptionContentType
 
 _:getStorageDescriptionAsCidStatus
     :name "Get storage description as CID status" ;
-    :request [
-        :method "GET" ;
-        :uri _:storage ;
-        :headers _:acceptLwsCid ;
-    ] ;
+    :request _:getStorageDescriptionAsCid ;
     :extractors (
         _:status
     ) ;
@@ -1085,11 +996,7 @@ _:getStorageDescriptionAsCidStatus
 
 _:getStorageDescriptionAsCidContentType
     :name "Get storage description as CID Content-Type" ;
-    :request [
-        :method "GET" ;
-        :uri _:storage ;
-        :headers _:acceptLwsCid ;
-    ] ;
+    :request _:getStorageDescriptionAsCid ;
     :extractors (
         _:contentType
     ) ;
@@ -1097,11 +1004,7 @@ _:getStorageDescriptionAsCidContentType
 
 _:getStorageDescriptionFirstContext
     :name "Get storage description first context" ;
-    :request [
-        :method "GET" ;
-        :uri _:storage ;
-        :headers _:acceptLwsCid ;
-    ] ;
+    :request _:getStorageDescriptionAsCid ;
     :extractors (
         [
             :param "context" ;
@@ -1112,17 +1015,66 @@ _:getStorageDescriptionFirstContext
 
 _:getStorageDescriptionSecondContext
     :name "Get storage description second context" ;
-    :request [
-        :method "GET" ;
-        :uri _:storage ;
-        :headers _:acceptLwsCid ;
-    ] ;
+    :request _:getStorageDescriptionAsCid ;
     :extractors (
         [
             :param "context" ;
             :path "$['@context'][1]" ;
         ]
     ) ;
+.
+
+# Requests
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getDigitsResourceFirstFourBytes
+    :method "GET" ;
+    :uri _:digitsResource ;
+    :headers _:rangeFirstFourBytes ;
+.
+
+_:getDigitsResourceLastTwoBytes
+    :method "GET" ;
+    :uri _:digitsResource ;
+    :headers _:rangeLastTwoBytes ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getMissingResource
+    :method "GET" ;
+    :uri _:missingResource ;
+.
+
+_:getStorageDescriptionAsCid
+    :method "GET" ;
+    :uri _:storage ;
+    :headers _:acceptLwsCid ;
+.
+
+_:createSameBytesResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :body "same bytes" ;
 .
 
 # URIs
