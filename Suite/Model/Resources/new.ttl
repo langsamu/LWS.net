@@ -524,9 +524,7 @@ _:getResourceStatus
     :name "Get resource status" ;
     :request [
         :method "GET" ;
-        :uri [
-            :param "newResource" ;
-        ] ;
+        :uri _:newResource ;
     ] ;
     :extractors (
         _:status
@@ -537,9 +535,7 @@ _:deleteResource
     :name "Delete resource" ;
     :request [
         :method "DELETE" ;
-        :uri [
-            :param "newResource" ;
-        ] ;
+        :uri _:newResource ;
     ] ;
     :extractors (
         _:status
@@ -1070,6 +1066,10 @@ _:createSameBytesResource
 # URIs
 _:storageRoot
     :param "storageRoot" ;
+.
+
+_:newResource
+    :param "newResource" ;
 .
 
 _:container
