@@ -35,6 +35,7 @@
         _:core-data_resources-data-resource-head-parity-head-status
         _:core-data_resources-data-resource-head-parity-head-content-type
         _:core-containers-createContainer-content-type
+        _:core-containers-container-head-parity-head-status
     ) ;
 ] .
 
@@ -1287,4 +1288,27 @@ _:container
 _:lwsJsonContentType
     :param "contentType" ;
     :regex "(?i)^application/lws\+json\s*(;|$)" ;
+.
+
+_:core-containers-container-head-parity-head-status
+    :name "container-head-parity-head-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getCreatedContainer
+        _:headContainerStatus
+    ) ;
+    :assertion _:200 ;
+.
+
+_:headContainerStatus
+    :name "Head container status" ;
+    :request [
+        :method "HEAD" ;
+        :uri _:container ;
+        :headers _:acceptLwsJson ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
 .
