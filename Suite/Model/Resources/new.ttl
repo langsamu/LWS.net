@@ -510,9 +510,7 @@ _:createResource
     :name "Create resource" ;
     :request [
         :method "POST" ;
-        :uri [
-            :param "storageRoot" ;
-        ] ;
+        :uri _:storageRoot ;
     ] ;
     :extractors (
         [
@@ -552,9 +550,7 @@ _:createContainer
     :name "Create container" ;
     :request [
         :method "POST" ;
-        :uri [
-            :param "storageRoot" ;
-        ] ;
+        :uri _:storageRoot ;
         :headers _:linkTypeContainer ;
     ] ;
     :extractors (
@@ -825,9 +821,7 @@ _:getFirstSameBytesResourceBody
     :request [
         :method "GET" ;
         :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
+            :base _:storageRoot ;
             :relative [
                 :param "firstSameBytesLocation" ;
             ] ;
@@ -843,9 +837,7 @@ _:getSecondSameBytesResourceBody
     :request [
         :method "GET" ;
         :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
+            :base _:storageRoot ;
             :relative [
                 :param "secondSameBytesLocation" ;
             ] ;
@@ -877,9 +869,7 @@ _:createResourceBeneathDataResource
     :request [
         :method "POST" ;
         :uri [
-            :base [
-                :param "storageRoot" ;
-            ] ;
+            :base _:storageRoot ;
             :relative [
                 :param "notAContainerLocation" ;
             ] ;
@@ -1078,28 +1068,26 @@ _:createSameBytesResource
 .
 
 # URIs
+_:storageRoot
+    :param "storageRoot" ;
+.
+
 _:container
-    :base [
-        :param "storageRoot" ;
-    ] ;
+    :base _:storageRoot ;
     :relative [
         :param "containerLocation" ;
     ] ;
 .
 
 _:textResource
-    :base [
-        :param "storageRoot" ;
-    ] ;
+    :base _:storageRoot ;
     :relative [
         :param "textResourceLocation" ;
     ] ;
 .
 
 _:digitsResource
-    :base [
-        :param "storageRoot" ;
-    ] ;
+    :base _:storageRoot ;
     :relative [
         :param "digitsResourceLocation" ;
     ] ;
