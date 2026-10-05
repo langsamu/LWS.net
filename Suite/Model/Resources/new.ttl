@@ -475,14 +475,16 @@ _:getDigitsResourceFirstBytes
     :request [
         :method "GET" ;
         :uri _:digitsResource ;
-        :headers [
-            :header "Range" ;
-            :value "bytes=0-3" ;
-        ] ;
+        :headers _:rangeFirstFourBytes ;
     ] ;
     :extractors (
         _:status
     ) ;
+.
+
+_:rangeFirstFourBytes
+    :header "Range" ;
+    :value "bytes=0-3" ;
 .
 
 _:206
@@ -670,10 +672,7 @@ _:getDigitsResourceFirstBytesContentRange
     :request [
         :method "GET" ;
         :uri _:digitsResource ;
-        :headers [
-            :header "Range" ;
-            :value "bytes=0-3" ;
-        ] ;
+        :headers _:rangeFirstFourBytes ;
     ] ;
     :extractors (
         [
@@ -688,10 +687,7 @@ _:getDigitsResourceFirstBytesBody
     :request [
         :method "GET" ;
         :uri _:digitsResource ;
-        :headers [
-            :header "Range" ;
-            :value "bytes=0-3" ;
-        ] ;
+        :headers _:rangeFirstFourBytes ;
     ] ;
     :extractors (
         _:body
