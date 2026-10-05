@@ -48,11 +48,11 @@
 _:deletedResourceReturns404
     :name "Deleted resource returns 404" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createResource
-        _:getCreatedResource
-        _:deleteCreatedResource
-        _:getCreatedResource
+        _:getResourceStatus
+        _:deleteResource
+        _:getResourceStatus
     ) ;
     :assertion _:404 ;
 .
@@ -60,10 +60,10 @@ _:deletedResourceReturns404
 _:deleteReturns999IntentionallyFailing
     :name "Delete returns 999 (intentionally failing)" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createResource
-        _:getCreatedResource
-        _:deleteCreatedResource
+        _:getResourceStatus
+        _:deleteResource
     ) ;
     :assertion _:999 ; # Intentionally bogus
 .
@@ -71,9 +71,9 @@ _:deleteReturns999IntentionallyFailing
 _:containerGetReturns200
     :name "Container GET returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getCreatedContainer
+        _:getContainerStatus
     ) ;
     :assertion _:200 ;
 .
@@ -81,7 +81,7 @@ _:containerGetReturns200
 _:createdDataResourceReturnsPostedBody
     :name "Created data resource returns posted body" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:getTextResourceBody
@@ -95,10 +95,10 @@ _:createdDataResourceReturnsPostedBody
 _:rangeBeyondEndReturns416
     :name "Range beyond end returns 416" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceBeyondEnd
+        _:getDigitsResourceBeyondEndStatus
     ) ;
     :assertion _:416 ;
 .
@@ -106,9 +106,9 @@ _:rangeBeyondEndReturns416
 _:newNestedContainerHasNoItems
     :name "New nested container has no items" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:createSubContainer
+        _:createNestedContainer
         _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
@@ -117,10 +117,10 @@ _:newNestedContainerHasNoItems
 _:byteRangeReturns206
     :name "Byte range returns 206" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceFirstBytes
+        _:getDigitsResourceFirstFourBytesStatus
     ) ;
     :assertion _:206 ;
 .
@@ -128,7 +128,7 @@ _:byteRangeReturns206
 _:newContainerHasNoItems
     :name "New container has no items" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:getContainerItems
     ) ;
@@ -138,10 +138,10 @@ _:newContainerHasNoItems
 _:suffixByteRangeReturns206
     :name "Suffix byte range returns 206" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceLastBytes
+        _:getDigitsResourceLastTwoBytesStatus
     ) ;
     :assertion _:206 ;
 .
@@ -149,7 +149,7 @@ _:suffixByteRangeReturns206
 _:dataResourceHeadReturnsNoBody
     :name "Data resource HEAD returns no body" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:headTextResourceBody
@@ -160,9 +160,9 @@ _:dataResourceHeadReturnsNoBody
 _:containerHeadReturnsNoBody
     :name "Container HEAD returns no body" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getCreatedContainer
+        _:getContainerStatus
         _:headContainerBody
     ) ;
     :assertion _:emptyBody ;
@@ -171,7 +171,7 @@ _:containerHeadReturnsNoBody
 _:createWithForgedLinksetLinkReturns201
     :name "Create with forged linkset Link returns 201" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createResourceWithForgedLinkset
     ) ;
@@ -181,9 +181,9 @@ _:createWithForgedLinksetLinkReturns201
 _:containerGetWithWeightedAcceptReturns200
     :name "Container GET with weighted Accept returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getContainerWithWeightedAccept
+        _:getContainerWithWeightedAcceptStatus
     ) ;
     :assertion _:200 ;
 .
@@ -191,9 +191,9 @@ _:containerGetWithWeightedAcceptReturns200
 _:containerGetAsJsonLdWithLwsProfileReturns200
     :name "Container GET as JSON-LD with LWS profile returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getContainerWithLwsProfileAccept
+        _:getContainerWithLwsProfileAcceptStatus
     ) ;
     :assertion _:200 ;
 .
@@ -201,7 +201,7 @@ _:containerGetAsJsonLdWithLwsProfileReturns200
 _:containerResponseVariesByAccept
     :name "Container response varies by Accept" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:getContainerVary
     ) ;
@@ -214,7 +214,7 @@ _:containerResponseVariesByAccept
 _:dataResourceAdvertisesByteRanges
     :name "Data resource advertises byte ranges" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
         _:getDigitsResourceAcceptRanges
@@ -228,10 +228,10 @@ _:dataResourceAdvertisesByteRanges
 _:suffixByteRangeReturnsLastBytes
     :name "Suffix byte range returns last bytes" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceLastBytesBody
+        _:getDigitsResourceLastTwoBytesBody
     ) ;
     :assertion [
         :param "body" ;
@@ -242,10 +242,10 @@ _:suffixByteRangeReturnsLastBytes
 _:byteRangeReturnsContentRange
     :name "Byte range returns Content-Range" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceFirstBytesContentRange
+        _:getDigitsResourceFirstFourBytesContentRange
     ) ;
     :assertion [
         :param "contentRange" ;
@@ -256,10 +256,10 @@ _:byteRangeReturnsContentRange
 _:byteRangeReturnsRequestedBytes
     :name "Byte range returns requested bytes" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createDigitsResource
-        _:getDigitsResourceFirstBytesBody
+        _:getDigitsResourceFirstFourBytesBody
     ) ;
     :assertion [
         :param "body" ;
@@ -267,7 +267,7 @@ _:byteRangeReturnsRequestedBytes
     ] ;
 .
 
-_:getStorageRoot
+_:discoverStorageRoot
     :name "Discover storage root" ;
     :request [
         :method "GET" ;
@@ -304,7 +304,7 @@ _:createResource
     ) ;
 .
 
-_:getCreatedResource
+_:getResourceStatus
     :name "Get resource status" ;
     :request [
         :method "GET" ;
@@ -317,7 +317,7 @@ _:getCreatedResource
     ) ;
 .
 
-_:deleteCreatedResource
+_:deleteResource
     :name "Delete resource" ;
     :request [
         :method "DELETE" ;
@@ -349,7 +349,7 @@ _:containerLocation
     :header "Location" ;
 .
 
-_:getCreatedContainer
+_:getContainerStatus
     :name "Get container status" ;
     :request [
         :method "GET" ;
@@ -424,7 +424,7 @@ _:createDigitsResource
     ) ;
 .
 
-_:getDigitsResourceBeyondEnd
+_:getDigitsResourceBeyondEndStatus
     :name "Get digits resource beyond end status" ;
     :request [
         :method "GET" ;
@@ -453,7 +453,7 @@ _:416
     :value "416" ;
 .
 
-_:createSubContainer
+_:createNestedContainer
     :name "Create nested container" ;
     :request [
         :method "POST" ;
@@ -470,7 +470,7 @@ _:emptyItems
     :value "[]" ;
 .
 
-_:getDigitsResourceFirstBytes
+_:getDigitsResourceFirstFourBytesStatus
     :name "Get digits resource first four bytes status" ;
     :request [
         :method "GET" ;
@@ -507,7 +507,7 @@ _:getContainerItems
     ) ;
 .
 
-_:getDigitsResourceLastBytes
+_:getDigitsResourceLastTwoBytesStatus
     :name "Get digits resource last two bytes status" ;
     :request [
         :method "GET" ;
@@ -590,7 +590,7 @@ _:201
     :value "201" ;
 .
 
-_:getContainerWithWeightedAccept
+_:getContainerWithWeightedAcceptStatus
     :name "Get container with weighted Accept status" ;
     :request [
         :method "GET" ;
@@ -610,7 +610,7 @@ _:status
     :param "status" ;
 .
 
-_:getContainerWithLwsProfileAccept
+_:getContainerWithLwsProfileAcceptStatus
     :name "Get container with LWS profile Accept status" ;
     :request [
         :method "GET" ;
@@ -654,7 +654,7 @@ _:getDigitsResourceAcceptRanges
     ) ;
 .
 
-_:getDigitsResourceLastBytesBody
+_:getDigitsResourceLastTwoBytesBody
     :name "Get digits resource last two bytes body" ;
     :request [
         :method "GET" ;
@@ -666,7 +666,7 @@ _:getDigitsResourceLastBytesBody
     ) ;
 .
 
-_:getDigitsResourceFirstBytesContentRange
+_:getDigitsResourceFirstFourBytesContentRange
     :name "Get digits resource first four bytes Content-Range" ;
     :request [
         :method "GET" ;
@@ -681,7 +681,7 @@ _:getDigitsResourceFirstBytesContentRange
     ) ;
 .
 
-_:getDigitsResourceFirstBytesBody
+_:getDigitsResourceFirstFourBytesBody
     :name "Get digits resource first four bytes body" ;
     :request [
         :method "GET" ;
@@ -696,14 +696,14 @@ _:getDigitsResourceFirstBytesBody
 _:createInMissingContainerReturns404
     :name "Create in missing container returns 404" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:postToMissingContainer
+        _:createResourceInMissingContainer
     ) ;
     :assertion _:404 ;
 .
 
-_:postToMissingContainer
+_:createResourceInMissingContainer
     :name "Create resource in missing container" ;
     :request [
         :method "POST" ;
@@ -724,9 +724,9 @@ _:postToMissingContainer
 _:rejectedCreateLeavesContainerEmpty
     :name "Rejected create leaves container empty" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:postToMissingContainer
+        _:createResourceInMissingContainer
         _:getContainerItems
     ) ;
     :assertion _:emptyItems ;
@@ -735,7 +735,7 @@ _:rejectedCreateLeavesContainerEmpty
 _:firstOfTwoIdenticalCreatesKeepsItsBody
     :name "First of two identical creates keeps its body" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createFirstSameBytesResource
         _:createSecondSameBytesResource
@@ -802,7 +802,7 @@ _:sameBytesBody
 _:secondOfTwoIdenticalCreatesKeepsItsBody
     :name "Second of two identical creates keeps its body" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createFirstSameBytesResource
         _:createSecondSameBytesResource
@@ -832,15 +832,15 @@ _:getSecondSameBytesResourceBody
 _:createBeneathDataResourceReturns405
     :name "Create beneath data resource returns 405" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:createNotAContainerResource
-        _:postBeneathDataResource
+        _:createDataResource
+        _:createResourceBeneathDataResource
     ) ;
     :assertion _:405 ;
 .
 
-_:createNotAContainerResource
+_:createDataResource
     :name "Create data resource" ;
     :request [
         :method "POST" ;
@@ -856,7 +856,7 @@ _:createNotAContainerResource
     ) ;
 .
 
-_:postBeneathDataResource
+_:createResourceBeneathDataResource
     :name "Create resource beneath data resource" ;
     :request [
         :method "POST" ;
@@ -884,14 +884,14 @@ _:405
 _:missingResourceReturns404
     :name "Missing resource returns 404" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getMissingResource
+        _:getMissingResourceStatus
     ) ;
     :assertion _:404 ;
 .
 
-_:getMissingResource
+_:getMissingResourceStatus
     :name "Get missing resource status" ;
     :request [
         :method "GET" ;
@@ -912,7 +912,7 @@ _:missingResource
 _:missingResourceReturnsProblemDetails
     :name "Missing resource returns problem details" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:getMissingResourceContentType
     ) ;
@@ -941,7 +941,7 @@ _:contentType
 _:dataResourceGetReturns200
     :name "Data resource GET returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:getTextResourceStatus
@@ -972,7 +972,7 @@ _:textResource
 _:dataResourceGetReturnsItsMediaType
     :name "Data resource GET returns its media type" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:getTextResourceContentType
@@ -999,10 +999,10 @@ _:textPlainContentType
 _:dataResourceGetReturnsETag
     :name "Data resource GET returns ETag" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
-        _:getTextResourceEtag
+        _:getTextResourceETag
     ) ;
     :assertion [
         :param "etag" ;
@@ -1010,7 +1010,7 @@ _:dataResourceGetReturnsETag
     ] ;
 .
 
-_:getTextResourceEtag
+_:getTextResourceETag
     :name "Get text resource ETag" ;
     :request [
         :method "GET" ;
@@ -1027,7 +1027,7 @@ _:getTextResourceEtag
 _:dataResourceHeadReturns200
     :name "Data resource HEAD returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:headTextResourceStatus
@@ -1049,7 +1049,7 @@ _:headTextResourceStatus
 _:dataResourceHeadReturnsItsMediaType
     :name "Data resource HEAD returns its media type" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
         _:createTextResource
         _:headTextResourceContentType
@@ -1071,9 +1071,9 @@ _:headTextResourceContentType
 _:nestedContainerGetReturnsLwsMediaType
     :name "Nested container GET returns LWS media type" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:createSubContainer
+        _:createNestedContainer
         _:getContainerContentType
     ) ;
     :assertion _:lwsJsonContentType ;
@@ -1108,9 +1108,9 @@ _:lwsJsonContentType
 _:containerHeadReturns200
     :name "Container HEAD returns 200" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getCreatedContainer
+        _:getContainerStatus
         _:headContainerStatus
     ) ;
     :assertion _:200 ;
@@ -1131,9 +1131,9 @@ _:headContainerStatus
 _:containerHeadReturnsLwsMediaType
     :name "Container HEAD returns LWS media type" ;
     :steps (
-        _:getStorageRoot
+        _:discoverStorageRoot
         _:createContainer
-        _:getCreatedContainer
+        _:getContainerStatus
         _:headContainerContentType
     ) ;
     :assertion _:lwsJsonContentType ;
