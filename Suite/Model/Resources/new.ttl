@@ -27,6 +27,7 @@
         _:core-data_resources-create-post-twice-distinct-first-body
         _:core-data_resources-create-post-twice-distinct-second-body
         _:core-data_resources-post-to-non-container-405-status
+        _:core-data_resources-error-problem-details-status
     ) ;
 ] .
 
@@ -1044,4 +1045,39 @@ _:postBeneathDataResource
 _:405
     :param "status" ;
     :value "405" ;
+.
+
+_:core-data_resources-error-problem-details-status
+    :name "error-problem-details-status" ;
+    :steps (
+        _:getStorageRoot
+        _:createContainer
+        _:getMissingResource
+    ) ;
+    :assertion _:404 ;
+.
+
+_:getMissingResource
+    :name "Get resource that does not exist" ;
+    :request [
+        :method "GET" ;
+        :uri _:missingResource ;
+    ] ;
+    :extractors (
+        _:status
+    ) ;
+.
+
+_:missingResource
+    :base [
+        :base [
+            :param "storageRoot" ;
+        ] ;
+        :relative [
+            :param "containerLocation" ;
+        ] ;
+    ] ;
+    :relative [
+        :value "missing-resource" ;
+    ] ;
 .
