@@ -31,7 +31,7 @@ public static class GraphWrapperNodeExtensions
 
         if (throwWhenMore)
         {
-            if (!objects.MoveNext())
+            if (objects.MoveNext())
             {
                 throw new InvalidOperationException("more than one");
             }
