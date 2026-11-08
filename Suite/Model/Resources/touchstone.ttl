@@ -2446,12 +2446,7 @@ _:discoverStorageRoot
     :request [
         :method "GET" ;
         :uri [
-            :base [
-                :variable "baseUri" ;
-            ] ;
-            :relative [
-                :constant "/" ;
-            ] ;
+            :variable "baseUri" ;
         ] ;
     ] ;
     :extract (
@@ -4235,12 +4230,7 @@ _:digitsResource
 .
 
 _:storage
-    :base [
-        :variable "baseUri" ;
-    ] ;
-    :relative [
-        :constant "/" ;
-    ] ;
+    :variable "baseUri" ;
 .
 
 _:outer

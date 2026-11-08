@@ -10,12 +10,7 @@
                 :request [
                     :method "GET" ;
                     :uri [
-                        :base [
-                            :variable "baseUri" ;
-                        ] ;
-                        :relative [
-                            :constant "/" ;
-                        ] ;
+                        :variable "baseUri" ;
                     ] ;
                 ] ;
                 :extract (

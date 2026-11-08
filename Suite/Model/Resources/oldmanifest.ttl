@@ -538,12 +538,7 @@ _:getAuthorizationServerMetadata
 # URIs
 
 _:storage
-    :base [
-        :variable "baseUri" ;
-    ] ;
-    :relative [
-        :constant "/" ;
-    ] ;
+    :variable "baseUri" ;
 .
 
 _:storageRoot
