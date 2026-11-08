@@ -1,0 +1,38 @@
+services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.5.2
+    environment:
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+      - "4318:18890"
+
+  lwsd:
+    build:
+      dockerfile: lwsd.Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_SERVICE_NAME: server-lwsd
+      OTEL_METRICS_EXPORTER: none
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/3126"]
+      interval: 5s
+      retries: 30
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+
+  suite:
+    build:
+      context: ../..
+      dockerfile: Suite/Docker/suite.Dockerfile
+    environment:
+      Suite__BaseUri: http://lwsd:3126/lws/
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_SERVICE_NAME: test-langsamu
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+      lwsd:
+        condition: service_healthy
