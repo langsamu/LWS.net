@@ -1,0 +1,11 @@
+PREFIX :    <https://halcyon.is/ns/>
+PREFIX lws: <https://www.w3.org/ns/lws#>
+<http://localhost> a :HalcyonSettingsFile ;
+    :ProxyHostName "http://halcyon:8888" ;
+    :HTTPPort 8888 ;
+    :RDFStoreLocation "tdb2" ;
+    :LWSStoreLocation "lws-tdb2" ;
+    :LWSOwner <http://localhost/owner> ;
+    :LWSOpenMode true ;
+    :hasLWSStorage [ a lws:Storage ; :urlPath "/W3Clws" ;
+                     :storageRoot <file:///data/lws/W3Clws/> ; :namingPolicy "uuid" ] .

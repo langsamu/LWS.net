@@ -1,0 +1,53 @@
+diff --git a/a/HalcyonLWS/src/main/java/com/ebremer/lws/acp/AcpBootstrap.java b/b/HalcyonLWS/src/main/java/com/ebremer/lws/acp/AcpBootstrap.java
+index 1d0cb9d..e16bc2a 100644
+--- a/a/HalcyonLWS/src/main/java/com/ebremer/lws/acp/AcpBootstrap.java
++++ b/b/HalcyonLWS/src/main/java/com/ebremer/lws/acp/AcpBootstrap.java
+@@ -117,6 +117,17 @@ public final class AcpBootstrap {
+             acp.add(acr, ACP.memberAccessControl, ownerAc);
+             acp.add(acr, ACP.memberAccessControl, creatorAc);
+ 
++            if (LwsSettings.get().openMode()) {
++                Resource publicMatcher = ResourceFactory.createResource(base + "#m-public");
++                acp.add(publicMatcher, RDF.type, ACP.Matcher);
++                acp.add(publicMatcher, ACP.agent, ACP.PublicAgent);
++                Resource publicPolicy = policy(acp, base + "#pol-public", publicMatcher,
++                        List.of(AccessMode.READ, AccessMode.WRITE, AccessMode.APPEND, AccessMode.CONTROL));
++                Resource publicAc = accessControl(acp, base + "#ac-public", publicPolicy);
++                acp.add(acr, ACP.accessControl, publicAc);
++                acp.add(acr, ACP.memberAccessControl, publicAc);
++            }
++
+             LOG.info("seeded ACP root policy for {}", root);
+         });
+     }
+diff --git a/a/HalcyonLWS/src/main/java/com/ebremer/lws/config/LwsSettings.java b/b/HalcyonLWS/src/main/java/com/ebremer/lws/config/LwsSettings.java
+index 46f0f6d..57f4e13 100644
+--- a/a/HalcyonLWS/src/main/java/com/ebremer/lws/config/LwsSettings.java
++++ b/b/HalcyonLWS/src/main/java/com/ebremer/lws/config/LwsSettings.java
+@@ -68,6 +68,7 @@ public final class LwsSettings {
+     private final long accessTokenLifetimeSeconds;
+     private final boolean acceptAuthenticationCredentials;
+     private final boolean legacyChallenge;
++    private final boolean openMode;
+     private final String userDataStoragePath;
+     private final java.util.Set<com.ebremer.lws.store.ResourceType> moveAppliesTo;
+     private final java.util.Map<String, java.util.Set<com.ebremer.lws.store.ResourceType>>
+@@ -88,6 +89,7 @@ public final class LwsSettings {
+         this.acceptAuthenticationCredentials =
+                 readBoolean(m, "LWSAcceptAuthenticationCredentials", true);
+         this.legacyChallenge = readBoolean(m, "LWSLegacyChallenge", true);
++        this.openMode = readBoolean(m, "LWSOpenMode", false);
+         this.userDataStoragePath = readString(m, "LWSUserDataStorage");
+         this.moveAppliesTo = readMoveAppliesTo(m);
+         this.moveAppliesToByStorage = readMoveAppliesToByStorage(m);
+@@ -322,6 +324,10 @@ public final class LwsSettings {
+      * authorization server from {@code as_uri}; turning this off sends the challenge the current
+      * draft describes and nothing else.
+      */
++    public boolean openMode() {
++        return openMode;
++    }
++
+     public boolean legacyChallenge() {
+         return legacyChallenge;
+     }

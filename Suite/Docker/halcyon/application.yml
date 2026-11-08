@@ -1,0 +1,10 @@
+server:
+  port: 8888
+spring:
+  main:
+    keep-alive: true
+    allow-circular-references: true
+logging:
+  level:
+    root: INFO
+    com.ebremer.lws: INFO
