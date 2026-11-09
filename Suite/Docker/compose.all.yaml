@@ -1,0 +1,8 @@
+name: lws-all
+include:
+  - compose.common.yaml
+  - css.yaml
+  - ebremer.yaml
+  - halcyon.yaml
+  - lwsd.yaml
+  - sparq.yaml

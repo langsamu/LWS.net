@@ -1,0 +1,34 @@
+services:
+  css:
+    build:
+      dockerfile: css-lws.Dockerfile
+    environment:
+      CSS_CONFIG: /config/lws-open.json
+      CSS_BASE_URL: http://css:3000/
+      CSS_PORT: "3000"
+      CSS_ROOT_FILE_PATH: /data
+      CSS_LOGGING_LEVEL: warn
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_SERVICE_NAME: server-css
+      OTEL_METRICS_EXPORTER: none
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/3000"]
+      interval: 5s
+      retries: 30
+      start_period: 60s
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+
+  suite-css:
+    extends:
+      file: compose.common.yaml
+      service: suite-base
+    profiles: !reset []
+    environment:
+      Suite__BaseUri: http://css:3000/
+      OTEL_SERVICE_NAME: test-css
+      OTEL_RESOURCE_ATTRIBUTES: lws.target=css
+    depends_on:
+      css:
+        condition: service_healthy

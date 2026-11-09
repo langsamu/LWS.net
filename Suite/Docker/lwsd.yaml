@@ -1,0 +1,28 @@
+services:
+  lwsd:
+    build:
+      dockerfile: lwsd.Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_SERVICE_NAME: server-lwsd
+      OTEL_METRICS_EXPORTER: none
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/3126"]
+      interval: 5s
+      retries: 30
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+
+  suite-lwsd:
+    extends:
+      file: compose.common.yaml
+      service: suite-base
+    profiles: !reset []
+    environment:
+      Suite__BaseUri: http://lwsd:3126/lws/
+      OTEL_SERVICE_NAME: test-lwsd
+      OTEL_RESOURCE_ATTRIBUTES: lws.target=lwsd
+    depends_on:
+      lwsd:
+        condition: service_healthy

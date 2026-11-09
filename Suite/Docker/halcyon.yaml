@@ -1,0 +1,29 @@
+services:
+  halcyon:
+    build:
+      dockerfile: halcyon.Dockerfile
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_SERVICE_NAME: server-halcyon
+      OTEL_METRICS_EXPORTER: none
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8888"]
+      interval: 5s
+      retries: 30
+      start_period: 60s
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+
+  suite-halcyon:
+    extends:
+      file: compose.common.yaml
+      service: suite-base
+    profiles: !reset []
+    environment:
+      Suite__BaseUri: http://halcyon:8888/W3Clws/
+      OTEL_SERVICE_NAME: test-halcyon
+      OTEL_RESOURCE_ATTRIBUTES: lws.target=halcyon
+    depends_on:
+      halcyon:
+        condition: service_healthy

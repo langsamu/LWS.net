@@ -1,0 +1,31 @@
+services:
+  ebremer-server:
+    build:
+      dockerfile: ebremer-server.Dockerfile
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Dlws.base-uri=http://ebremer-server:8080
+        -Dlws.dev.open=true
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_SERVICE_NAME: server-ebremer
+      OTEL_METRICS_EXPORTER: none
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080"]
+      interval: 5s
+      retries: 30
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+
+  suite-ebremer:
+    extends:
+      file: compose.common.yaml
+      service: suite-base
+    profiles: !reset []
+    environment:
+      Suite__BaseUri: http://ebremer-server:8080/
+      OTEL_SERVICE_NAME: test-ebremer
+      OTEL_RESOURCE_ATTRIBUTES: lws.target=ebremer
+    depends_on:
+      ebremer-server:
+        condition: service_healthy

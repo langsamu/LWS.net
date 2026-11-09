@@ -1,0 +1,55 @@
+services:
+  sparq:
+    build:
+      dockerfile: sparq.Dockerfile
+    environment:
+      SOLID_SERVER_BASE_URL: http://sparq:3000
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/3000"]
+      interval: 5s
+      retries: 30
+
+  # sparq is Rust and has no OTEL exporter. OBI (OpenTelemetry eBPF Instrumentation)
+  # shares sparq's PID namespace, attaches eBPF probes to the sparq process from the kernel
+  # (no change to sparq), and exports one server span per HTTP request on port 3000 to Aspire.
+  obi:
+    image: otel/ebpf-instrument:v1.0.0
+    privileged: true
+    pid: "service:sparq"
+    environment:
+      OTEL_EBPF_OPEN_PORT: "3000"
+      OTEL_SERVICE_NAME: server-sparq
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_EBPF_METRICS_FEATURES: ""
+      OTEL_EBPF_DISCOVERY_POLL_INTERVAL: 500ms
+      OTEL_EBPF_BPF_TRACK_REQUEST_HEADERS: "true"
+    volumes:
+      - /sys/kernel/security:/sys/kernel/security:ro
+    depends_on:
+      aspire-dashboard:
+        condition: service_started
+      sparq:
+        condition: service_started
+
+  obi-delay:
+    image: busybox:1.37
+    command: ["sleep", "15"]
+    depends_on:
+      obi:
+        condition: service_started
+
+  suite-sparq:
+    extends:
+      file: compose.common.yaml
+      service: suite-base
+    profiles: !reset []
+    environment:
+      Suite__BaseUri: http://sparq:3000/
+      OTEL_SERVICE_NAME: test-sparq
+      OTEL_RESOURCE_ATTRIBUTES: lws.target=sparq
+    depends_on:
+      sparq:
+        condition: service_healthy
+      obi-delay:
+        condition: service_completed_successfully
