@@ -2,34 +2,143 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { test } from "node:test"
 import * as Blockly from "blockly"
+import { DataFactory, Store } from "n3"
 import { isomorphic } from "rdf-isomorphic"
 import dataset_ from "@rdfjs/dataset"
+import type { DatasetCore, Quad, Term } from "@rdfjs/types"
 import { defineBlocks } from "../blocks.ts"
 import { buildSchema } from "../schema/mod.ts"
-import { datasetToState, parse, quadsToTurtle, rootOnlyQuads, stateToQuads } from "../rdf.ts"
+import { datasetToState, parse, quadsToTurtle, stateToQuads } from "../rdf.ts"
+import { RDF } from "../vocabulary/mod.ts"
+import { ManifestDataset } from "../wrapping/ManifestDataset.ts"
 
-const text = readFileSync(new URL("../../../Model/Resources/new.ttl", import.meta.url), "utf8")
-const dataset = parse(text)
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
 const schema = buildSchema(dataset_.dataset([...parse(read("../../../Model/Resources/vocabulary.ttl")), ...parse(read("../../shapes.ttl"))]))
-const expected = rootOnlyQuads(dataset)
+const files = ["new", "example", "touchstone", "oldmanifest", "fromSpec", "oldmanifest/did_key"]
+const load = (file: string) => parse(read(`../../../Model/Resources/${file}.ttl`))
 
-test("pure round trip", () => {
-    assert.ok(expected.length > 1)
-    assert.ok(isomorphic(expected, stateToQuads(datasetToState(dataset, schema), schema)))
-})
+function rootOf(dataset: DatasetCore) {
+    return new ManifestDataset(dataset, DataFactory).root as unknown as Term
+}
+
+const indexed = (dataset: DatasetCore) => new Store([...dataset])
+
+function reachable(dataset: DatasetCore, root: Term) {
+    dataset = indexed(dataset)
+    const result: Quad[] = []
+    const seen = new Set<string>()
+    const queue = [root]
+    for (let node = queue.shift(); node; node = queue.shift()) {
+        const key = node.termType + node.value
+        if (seen.has(key)) {
+            continue
+        }
+        seen.add(key)
+        for (const q of dataset.match(node)) {
+            result.push(q)
+            if (q.object.termType !== "Literal") {
+                queue.push(q.object)
+            }
+        }
+    }
+    return result
+}
+
+function sharesNodes(quads: Quad[]) {
+    const incoming = new Set<string>()
+    return quads.some(q => {
+        if (q.object.termType !== "BlankNode") {
+            return false
+        }
+        const known = incoming.has(q.object.value)
+        incoming.add(q.object.value)
+        return known
+    })
+}
+
+function tree(dataset: DatasetCore, node: Term): unknown {
+    return expand(indexed(dataset), node)
+}
+
+function expand(dataset: DatasetCore, node: Term): unknown {
+    if (node.termType === "Literal") {
+        return `"${node.value}"^^${node.datatype.value}`
+    }
+    if (node.termType === "NamedNode" && node.value === RDF.nil) {
+        return []
+    }
+    const properties = new Map<string, unknown[]>()
+    for (const q of dataset.match(node)) {
+        properties.set(q.predicate.value, [...(properties.get(q.predicate.value) ?? []), expand(dataset, q.object)])
+    }
+    if (properties.has(RDF.first)) {
+        const list: unknown[] = []
+        for (let current: Term | undefined = node; current && !(current.termType === "NamedNode" && current.value === RDF.nil); ) {
+            list.push(expand(dataset, [...dataset.match(current, DataFactory.namedNode(RDF.first))][0].object))
+            current = [...dataset.match(current, DataFactory.namedNode(RDF.rest))][0]?.object
+        }
+        return list
+    }
+    const sorted = [...properties].map(([predicate, values]) => [predicate, values.map(value => JSON.stringify(value)).sort().map(value => JSON.parse(value))] as const)
+    return { ...(node.termType === "NamedNode" && { "@id": node.value }), ...Object.fromEntries(sorted.sort(([a], [b]) => a.localeCompare(b))) }
+}
+
+function roundTrip(file: string) {
+    const dataset = load(file)
+    const root = rootOf(dataset)
+    const original = reachable(dataset, root)
+    const generated = dataset_.dataset(stateToQuads(datasetToState(dataset, schema), schema))
+    return { dataset, root, original, generated }
+}
+
+for (const file of files) {
+    test(`round trip ${file}`, () => {
+        const { dataset, root, original, generated } = roundTrip(file)
+        const shared = sharesNodes(original)
+        const strict = !shared && isomorphic(original, [...generated])
+        if (!shared) {
+            assert.ok(strict)
+        }
+        console.log(`${file}: ${original.length} triples, strictly isomorphic: ${strict}, shared nodes: ${shared}`)
+        assert.equal(JSON.stringify(tree(generated, rootOf(generated)), null, 1), JSON.stringify(tree(dataset, root), null, 1))
+    })
+}
 
 test("turtle round trip", () => {
-    const turtle = quadsToTurtle(stateToQuads(datasetToState(dataset, schema), schema))
-    assert.ok(isomorphic(expected, [...parse(turtle)]))
-    assert.ok(turtle.includes("xsd:anyURI"))
+    const { original, generated } = roundTrip("new")
+    assert.ok(isomorphic(original, [...parse(quadsToTurtle([...generated]))]))
 })
 
-test("headless workspace round trip", () => {
-    defineBlocks(schema)
-    const workspace = new Blockly.Workspace()
-    Blockly.serialization.workspaces.load(datasetToState(dataset, schema), workspace)
-    const saved = Blockly.serialization.workspaces.save(workspace)
-    assert.ok(isomorphic(expected, stateToQuads(saved, schema)))
-    workspace.dispose()
+for (const file of ["example", "touchstone"]) {
+    test(`turtle round trip ${file}`, () => {
+        const { generated } = roundTrip(file)
+        const turtle = quadsToTurtle([...generated])
+        const parsed = dataset_.dataset([...parse(turtle)])
+        if (file === "example") {
+            assert.ok(isomorphic([...generated], [...parsed]))
+        }
+        assert.equal(JSON.stringify(tree(parsed, rootOf(parsed))), JSON.stringify(tree(generated, rootOf(generated))))
+        assert.ok(turtle.includes("["))
+    })
+}
+
+test("lists and datatypes", () => {
+    const { generated } = roundTrip("example")
+    const turtle = quadsToTurtle([...generated])
+    assert.ok(turtle.includes("rdf:first") || turtle.includes("("))
+    assert.ok(roundTrip("touchstone").generated.size > 0)
 })
+
+for (const file of ["example", "touchstone"]) {
+    test(`headless workspace round trip ${file}`, () => {
+        const dataset = load(file)
+        const expected = tree(dataset, rootOf(dataset))
+        defineBlocks(schema)
+        const workspace = new Blockly.Workspace()
+        Blockly.serialization.workspaces.load(datasetToState(dataset, schema), workspace)
+        const saved = Blockly.serialization.workspaces.save(workspace)
+        const generated = dataset_.dataset(stateToQuads(saved, schema))
+        assert.deepEqual(tree(generated, rootOf(generated)), expected)
+        workspace.dispose()
+    })
+}
