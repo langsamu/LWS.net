@@ -1055,10 +1055,12 @@ _:containerListingOmitsDeletedMember
         _:getContainerItemIds
     ) ;
     :assert [
-        :that [
-            :variable "itemIds" ;
+        :not [
+            :that [
+                :variable "itemIds" ;
+            ] ;
+            :contains _:textResource ;
         ] ;
-        :not [ :contains _:textResource ] ;
     ] ;
 .
 
@@ -1104,8 +1106,7 @@ _:parentContainerListingOmitsDeletedEmptyContainer
         _:getOuterContainerItemIds
     ) ;
     :assert [
-        :that [ :variable "itemIds" ] ;
-        :not [ :contains _:inner ] ;
+        :not [ :that [ :variable "itemIds" ] ; :contains _:inner ] ;
     ] ;
 .
 
@@ -1614,8 +1615,7 @@ _:twoIdenticalCreatesReturnDistinctLocations
         _:createSecondSameBytesResource
     ) ;
     :assert [
-        :that [ :single [ :variable "secondSameBytesLocation" ] ] ;
-        :not [ :equals [ :single [ :variable "firstSameBytesLocation" ] ] ] ;
+        :not [ :that [ :single [ :variable "secondSameBytesLocation" ] ] ; :equals [ :single [ :variable "firstSameBytesLocation" ] ] ] ;
     ] ;
 .
 
@@ -2089,8 +2089,7 @@ _:resourceUpLinkOmitsForgedParentAfterForgedUpPatch
         _:getTextResourceUpLinks
     ) ;
     :assert [
-        :that [ :variable "upLinks" ] ;
-        :not [ :contains [ :constant "https://linkset.invalid/forged-parent/" ] ] ;
+        :not [ :that [ :variable "upLinks" ] ; :contains [ :constant "https://linkset.invalid/forged-parent/" ] ] ;
     ] ;
 .
 

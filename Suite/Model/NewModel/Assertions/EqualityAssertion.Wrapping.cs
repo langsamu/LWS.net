@@ -1,6 +1,6 @@
 ﻿namespace Model.NewModel.Assertions;
 
-public partial class EqualityAssertion : Assertion
+public partial class EqualityAssertion : ValueAssertion
 {
     protected EqualityAssertion(INode node, IGraph graph) : base(node, graph) { }
 

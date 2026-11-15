@@ -1,6 +1,6 @@
 ﻿namespace Model.NewModel.Assertions;
 
-public partial class RegexAssertion : Assertion
+public partial class RegexAssertion : ValueAssertion
 {
     protected RegexAssertion(INode node, IGraph graph) : base(node, graph) { }
 

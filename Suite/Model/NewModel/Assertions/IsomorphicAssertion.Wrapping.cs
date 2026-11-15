@@ -1,6 +1,6 @@
 ﻿namespace Model.NewModel.Assertions;
 
-public partial class IsomorphicAssertion : Assertion
+public partial class IsomorphicAssertion : ValueAssertion
 {
     protected IsomorphicAssertion(INode node, IGraph graph) : base(node, graph) { }
 
