@@ -13,11 +13,16 @@ export class ManifestEditor extends HTMLElement {
         this.append(host)
         this.workspace = Blockly.inject(host, { toolbox: toolbox(schema) })
         new ResizeObserver(() => Blockly.svgResize(this.workspace)).observe(this)
+        let pending = false
         this.workspace.addChangeListener((event: Blockly.Events.Abstract) => {
-            if (event.isUiEvent) {
+            if (event.isUiEvent || pending) {
                 return
             }
-            this.dispatchEvent(new CustomEvent("state-changed", { detail: Blockly.serialization.workspaces.save(this.workspace) }))
+            pending = true
+            setTimeout(() => {
+                pending = false
+                this.dispatchEvent(new CustomEvent("state-changed", { detail: Blockly.serialization.workspaces.save(this.workspace) }))
+            })
         })
     }
 
