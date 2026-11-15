@@ -1,4 +1,5 @@
 import * as Blockly from "blockly"
+import "@blockly/toolbox-search"
 import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 import { CollapseIcon } from "./components/CollapseIcon.ts"
 import { registerAddMenu } from "./components/AddMenu.ts"
@@ -85,6 +86,7 @@ export function toolbox(schema: Schema) {
                     .map(type => ({ kind: "block", type }))
             }))
             .filter(category => category.contents.length)
+            .concat({ kind: "search", name: "Search", contents: [] })
     }
 }
 

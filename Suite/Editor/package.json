@@ -6,6 +6,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "@blockly/toolbox-search": "13.4.0",
     "@rdfjs/dataset": "^2.0.3",
     "@rdfjs/prefix-map": "^0.1.2",
     "@rdfjs/serializer-turtle": "^1.1.6",
