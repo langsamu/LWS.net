@@ -12,6 +12,7 @@ const { namedNode, blankNode, literal, quad } = DataFactory
 export interface Block {
     type: string
     deletable?: boolean
+    collapsed?: boolean
     fields?: Record<string, string | number>
     inputs?: Record<string, { block?: Block }>
     next?: { block?: Block }
@@ -157,11 +158,28 @@ class Loader {
 export function datasetToState(dataset: DatasetCore, schema: Schema) {
     const manifest = new ManifestDataset(dataset, DataFactory).root as unknown as Term
     const block: Block = { ...new Loader(dataset, schema).load(rootOf(schema), manifest), deletable: false }
+    const kinds = new Map(schema.blocks.map(kind => [kind.type, kind]))
+    for (const input of Object.values(block.inputs ?? {})) {
+        for (const child of chain(input.block)) {
+            collapse(child, kinds)
+        }
+    }
     return { blocks: { languageVersion: 0, blocks: [block] } }
 }
 
 export function emptyState(schema: Schema) {
     return { blocks: { languageVersion: 0, blocks: [{ type: rootOf(schema).type, deletable: false }] } }
+}
+
+function collapse(block: Block, kinds: Map<string, BlockKind>) {
+    if (kinds.get(block.type)?.members.some(member => member.kind === "statements")) {
+        block.collapsed = true
+    }
+    for (const input of Object.values(block.inputs ?? {})) {
+        for (const child of chain(input.block)) {
+            collapse(child, kinds)
+        }
+    }
 }
 
 function* chain(first: Block | undefined) {
