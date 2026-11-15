@@ -51,11 +51,15 @@ export function blockDefinition(block: BlockKind): Json {
             definition.nextStatement = block.checks
             break
     }
+    const extensions: string[] = []
     if (block.members.some(member => member.kind === "statements")) {
-        definition.extensions = [CollapseIcon.extension]
+        extensions.push(CollapseIcon.extension)
     }
     if (block.literal && block.predicate === Vocabulary.include) {
-        definition.extensions = [OpenIncludeIcon.extension]
+        extensions.push(OpenIncludeIcon.extension)
+    }
+    if (extensions.length) {
+        definition.extensions = extensions
     }
     if (block.hue !== undefined) {
         definition.colour = block.hue
