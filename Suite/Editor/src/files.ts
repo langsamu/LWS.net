@@ -3,6 +3,7 @@ const TURTLE_TYPES = [{ description: "Turtle", accept: { "text/turtle": [".ttl"]
 interface FilePickers {
     showOpenFilePicker?(options: object): Promise<FileSystemFileHandle[]>
     showSaveFilePicker?(options: object): Promise<FileSystemFileHandle>
+    showDirectoryPicker?(): Promise<FileSystemDirectoryHandle>
 }
 
 const pickers = window as unknown as FilePickers
@@ -55,4 +56,24 @@ function cancelled(error: unknown) {
         return undefined
     }
     throw error
+}
+
+export const canPickDirectory = Boolean(pickers.showDirectoryPicker)
+
+export async function pickDirectory() {
+    try {
+        return await pickers.showDirectoryPicker!()
+    } catch (error) {
+        return cancelled(error)
+    }
+}
+
+export async function resolveFile(directory: FileSystemDirectoryHandle, path: string) {
+    const segments = path.split("/")
+    const name = segments.pop()!
+    for (const segment of segments) {
+        directory = await directory.getDirectoryHandle(segment)
+    }
+    const handle = await directory.getFileHandle(name)
+    return { file: await handle.getFile(), handle, directory }
 }

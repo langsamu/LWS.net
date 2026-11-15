@@ -4,7 +4,7 @@ import { datasetToState, emptyState, parse, quadsToTurtle, stateToQuads, type St
 import { ManifestEditor } from "./components/ManifestEditor.ts"
 import { TtlPane } from "./components/TtlPane.ts"
 import { FileToolbar } from "./components/FileToolbar.ts"
-import { canPickSave, download, pickFile, pickSave, write } from "./files.ts"
+import { canPickDirectory, canPickSave, download, pickDirectory, pickFile, pickSave, resolveFile, write } from "./files.ts"
 
 customElements.define("manifest-editor", ManifestEditor)
 customElements.define("ttl-pane", TtlPane)
@@ -14,7 +14,8 @@ const editor = document.querySelector<ManifestEditor>("manifest-editor")!
 const pane = document.querySelector<TtlPane>("ttl-pane")!
 const toolbar = document.querySelector<FileToolbar>("file-toolbar")!
 
-const sample = new URLSearchParams(location.search).get("file")
+const resources = new URL("../Model/Resources/", location.href)
+const sampleFile = () => new URLSearchParams(location.search).get("file") ?? "new.ttl"
 const [vocabulary, shapes] = await Promise.all(
     ["../Model/Resources/vocabulary.ttl", "./shapes.ttl"].map(async url => (await fetch(url)).text())
 )
@@ -23,6 +24,8 @@ editor.init(schema)
 
 let name = "manifest.ttl"
 let handle: FileSystemFileHandle | undefined
+let origin: string | undefined
+let folder: FileSystemDirectoryHandle | undefined
 let saved = ""
 let turtle = ""
 
@@ -44,10 +47,12 @@ function markSaved() {
     status()
 }
 
-function load(state: State, fileName: string, fileHandle?: FileSystemFileHandle) {
+function load(state: State, fileName: string, fileHandle?: FileSystemFileHandle, fileOrigin?: string, directory?: FileSystemDirectoryHandle) {
     editor.load(state)
     name = fileName
     handle = fileHandle
+    origin = fileOrigin
+    folder = directory
     update(editor.state())
     markSaved()
 }
@@ -56,11 +61,42 @@ function confirmDiscard() {
     return !isDirty() || confirm("Discard unsaved changes?")
 }
 
-async function openFile(file: File, fileHandle?: FileSystemFileHandle) {
+async function openFile(file: File, fileHandle?: FileSystemFileHandle, directory?: FileSystemDirectoryHandle) {
     try {
-        load(datasetToState(parse(await file.text()), schema), file.name, fileHandle)
+        load(datasetToState(parse(await file.text()), schema), file.name, fileHandle, undefined, directory)
     } catch (error) {
         alert(`Cannot open ${file.name}: ${error instanceof Error ? error.message : error}`)
+    }
+}
+
+async function loadSample(path: string) {
+    load(datasetToState(parse(await (await fetch(new URL(path, resources))).text()), schema), path, undefined, path)
+}
+
+async function openInclude(path: string) {
+    if (!confirmDiscard()) {
+        return
+    }
+    try {
+        if (origin !== undefined) {
+            const target = decodeURI(new URL(path, new URL(origin, resources)).href.slice(resources.href.length))
+            await loadSample(target)
+            history.pushState(null, "", `?file=${encodeURI(target)}`)
+            return
+        }
+        folder ??= canPickDirectory ? await pickDirectory() : undefined
+        if (folder) {
+            const resolved = await resolveFile(folder, path)
+            await openFile(resolved.file, resolved.handle, resolved.directory)
+            return
+        }
+    } catch (error) {
+        alert(`Cannot open ${path}: ${error instanceof Error ? error.message : error}`)
+        return
+    }
+    const picked = await pickFile()
+    if (picked) {
+        await openFile(picked.file, picked.handle)
     }
 }
 
@@ -108,6 +144,16 @@ toolbar.addEventListener("open", async () => {
     }
 })
 
+editor.addEventListener("open-include", (event: Event) => openInclude((event as CustomEvent<string>).detail))
+
+addEventListener("popstate", async () => {
+    if (confirmDiscard()) {
+        await loadSample(sampleFile())
+    } else {
+        history.pushState(null, "", `?file=${encodeURI(origin ?? "")}`)
+    }
+})
+
 toolbar.addEventListener("save", save)
 toolbar.addEventListener("save-as", saveAs)
 
@@ -129,5 +175,4 @@ addEventListener("beforeunload", event => {
     }
 })
 
-const initial = sample ?? "new.ttl"
-load(datasetToState(parse(await (await fetch(`../Model/Resources/${initial}`)).text()), schema), initial)
+await loadSample(sampleFile())
