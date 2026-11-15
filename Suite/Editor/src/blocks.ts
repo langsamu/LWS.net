@@ -4,6 +4,7 @@ import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 import { CollapseIcon } from "./components/CollapseIcon.ts"
 import { registerAddMenu } from "./components/AddMenu.ts"
 import { OpenIncludeIcon } from "./components/OpenIncludeIcon.ts"
+import { searchExtension } from "./search.ts"
 import type { BlockKind, Member, Schema } from "./schema/mod.ts"
 
 type Json = Record<string, unknown>
@@ -52,16 +53,14 @@ export function blockDefinition(block: BlockKind): Json {
             definition.nextStatement = block.checks
             break
     }
-    const extensions: string[] = []
+    const extensions = [searchExtension(block)]
     if (block.members.some(member => member.kind === "statements")) {
         extensions.push(CollapseIcon.extension)
     }
     if (block.literal && block.predicate === Vocabulary.include) {
         extensions.push(OpenIncludeIcon.extension)
     }
-    if (extensions.length) {
-        definition.extensions = extensions
-    }
+    definition.extensions = extensions
     if (block.hue !== undefined) {
         definition.colour = block.hue
     }

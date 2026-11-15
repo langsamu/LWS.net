@@ -8,6 +8,7 @@ import { buildSchema } from "../schema/mod.ts"
 import { choose, matches } from "../schema/mod.ts"
 import { blockDefinitions, defineBlocks, toolbox } from "../blocks.ts"
 import { addEntries } from "../components/AddMenu.ts"
+import { searchKeywords } from "../search.ts"
 import type { BlockKind, Member, NodeFacts } from "../schema/mod.ts"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
@@ -241,4 +242,14 @@ test("add menu entries", () => {
     assert.ok(texts("lws_request").includes("Set body: expression: constant expression (string)"))
     assert.ok(texts("lws_request").includes("Add request header"))
     assert.deepEqual(texts("lws_bodyextractor"), [])
+})
+
+test("search keywords include vocabulary terms", () => {
+    const all = schema.blocks.flatMap(searchKeywords)
+    for (const term of ["equals", "matches", "contains", "greater than", "header", "path"]) {
+        assert.ok(all.some(keyword => keyword.includes(term)), term)
+    }
+    for (const block of schema.blocks) {
+        assert.ok(searchKeywords(block).length, block.type)
+    }
 })
