@@ -241,7 +241,7 @@
     a rdf:Property ;
     rdfs:label "that"@en ;
     rdfs:comment "Expression whose value the assertion tests."@en ;
-    rdfs:domain :Assertion ;
+    rdfs:domain :ValueAssertion ;
     rdfs:range :Expression ;
 .
 
@@ -288,7 +288,7 @@
 :not
     a rdf:Property ;
     rdfs:label "not"@en ;
-    rdfs:comment "Operand assertion whose outcome is negated, applied to the value of the :that of the enclosing assertion. The operand is an assertion node without a :that of its own, such as an equals, matches, contains, greaterThan or another not. Passes when the operand fails and fails when it passes. An operand that cannot be evaluated, such as one whose value is of the wrong type, fails the test case rather than being negated."@en ;
+    rdfs:comment "Complete assertion, with a :that of its own, whose outcome is negated. Passes when the operand fails and fails when it passes. An operand that cannot be evaluated, such as one whose value is of the wrong type, fails the test case rather than being negated."@en ;
     rdfs:domain :NotAssertion ;
     rdfs:range :Assertion ;
 .
@@ -433,37 +433,44 @@
     rdfs:comment "Tests the value of an expression, passing or failing the test case."@en ;
 .
 
-:EqualityAssertion
+:ValueAssertion
     a rdfs:Class ;
     rdfs:subClassOf :Assertion ;
+    rdfs:label "Value assertion"@en ;
+    rdfs:comment "Assertion testing the value of its :that expression."@en ;
+.
+
+:EqualityAssertion
+    a rdfs:Class ;
+    rdfs:subClassOf :ValueAssertion ;
     rdfs:label "Equality assertion"@en ;
     rdfs:comment "Passes when the value equals another value."@en ;
 .
 
 :RegexAssertion
     a rdfs:Class ;
-    rdfs:subClassOf :Assertion ;
+    rdfs:subClassOf :ValueAssertion ;
     rdfs:label "Regular expression assertion"@en ;
     rdfs:comment "Passes when the value matches a regular expression."@en ;
 .
 
 :ContainsAssertion
     a rdfs:Class ;
-    rdfs:subClassOf :Assertion ;
+    rdfs:subClassOf :ValueAssertion ;
     rdfs:label "Contains assertion"@en ;
     rdfs:comment "Passes when one of the items of the value equals a string."@en ;
 .
 
 :GreaterThanAssertion
     a rdfs:Class ;
-    rdfs:subClassOf :Assertion ;
+    rdfs:subClassOf :ValueAssertion ;
     rdfs:label "Greater than assertion"@en ;
     rdfs:comment "Passes when the value is greater than an integer."@en ;
 .
 
 :IsomorphicAssertion
     a rdfs:Class ;
-    rdfs:subClassOf :Assertion ;
+    rdfs:subClassOf :ValueAssertion ;
     rdfs:label "Isomorphic assertion"@en ;
     rdfs:comment "Passes when the value is isomorphic with another graph."@en ;
 .
@@ -472,5 +479,5 @@
     a rdfs:Class ;
     rdfs:subClassOf :Assertion ;
     rdfs:label "Not assertion"@en ;
-    rdfs:comment "Passes when its operand assertion fails for the value of the :that of the assertion."@en ;
+    rdfs:comment "Passes when its operand assertion fails."@en ;
 .

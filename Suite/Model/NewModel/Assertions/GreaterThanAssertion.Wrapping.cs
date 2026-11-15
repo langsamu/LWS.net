@@ -1,6 +1,6 @@
 namespace Model.NewModel.Assertions;
 
-public partial class GreaterThanAssertion : Assertion
+public partial class GreaterThanAssertion : ValueAssertion
 {
     protected GreaterThanAssertion(INode node, IGraph graph) : base(node, graph) { }
 

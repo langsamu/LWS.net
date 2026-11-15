@@ -1,6 +1,6 @@
 ﻿namespace Model.NewModel.Assertions;
 
-public partial class ContainsAssertion : Assertion
+public partial class ContainsAssertion : ValueAssertion
 {
     protected ContainsAssertion(INode node, IGraph graph) : base(node, graph) { }
 

@@ -6,8 +6,6 @@ public abstract partial class Assertion : GraphWrapperNode
 {
     protected Assertion(INode node, IGraph graph) : base(node, graph) { }
 
-    public Expression That => this.Singular(Vocabulary.That, Expression.Choose);
-
     internal static Assertion? Choose(GraphWrapperNode node)
     {
         if (node.Graph.GetTriplesWithSubjectPredicate(node, Vocabulary.EqualsValue).Any())
