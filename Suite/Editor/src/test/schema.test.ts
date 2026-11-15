@@ -7,6 +7,7 @@ import dataset from "@rdfjs/dataset"
 import { buildSchema } from "../schema/mod.ts"
 import { choose, matches } from "../schema/mod.ts"
 import { blockDefinitions, defineBlocks, toolbox } from "../blocks.ts"
+import { addEntries } from "../components/AddMenu.ts"
 import type { BlockKind, Member, NodeFacts } from "../schema/mod.ts"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
@@ -231,4 +232,13 @@ test("block definitions", () => {
     const names = (kind: string) => contents.find(c => c.name === kind)!.contents.map(c => c.type)
     assert.ok(!names("Structure").includes("lws_manifest"))
     assert.equal(contents.flatMap(c => c.contents).length, 26)
+})
+
+test("add menu entries", () => {
+    const texts = (type: string) => addEntries(schema, byType(type)).map(entry => entry.text)
+    assert.equal(texts("lws_step")[0], "Set request: request")
+    assert.ok(texts("lws_step").includes("Add extractor: header"))
+    assert.ok(texts("lws_request").includes("Set body: expression: constant expression (string)"))
+    assert.ok(texts("lws_request").includes("Add request header"))
+    assert.deepEqual(texts("lws_bodyextractor"), [])
 })

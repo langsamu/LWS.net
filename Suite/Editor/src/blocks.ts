@@ -1,6 +1,7 @@
 import * as Blockly from "blockly"
 import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 import { CollapseIcon } from "./components/CollapseIcon.ts"
+import { registerAddMenu } from "./components/AddMenu.ts"
 import { OpenIncludeIcon } from "./components/OpenIncludeIcon.ts"
 import type { BlockKind, Member, Schema } from "./schema/mod.ts"
 
@@ -87,4 +88,5 @@ export function defineBlocks(schema: Schema) {
     CollapseIcon.register()
     OpenIncludeIcon.register()
     Blockly.common.defineBlocks(Blockly.common.createBlockDefinitionsFromJsonArray(blockDefinitions(schema)))
+    registerAddMenu(schema)
 }
