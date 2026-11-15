@@ -124,7 +124,7 @@
     sh:property [
         sh:path :extract ;
         sh:order 3 ;
-        sh:name "extractors" ;
+        sh:name "extract" ;
         sh:node :ExtractorList ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
