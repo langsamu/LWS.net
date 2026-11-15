@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@rdfjs/dataset": "^2.0.3",
+    "@rdfjs/wrapper": "0.34.0",
+    "blockly": "13.4.0",
+    "n3": "^2.13.12",
+    "rdf-isomorphic": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/n3": "^1.26.6",
+    "@types/node": "^26.6.6",
+    "@types/rdfjs__dataset": "^2.0.7",
+    "typescript": "^7.0.2"
+  }
+}

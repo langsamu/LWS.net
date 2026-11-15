@@ -3,7 +3,17 @@ import * as Blockly from "blockly"
 export const NS = "http://example.com/"
 export const XSD_ANY_URI = "http://www.w3.org/2001/XMLSchema#anyURI"
 
-export const blockTable = {
+interface BlockEntry {
+    json: object
+    rdf: {
+        root?: boolean
+        fields?: Record<string, { predicate: string }>
+        statements?: Record<string, { predicate: string }>
+        literal?: { field: string, datatype: string }
+    }
+}
+
+export const blockTable: Record<string, BlockEntry> = {
     lws_manifest: {
         json: {
             type: "lws_manifest",

@@ -1,2 +1,3 @@
-Run `npx http-server Suite -c-1`, then open `http://localhost:8080/Editor/` (editor) or `http://localhost:8080/Editor/tests.html` (tests).
-Needs network access for the CDN modules.
+Run `npm install`, `npm run build`, then `npx http-server .. -c-1` and open `http://localhost:8080/Editor/`.
+Run the tests with `npm test`.
+The browser loads Blockly, N3 and the RDF/JS packages from CDN URLs pinned in the import map in `index.html`.

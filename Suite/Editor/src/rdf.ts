@@ -1,11 +1,23 @@
 import { DataFactory, Parser, Writer } from "n3"
+import type { BlankNode, DatasetCore, NamedNode, Quad, Term } from "@rdfjs/types"
 import dataset from "@rdfjs/dataset"
 import { DatasetWrapper, LiteralAs, LiteralFrom, RequiredFrom, SetFrom, TermWrapper } from "@rdfjs/wrapper"
-import { NS, blockTable } from "./blocks.js"
+import { NS, blockTable } from "./blocks.ts"
 
 const { namedNode, blankNode, literal, quad } = DataFactory
 
-export function parse(text) {
+export interface Block {
+    type: string
+    fields?: Record<string, string>
+    inputs?: Record<string, { block?: Block }>
+    next?: { block?: Block }
+}
+
+export interface State {
+    blocks?: { blocks?: Block[] }
+}
+
+export function parse(text: string) {
     return dataset.dataset(new Parser().parse(text))
 }
 
@@ -21,7 +33,7 @@ class Manifest extends TermWrapper {
 
 class ManifestDataset extends DatasetWrapper {
     get root() {
-        const subjects = new Map()
+        const subjects = new Map<string, Term>()
         for (const predicate of ["test", "include"]) {
             for (const q of this.match(undefined, namedNode(NS + predicate))) {
                 subjects.set(q.subject.termType + q.subject.value, q.subject)
@@ -30,30 +42,30 @@ class ManifestDataset extends DatasetWrapper {
         if (subjects.size !== 1) {
             throw new Error(`Expected exactly one root manifest, found ${subjects.size}`)
         }
-        return new Manifest([...subjects.values()][0], this, DataFactory)
+        return new Manifest([...subjects.values()][0] as NamedNode | BlankNode, this, DataFactory)
     }
 }
 
-export function datasetToState(dataset) {
+export function datasetToState(dataset: DatasetCore) {
     const manifest = new ManifestDataset(dataset, DataFactory).root
-    let next
+    let next: Block | undefined
     for (const path of [...manifest.include].reverse()) {
         next = { type: "lws_include", fields: { PATH: path }, ...(next && { next: { block: next } }) }
     }
-    const block = { type: "lws_manifest", fields: { MANIFEST_NAME: manifest.manifestName } }
+    const block: Block = { type: "lws_manifest", fields: { MANIFEST_NAME: manifest.manifestName } }
     if (next) {
         block.inputs = { INCLUDES: { block: next } }
     }
     return { blocks: { languageVersion: 0, blocks: [block] } }
 }
 
-function* chain(first) {
+function* chain(first: Block | undefined) {
     for (let block = first; block; block = block.next?.block) {
         yield block
     }
 }
 
-function walk(block, quads) {
+function walk(block: Block, quads: Quad[]) {
     const rdf = blockTable[block.type].rdf
     const subject = blankNode()
     for (const [name, mapping] of Object.entries(rdf.fields ?? {})) {
@@ -73,8 +85,8 @@ function walk(block, quads) {
     return subject
 }
 
-export function stateToQuads(state) {
-    const quads = []
+export function stateToQuads(state: State) {
+    const quads: Quad[] = []
     for (const block of state.blocks?.blocks ?? []) {
         if (blockTable[block.type]?.rdf.root) {
             walk(block, quads)
@@ -83,11 +95,11 @@ export function stateToQuads(state) {
     return quads
 }
 
-export function quadsToTurtle(quads) {
+export function quadsToTurtle(quads: Quad[]) {
     const writer = new Writer({ prefixes: { "": NS, xsd: "http://www.w3.org/2001/XMLSchema#" } })
     writer.addQuads(quads)
-    let result
-    writer.end((error, text) => {
+    let result = ""
+    writer.end((error: Error | null, text: string) => {
         if (error) {
             throw error
         }
@@ -96,21 +108,8 @@ export function quadsToTurtle(quads) {
     return result
 }
 
-export function rootOnlyQuads(dataset) {
+export function rootOnlyQuads(dataset: DatasetCore) {
     const root = new ManifestDataset(dataset, DataFactory).root
     const keep = [NS + "manifestName", NS + "include"]
-    return [...dataset.match(root)].filter(q => keep.includes(q.predicate.value))
-}
-
-export function isomorphic(a, b) {
-    const key = q => [q.predicate.value, q.object.termType, q.object.value, q.object.datatype?.value ?? ""].join("|")
-    const group = quads => {
-        if (new Set(quads.map(q => q.subject.termType + q.subject.value)).size > 1) {
-            throw new Error("Only single-subject graphs are supported")
-        }
-        return quads.map(key).sort()
-    }
-    const left = group(a)
-    const right = group(b)
-    return left.length === right.length && left.every((value, index) => value === right[index])
+    return [...dataset.match(root as unknown as Term)].filter(q => keep.includes(q.predicate.value))
 }
