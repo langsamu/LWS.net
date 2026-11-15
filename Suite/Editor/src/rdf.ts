@@ -1,8 +1,9 @@
 import { DataFactory, Parser, Writer } from "n3"
-import type { BlankNode, DatasetCore, NamedNode, Quad, Term } from "@rdfjs/types"
+import type { DatasetCore, Quad, Term } from "@rdfjs/types"
 import dataset from "@rdfjs/dataset"
-import { DatasetWrapper, LiteralAs, LiteralFrom, RequiredFrom, SetFrom, TermWrapper } from "@rdfjs/wrapper"
-import { NS, blockTable } from "./blocks.ts"
+import { blockTable } from "./blocks.ts"
+import { Vocabulary } from "./vocabulary/mod.ts"
+import { ManifestDataset } from "./wrapping/ManifestDataset.ts"
 
 const { namedNode, blankNode, literal, quad } = DataFactory
 
@@ -19,31 +20,6 @@ export interface State {
 
 export function parse(text: string) {
     return dataset.dataset(new Parser().parse(text))
-}
-
-class Manifest extends TermWrapper {
-    get manifestName() {
-        return RequiredFrom.subjectPredicate(this, NS + "manifestName", LiteralAs.string)
-    }
-
-    get include() {
-        return SetFrom.subjectPredicate(this, NS + "include", LiteralAs.string, LiteralFrom.anyUriString)
-    }
-}
-
-class ManifestDataset extends DatasetWrapper {
-    get root() {
-        const subjects = new Map<string, Term>()
-        for (const predicate of ["test", "include"]) {
-            for (const q of this.match(undefined, namedNode(NS + predicate))) {
-                subjects.set(q.subject.termType + q.subject.value, q.subject)
-            }
-        }
-        if (subjects.size !== 1) {
-            throw new Error(`Expected exactly one root manifest, found ${subjects.size}`)
-        }
-        return new Manifest([...subjects.values()][0] as NamedNode | BlankNode, this, DataFactory)
-    }
 }
 
 export function datasetToState(dataset: DatasetCore) {
@@ -96,7 +72,7 @@ export function stateToQuads(state: State) {
 }
 
 export function quadsToTurtle(quads: Quad[]) {
-    const writer = new Writer({ prefixes: { "": NS, xsd: "http://www.w3.org/2001/XMLSchema#" } })
+    const writer = new Writer({ prefixes: { "": "http://example.com/", xsd: "http://www.w3.org/2001/XMLSchema#" } })
     writer.addQuads(quads)
     let result = ""
     writer.end((error: Error | null, text: string) => {
@@ -110,6 +86,6 @@ export function quadsToTurtle(quads: Quad[]) {
 
 export function rootOnlyQuads(dataset: DatasetCore) {
     const root = new ManifestDataset(dataset, DataFactory).root
-    const keep = [NS + "manifestName", NS + "include"]
+    const keep: string[] = [Vocabulary.manifestName, Vocabulary.include]
     return [...dataset.match(root as unknown as Term)].filter(q => keep.includes(q.predicate.value))
 }

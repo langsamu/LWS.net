@@ -3,10 +3,10 @@ import { readFileSync } from "node:fs"
 import { test } from "node:test"
 import * as Blockly from "blockly"
 import { isomorphic } from "rdf-isomorphic"
-import { defineBlocks } from "./blocks.ts"
-import { datasetToState, parse, quadsToTurtle, rootOnlyQuads, stateToQuads } from "./rdf.ts"
+import { defineBlocks } from "../blocks.ts"
+import { datasetToState, parse, quadsToTurtle, rootOnlyQuads, stateToQuads } from "../rdf.ts"
 
-const text = readFileSync(new URL("../../Model/Resources/new.ttl", import.meta.url), "utf8")
+const text = readFileSync(new URL("../../../Model/Resources/new.ttl", import.meta.url), "utf8")
 const dataset = parse(text)
 const expected = rootOnlyQuads(dataset)
 

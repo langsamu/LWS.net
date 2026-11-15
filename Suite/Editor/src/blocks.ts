@@ -1,7 +1,5 @@
 import * as Blockly from "blockly"
-
-export const NS = "http://example.com/"
-export const XSD_ANY_URI = "http://www.w3.org/2001/XMLSchema#anyURI"
+import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 
 interface BlockEntry {
     json: object
@@ -25,8 +23,8 @@ export const blockTable: Record<string, BlockEntry> = {
         },
         rdf: {
             root: true,
-            fields: { MANIFEST_NAME: { predicate: NS + "manifestName" } },
-            statements: { INCLUDES: { predicate: NS + "include" } }
+            fields: { MANIFEST_NAME: { predicate: Vocabulary.manifestName } },
+            statements: { INCLUDES: { predicate: Vocabulary.include } }
         }
     },
     lws_include: {
@@ -39,7 +37,7 @@ export const blockTable: Record<string, BlockEntry> = {
             colour: 120
         },
         rdf: {
-            literal: { field: "PATH", datatype: XSD_ANY_URI }
+            literal: { field: "PATH", datatype: XSD.anyURI }
         }
     }
 }
