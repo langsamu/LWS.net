@@ -179,8 +179,14 @@ function objectOf(child: Block, quads: Quad[], kinds: Map<string, BlockKind>): Q
     return walk(child, quads, kinds)
 }
 
+let nodeCount = 0
+
+function node() {
+    return blankNode(`b${nodeCount++}`)
+}
+
 function listOf(children: Block[], quads: Quad[], kinds: Map<string, BlockKind>): Quad["object"] {
-    const nodes = children.map(() => blankNode())
+    const nodes = children.map(() => node())
     children.forEach((child, index) => {
         quads.push(quad(nodes[index], namedNode(RDF.first), objectOf(child, quads, kinds)))
         quads.push(quad(nodes[index], namedNode(RDF.rest), nodes[index + 1] ?? namedNode(RDF.nil)))
@@ -190,7 +196,7 @@ function listOf(children: Block[], quads: Quad[], kinds: Map<string, BlockKind>)
 
 function walk(block: Block, quads: Quad[], kinds: Map<string, BlockKind>) {
     const kind = kinds.get(block.type)!
-    const subject = blankNode()
+    const subject = node()
     for (const type of kind.types) {
         quads.push(quad(subject, namedNode(RDF.type), namedNode(type)))
     }
@@ -221,6 +227,7 @@ function walk(block: Block, quads: Quad[], kinds: Map<string, BlockKind>) {
 
 export function stateToQuads(state: State, schema: Schema) {
     const quads: Quad[] = []
+    nodeCount = 0
     const kinds = new Map(schema.blocks.map(block => [block.type, block]))
     const root = rootOf(schema)
     for (const block of state.blocks?.blocks ?? []) {
