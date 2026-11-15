@@ -168,7 +168,7 @@
 :path
     a rdf:Property ;
     rdfs:label "path"@en ;
-    rdfs:comment "JSONPath query that must select exactly one value from the JSON body of the response. A selected string is extracted as its content, any other value as JSON text."@en ;
+    rdfs:comment "JSONPath query evaluated against the JSON body of the response. The values it selects are extracted as a list of strings, possibly empty or with several items, which a single expression can reduce to one value. A selected string is extracted as its content, any other value as JSON text."@en ;
     rdfs:domain :JsonPathExtractor ;
     rdfs:range xsd:string ;
 .
