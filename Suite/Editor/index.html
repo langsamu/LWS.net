@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>LWS manifest editor</title>
+        <script type="importmap">
+            {
+                "imports": {
+                    "blockly": "https://cdn.jsdelivr.net/npm/blockly@13.4.0/+esm",
+                    "n3": "https://esm.sh/n3@2.13.12",
+                    "@rdfjs/dataset": "https://esm.sh/@rdfjs/dataset@2.0.3",
+                    "@rdfjs/wrapper": "https://esm.sh/@rdfjs/wrapper@0.34.0"
+                }
+            }
+        </script>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                font-family: system-ui, sans-serif;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+
+            header {
+                padding: .5rem 1rem;
+                border-bottom: 1px solid #ccc;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+
+            main {
+                flex: 1;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                min-height: 0;
+            }
+
+            manifest-editor {
+                position: relative;
+                display: block;
+                min-height: 0;
+            }
+
+            manifest-editor > .host {
+                position: absolute;
+                inset: 0;
+            }
+
+            ttl-pane {
+                display: flex;
+                flex-direction: column;
+                border-left: 1px solid #ccc;
+                min-height: 0;
+            }
+
+            ttl-pane pre {
+                flex: 1;
+                margin: 0;
+                padding: 1rem;
+                overflow: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <strong>LWS manifest editor</strong>
+            <a id="download" download="manifest.ttl">Download Turtle</a>
+        </header>
+        <main>
+            <manifest-editor></manifest-editor>
+            <ttl-pane></ttl-pane>
+        </main>
+        <script type="module" src="js/app.js"></script>
+    </body>
+</html>

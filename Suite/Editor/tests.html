@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>RUNNING</title>
+        <script type="importmap">
+            {
+                "imports": {
+                    "blockly": "https://cdn.jsdelivr.net/npm/blockly@13.4.0/+esm",
+                    "n3": "https://esm.sh/n3@2.13.12",
+                    "@rdfjs/dataset": "https://esm.sh/@rdfjs/dataset@2.0.3",
+                    "@rdfjs/wrapper": "https://esm.sh/@rdfjs/wrapper@0.34.0"
+                }
+            }
+        </script>
+        <style>
+            body {
+                font-family: monospace;
+            }
+
+            .pass {
+                color: green;
+            }
+
+            .fail {
+                color: red;
+            }
+        </style>
+    </head>
+    <body>
+        <ul id="results"></ul>
+        <script type="module" src="js/tests.js"></script>
+    </body>
+</html>
