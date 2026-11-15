@@ -1,4 +1,6 @@
-import { DataFactory, Parser, Writer } from "n3"
+import { DataFactory, Parser } from "n3"
+import Serializer from "@rdfjs/serializer-turtle"
+import PrefixMap from "@rdfjs/prefix-map/PrefixMap.js"
 import type { DatasetCore, Quad, Term } from "@rdfjs/types"
 import dataset from "@rdfjs/dataset"
 import { choose, type BlockKind, type NodeFacts, type Schema, type StatementInput } from "./schema/mod.ts"
@@ -230,14 +232,6 @@ export function stateToQuads(state: State, schema: Schema) {
 }
 
 export function quadsToTurtle(quads: Quad[]) {
-    const writer = new Writer({ prefixes: { "": "http://example.com/", xsd: "http://www.w3.org/2001/XMLSchema#" } })
-    writer.addQuads(quads)
-    let result = ""
-    writer.end((error: Error | null, text: string) => {
-        if (error) {
-            throw error
-        }
-        result = text
-    })
-    return result
+    const prefixes = new PrefixMap([["", DataFactory.namedNode("http://example.com/")], ["xsd", DataFactory.namedNode("http://www.w3.org/2001/XMLSchema#")]], { factory: DataFactory })
+    return new Serializer({ prefixes }).transform(quads)
 }
