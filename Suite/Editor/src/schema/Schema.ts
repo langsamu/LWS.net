@@ -29,6 +29,7 @@ export interface Field {
     tooltip?: string
     predicate: string
     datatype: string
+    options?: string[]
     required: boolean
 }
 

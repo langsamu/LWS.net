@@ -84,6 +84,12 @@ test("literal sets become item blocks", () => {
     assert.ok(byType("lws_specification").literal)
 })
 
+test("single literal with sh:in has options", () => {
+    const method = member(byType("lws_request"), "METHOD")
+    assert.ok(method.kind === "field")
+    assert.deepEqual(method.options, ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+})
+
 test("block kinds expose required predicates and types for matching", () => {
     for (const name of ["Body", "Graph", "StatusCode"]) {
         const block = byType(`lws_${name.toLowerCase()}extractor`)

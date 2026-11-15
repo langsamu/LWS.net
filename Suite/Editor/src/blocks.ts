@@ -12,6 +12,9 @@ type Json = Record<string, unknown>
 function memberArgs(member: Member): Json {
     switch (member.kind) {
         case "field":
+            if (member.options) {
+                return { type: "field_dropdown", name: member.name, options: member.options.map(value => [value, value]) }
+            }
             return member.datatype === XSD.integer
                 ? { type: "field_number", name: member.name, value: 0, precision: 1 }
                 : { type: "field_input", name: member.name, text: "" }

@@ -11,5 +11,6 @@ export const SHACL = {
     maxCount: "http://www.w3.org/ns/shacl#maxCount",
     hasValue: "http://www.w3.org/ns/shacl#hasValue",
     or: "http://www.w3.org/ns/shacl#or",
+    in: "http://www.w3.org/ns/shacl#in",
     xone: "http://www.w3.org/ns/shacl#xone",
 } as const

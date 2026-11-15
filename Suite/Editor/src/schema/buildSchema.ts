@@ -203,7 +203,7 @@ class SchemaBuilder {
                 : { kind: "statements", ...common, target: node.value, check: node.value, list: false }
         }
         if (single) {
-            return { kind: "field", ...common, datatype: combination.get(common.predicate) ?? property.datatypes[0] }
+            return { kind: "field", ...common, datatype: combination.get(common.predicate) ?? property.datatypes[0], options: property.in }
         }
         this.literalItems(shape, property, common, predicate.label ?? localName(predicate.value))
         return { kind: "statements", ...common, check: common.predicate, list: false }

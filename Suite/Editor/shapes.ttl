@@ -140,6 +140,7 @@
         sh:order 1 ;
         sh:name "method" ;
         sh:datatype xsd:string ;
+        sh:in ( "GET" "HEAD" "POST" "PUT" "PATCH" "DELETE" "OPTIONS" ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;

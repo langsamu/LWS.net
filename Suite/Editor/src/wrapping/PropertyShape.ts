@@ -1,4 +1,4 @@
-import { LiteralAs, NamedNodeAs, OptionalFrom, RequiredFrom, TermAs, TermFrom } from "@rdfjs/wrapper"
+import { LiteralAs, LiteralFrom, NamedNodeAs, OptionalFrom, RequiredFrom, TermAs, TermFrom } from "@rdfjs/wrapper"
 import type { Term } from "@rdfjs/types"
 import { RDF, SHACL } from "../vocabulary/mod.ts"
 import { Described } from "./Described.ts"
@@ -41,6 +41,11 @@ export class PropertyShape extends Described {
 
     get hasValue() {
         return OptionalFrom.subjectPredicate(this, SHACL.hasValue, NamedNodeAs.string)
+    }
+
+    get in(): string[] | undefined {
+        const values = OptionalFrom.subjectPredicate(this, SHACL.in, TermAs.list(this, SHACL.in, LiteralAs.string, LiteralFrom.string))
+        return values && [...values]
     }
 
     get datatypes(): string[] {
