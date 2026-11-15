@@ -1,5 +1,6 @@
 import * as Blockly from "blockly"
 import { XSD } from "./vocabulary/mod.ts"
+import { CollapseIcon } from "./components/CollapseIcon.ts"
 import type { BlockKind, Member, Schema } from "./schema/mod.ts"
 
 type Json = Record<string, unknown>
@@ -48,6 +49,9 @@ export function blockDefinition(block: BlockKind): Json {
             definition.nextStatement = block.checks
             break
     }
+    if (block.members.some(member => member.kind === "statements")) {
+        definition.extensions = [CollapseIcon.extension]
+    }
     if (block.hue !== undefined) {
         definition.colour = block.hue
     }
@@ -76,5 +80,6 @@ export function toolbox(schema: Schema) {
 }
 
 export function defineBlocks(schema: Schema) {
+    CollapseIcon.register()
     Blockly.common.defineBlocks(Blockly.common.createBlockDefinitionsFromJsonArray(blockDefinitions(schema)))
 }
