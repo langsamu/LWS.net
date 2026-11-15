@@ -107,7 +107,7 @@ class SchemaBuilder {
         }
         this.abstracts.set(shape.value, {
             class: shape.value,
-            label: shape.label ?? shape.name ?? localName(shape.value),
+            label: shape.name ?? shape.label ?? localName(shape.value),
             tooltip: shape.comment,
             hue: this.hue(this.lineage(shape)),
             alternatives: [...alternatives].map(alternative => alternative.value),
@@ -145,7 +145,7 @@ class SchemaBuilder {
         const types = inherited
             .filter(property => property.described?.value === RDF.type && property.hasValue !== undefined)
             .map(property => property.hasValue!)
-        const label = shape.label ?? shape.name ?? localName(shape.value)
+        const label = shape.name ?? shape.label ?? localName(shape.value)
 
         let combinations: Map<string, string>[] = [new Map()]
         for (const property of properties.filter(property => !property.node && property.maxCount === 1 && property.datatypes.length > 1)) {
@@ -161,7 +161,7 @@ class SchemaBuilder {
             const block: BlockKind = {
                 type: ["lws", localName(shape.value).toLowerCase(), ...datatypes].filter(Boolean).join("_"),
                 class: shape.value,
-                label: datatypes.length ? `${label} (${datatypes.join(", ")})` : label,
+                label: datatypes.length && label ? `${label} (${datatypes.join(", ")})` : label,
                 tooltip: shape.comment,
                 hue: this.hue(lineage),
                 connection: "value",
@@ -205,11 +205,11 @@ class SchemaBuilder {
         if (single) {
             return { kind: "field", ...common, datatype: combination.get(common.predicate) ?? property.datatypes[0] }
         }
-        this.literalItems(shape, property, common)
+        this.literalItems(shape, property, common, predicate.label ?? localName(predicate.value))
         return { kind: "statements", ...common, check: common.predicate, list: false }
     }
 
-    private literalItems(shape: NodeShape, property: PropertyShape, common: Common) {
+    private literalItems(shape: NodeShape, property: PropertyShape, common: Common, label: string) {
         const key = "literal:" + common.predicate
         if (this.seen.has(key)) {
             return
@@ -219,7 +219,7 @@ class SchemaBuilder {
             this.blocks.push({
                 type: ["lws", localName(common.predicate).toLowerCase(), property.datatypes.length > 1 && localName(datatype)].filter(Boolean).join("_"),
                 predicate: common.predicate,
-                label: common.label,
+                label,
                 tooltip: common.tooltip,
                 hue: this.hue(this.lineage(shape)),
                 connection: "statement",

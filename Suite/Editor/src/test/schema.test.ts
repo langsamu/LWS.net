@@ -90,9 +90,9 @@ test("block kinds expose required predicates and types for matching", () => {
         assert.deepEqual(names(block.members), ["TO"])
     }
     const header = byType("lws_headerextractor")
-    assert.deepEqual(header.required, [E + "to", E + "header"])
+    assert.deepEqual(header.required, [E + "header", E + "to"])
     assert.deepEqual(header.types, [])
-    assert.deepEqual(names(header.members), ["TO", "HEADER"])
+    assert.deepEqual(names(header.members), ["HEADER", "TO"])
     assert.equal(header.hue, 260)
     assert.deepEqual(header.checks, [E + "HeaderExtractor", E + "Extractor"])
     const resolve = byType("lws_resolveexpression")
@@ -194,7 +194,7 @@ test("choose classifies the nodes of the manifests", () => {
 
 test("labels, tooltips, order", () => {
     const request = byType("lws_request")
-    assert.equal(request.label, "Request")
+    assert.equal(request.label, "")
     assert.equal(request.tooltip, "HTTP request.")
     assert.deepEqual(names(request.members), ["METHOD", "URI", "HEADERS", "BODY"])
     assert.deepEqual(request.members.map(m => m.kind), ["field", "value", "statements", "value"])

@@ -19,25 +19,26 @@ function memberArgs(member: Member): Json {
 
 export function blockDefinition(block: BlockKind): Json {
     const definition: Json = { type: block.type, tooltip: block.tooltip ?? "" }
+    const text = (...parts: string[]) => parts.filter(Boolean).join(" ")
     const lines: { message: string, args: Json[] }[] = [{ message: block.label, args: [] }]
     block.members.forEach((member, index) => {
         const args = memberArgs(member)
         if (index === 0 && member.kind === "field") {
-            const prefix = block.literal ? "" : ` ${member.label}`
-            lines[0] = { message: `${block.label}${prefix} %1`, args: [args] }
+            lines[0] = { message: text(block.label, block.literal ? "" : member.label, "%1"), args: [args] }
         } else {
-            lines.push({ message: `${member.label} %1`, args: [args] })
+            lines.push({ message: text(member.label, "%1"), args: [args] })
         }
     })
+    if (!lines[0].message) {
+        lines.shift()
+    }
     lines.forEach((line, index) => {
         definition[`message${index}`] = line.message
         if (line.args.length) {
             definition[`args${index}`] = line.args
         }
     })
-    if (block.members.some(member => member.kind === "statements")) {
-        definition.inputsInline = false
-    }
+    definition.inputsInline = !block.members.some(member => member.kind === "statements") && block.members.filter(member => member.kind === "value").length !== 1
     switch (block.connection) {
         case "value":
             definition.output = block.checks

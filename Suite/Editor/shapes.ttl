@@ -46,7 +46,7 @@
     sh:property [
         sh:path :manifestName ;
         sh:order 1 ;
-        sh:name "manifest name" ;
+        sh:name "name" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -54,24 +54,25 @@
     sh:property [
         sh:path :include ;
         sh:order 2 ;
-        sh:name "include" ;
+        sh:name "includes" ;
         sh:datatype xsd:anyURI ;
     ] ;
     sh:property [
         sh:path :test ;
         sh:order 3 ;
-        sh:name "test" ;
+        sh:name "tests" ;
         sh:node :TestCase ;
     ] ;
 .
 
 :TestCase
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     ed:hue 40 ;
     sh:property [
         sh:path :testName ;
         sh:order 1 ;
-        sh:name "test name" ;
+        sh:name "name" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -79,7 +80,7 @@
     sh:property [
         sh:path :specification ;
         sh:order 2 ;
-        sh:name "specification" ;
+        sh:name "specifications" ;
         sh:datatype xsd:anyURI ;
     ] ;
     sh:property [
@@ -102,11 +103,12 @@
 
 :Step
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     ed:hue 160 ;
     sh:property [
         sh:path :stepName ;
         sh:order 1 ;
-        sh:name "step name" ;
+        sh:name "name" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -122,7 +124,7 @@
     sh:property [
         sh:path :extract ;
         sh:order 3 ;
-        sh:name "extract" ;
+        sh:name "extractors" ;
         sh:node :ExtractorList ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -131,6 +133,7 @@
 
 :Request
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     ed:hue 200 ;
     sh:property [
         sh:path :method ;
@@ -165,11 +168,12 @@
 
 :RequestHeader
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     ed:hue 200 ;
     sh:property [
         sh:path :key ;
         sh:order 1 ;
-        sh:name "key" ;
+        sh:name "name" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -186,11 +190,12 @@
 
 :FormField
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     ed:hue 120 ;
     sh:property [
         sh:path :formKey ;
         sh:order 1 ;
-        sh:name "form key" ;
+        sh:name "name" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -198,7 +203,7 @@
     sh:property [
         sh:path :formValue ;
         sh:order 2 ;
-        sh:name "form value" ;
+        sh:name "value" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -214,7 +219,7 @@
     sh:xone ( :BodyExtractor :GraphExtractor :HeaderExtractor :LinkExtractor :JsonPathExtractor :StatusCodeExtractor ) ;
     sh:property [
         sh:path :to ;
-        sh:order 1 ;
+        sh:order 9 ;
         sh:name "to" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
@@ -224,20 +229,23 @@
 
 :BodyExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "body" ;
     sh:property [ sh:path rdf:type ; sh:hasValue :BodyExtractor ] ;
 .
 
 :GraphExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "graph" ;
     sh:property [ sh:path rdf:type ; sh:hasValue :GraphExtractor ] ;
 .
 
 :HeaderExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "header" ;
     sh:property [
         sh:path :header ;
         sh:order 2 ;
-        sh:name "header" ;
+        sh:name "" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -246,10 +254,11 @@
 
 :LinkExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "link" ;
     sh:property [
         sh:path :link ;
         sh:order 2 ;
-        sh:name "link" ;
+        sh:name "" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -258,10 +267,11 @@
 
 :JsonPathExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "JSON" ;
     sh:property [
         sh:path :path ;
         sh:order 2 ;
-        sh:name "path" ;
+        sh:name "" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -270,6 +280,7 @@
 
 :StatusCodeExtractor
     a rdfs:Class, sh:NodeShape ;
+    sh:name "status code" ;
     sh:property [ sh:path rdf:type ; sh:hasValue :StatusCodeExtractor ] ;
 .
 
@@ -284,10 +295,11 @@
 
 :ConstantExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :constant ;
         sh:order 1 ;
-        sh:name "constant" ;
+        sh:name "" ;
         sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:integer ] ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -296,10 +308,11 @@
 
 :VariableExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :variable ;
         sh:order 1 ;
-        sh:name "variable" ;
+        sh:name "var" ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -308,6 +321,7 @@
 
 :ResolveExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :base ;
         sh:order 1 ;
@@ -328,6 +342,7 @@
 
 :SingleExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :single ;
         sh:order 1 ;
@@ -340,6 +355,7 @@
 
 :CountExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :count ;
         sh:order 1 ;
@@ -352,6 +368,7 @@
 
 :FormExpression
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :form ;
         sh:order 1 ;
@@ -377,7 +394,7 @@
     sh:property [
         sh:path :that ;
         sh:order 1 ;
-        sh:name "that" ;
+        sh:name "" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -386,11 +403,12 @@
 
 :EqualityAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:node :ValueAssertion ;
     sh:property [
         sh:path :equals ;
         sh:order 2 ;
-        sh:name "equals" ;
+        sh:name "=" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -399,11 +417,12 @@
 
 :RegexAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:node :ValueAssertion ;
     sh:property [
         sh:path :matches ;
         sh:order 2 ;
-        sh:name "matches" ;
+        sh:name "=~" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -412,11 +431,12 @@
 
 :ContainsAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:node :ValueAssertion ;
     sh:property [
         sh:path :contains ;
         sh:order 2 ;
-        sh:name "contains" ;
+        sh:name "∋" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -425,11 +445,12 @@
 
 :GreaterThanAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:node :ValueAssertion ;
     sh:property [
         sh:path :greaterThan ;
         sh:order 2 ;
-        sh:name "greater than" ;
+        sh:name ">" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -438,11 +459,12 @@
 
 :IsomorphicAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:node :ValueAssertion ;
     sh:property [
         sh:path :isomorphicWith ;
         sh:order 2 ;
-        sh:name "isomorphic with" ;
+        sh:name "≅" ;
         sh:node :Expression ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -451,6 +473,7 @@
 
 :NotAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:name "" ;
     sh:property [
         sh:path :that ;
         sh:maxCount 0 ;
@@ -458,7 +481,7 @@
     sh:property [
         sh:path :not ;
         sh:order 1 ;
-        sh:name "not" ;
+        sh:name "¬" ;
         sh:node :Assertion ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
