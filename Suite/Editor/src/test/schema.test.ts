@@ -1,10 +1,12 @@
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { test } from "node:test"
+import * as Blockly from "blockly"
 import { Parser } from "n3"
 import dataset from "@rdfjs/dataset"
 import { buildSchema } from "../schema/mod.ts"
 import { choose, matches } from "../schema/mod.ts"
+import { blockDefinitions, defineBlocks, toolbox } from "../blocks.ts"
 import type { BlockKind, Member, NodeFacts } from "../schema/mod.ts"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
@@ -200,4 +202,33 @@ test("labels, tooltips, order", () => {
     assert.ok(member(request, "BODY").tooltip!.startsWith("Expression evaluating to the content"))
     assert.equal(member(request, "BODY").required, false)
     assert.equal(byType("lws_manifest").hue, 20)
+})
+
+test("block definitions", () => {
+    const definitions = blockDefinitions(schema) as Record<string, any>[]
+    assert.equal(definitions.length, 27)
+    assert.equal(new Set(definitions.map(d => d.type)).size, 27)
+    defineBlocks(schema)
+    for (const definition of definitions) {
+        assert.ok(Blockly.Blocks[definition.type], definition.type)
+    }
+    const by = (type: string) => definitions.find(d => d.type === type)!
+    const manifest = by("lws_manifest")
+    assert.equal(manifest.output, undefined)
+    assert.equal(manifest.previousStatement, undefined)
+    assert.equal(manifest.args0[0].name, "MANIFEST_NAME")
+    assert.equal(manifest.inputsInline, false)
+    const inputs = (type: string) => Object.fromEntries(Object.entries(by(type)).filter(([k]) => k.startsWith("args")).flatMap(([, v]) => v as any[]).map(a => [a.name, a]))
+    assert.equal(inputs("lws_request").URI.check, E + "Expression")
+    assert.equal(inputs("lws_notassertion").NOT.check, E + "Assertion")
+    assert.equal(inputs("lws_testcase").STEPS.check, E + "Step")
+    assert.equal(inputs("lws_step").EXTRACT.check, E + "Extractor")
+    assert.equal(inputs("lws_constantexpression_integer").CONSTANT.type, "field_number")
+    assert.equal(inputs("lws_constantexpression_integer").CONSTANT.precision, 1)
+    assert.ok(by("lws_headerextractor").previousStatement.includes(E + "Extractor"))
+    assert.ok(by("lws_step").previousStatement.includes(E + "Step"))
+    const contents = toolbox(schema).contents
+    const names = (kind: string) => contents.find(c => c.name === kind)!.contents.map(c => c.type)
+    assert.ok(!names("Structure").includes("lws_manifest"))
+    assert.equal(contents.flatMap(c => c.contents).length, 26)
 })

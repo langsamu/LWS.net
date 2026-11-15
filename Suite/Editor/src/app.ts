@@ -1,3 +1,5 @@
+import dataset from "@rdfjs/dataset"
+import { buildSchema } from "./schema/mod.ts"
 import { datasetToState, parse, quadsToTurtle, stateToQuads, type State } from "./rdf.ts"
 import { ManifestEditor } from "./components/ManifestEditor.ts"
 import { TtlPane } from "./components/TtlPane.ts"
@@ -9,8 +11,14 @@ const editor = document.querySelector<ManifestEditor>("manifest-editor")!
 const pane = document.querySelector<TtlPane>("ttl-pane")!
 const download = document.querySelector<HTMLAnchorElement>("#download")!
 
+const [vocabulary, shapes, manifest] = await Promise.all(
+    ["../Model/Resources/vocabulary.ttl", "./shapes.ttl", "../Model/Resources/new.ttl"].map(async url => (await fetch(url)).text())
+)
+const schema = buildSchema(dataset.dataset([...parse(vocabulary), ...parse(shapes)]))
+editor.init(schema)
+
 function refresh(state: State) {
-    const turtle = quadsToTurtle(stateToQuads(state))
+    const turtle = quadsToTurtle(stateToQuads(state, schema))
     pane.show(turtle)
     if (download.href) {
         URL.revokeObjectURL(download.href)
@@ -20,7 +28,6 @@ function refresh(state: State) {
 
 editor.addEventListener("state-changed", (event: Event) => refresh((event as CustomEvent<State>).detail))
 
-const text = await (await fetch("../Model/Resources/new.ttl")).text()
-const initial = datasetToState(parse(text))
+const initial = datasetToState(parse(manifest), schema)
 editor.load(initial)
 refresh(initial)
