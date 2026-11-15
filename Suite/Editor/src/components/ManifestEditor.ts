@@ -1,5 +1,6 @@
 import * as Blockly from "blockly"
 import { defineBlocks, toolbox } from "../blocks.ts"
+import { renameVariables } from "./variableScope.ts"
 import type { Schema } from "../schema/mod.ts"
 import type { State } from "../rdf.ts"
 
@@ -13,6 +14,11 @@ export class ManifestEditor extends HTMLElement {
         this.append(host)
         this.workspace = Blockly.inject(host, { toolbox: toolbox(schema) })
         new ResizeObserver(() => Blockly.svgResize(this.workspace)).observe(this)
+        this.workspace.addChangeListener((event: Blockly.Events.Abstract) => {
+            if (event.type === Blockly.Events.BLOCK_CHANGE && (event as Blockly.Events.BlockChange).element === "field") {
+                renameVariables(this.workspace, event as Blockly.Events.BlockChange)
+            }
+        })
         let pending = false
         this.workspace.addChangeListener((event: Blockly.Events.Abstract) => {
             if (event.isUiEvent || pending) {

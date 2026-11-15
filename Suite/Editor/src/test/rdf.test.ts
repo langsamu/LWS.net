@@ -9,6 +9,7 @@ import type { DatasetCore, Quad, Term } from "@rdfjs/types"
 import { defineBlocks } from "../blocks.ts"
 import { buildSchema } from "../schema/mod.ts"
 import { datasetToState, parse, quadsToTurtle, stateToQuads } from "../rdf.ts"
+import { renameVariables } from "../components/variableScope.ts"
 import { RDF } from "../vocabulary/mod.ts"
 import { ManifestDataset } from "../wrapping/ManifestDataset.ts"
 
@@ -163,5 +164,80 @@ test("variable scope", () => {
     byValue("status").setFieldValue("unknown", "VARIABLE")
     assert.equal(vars.some(block => block.getFieldValue("VARIABLE") === "unknown"), true)
     assert.deepEqual(variableOptions(workspace, vars.find(block => block.getFieldValue("VARIABLE") === "unknown")!), ["baseUri", "storageRoot", "newResource", "status", "unknown"])
+    workspace.dispose()
+})
+
+function renamingWorkspace(duplicate: boolean) {
+    defineBlocks(schema)
+    const workspace = new Blockly.Workspace()
+    workspace.addChangeListener(event => {
+        if (event.type === Blockly.Events.BLOCK_CHANGE && (event as Blockly.Events.BlockChange).element === "field") {
+            renameVariables(workspace, event as Blockly.Events.BlockChange)
+        }
+    })
+    const state = datasetToState(load("example"), schema) as any
+    if (duplicate) {
+        const first = state.blocks.blocks[0].inputs.TEST.block
+        first.next = { block: structuredClone({ ...first, next: undefined }) }
+    }
+    Blockly.serialization.workspaces.load(state, workspace)
+    return workspace
+}
+
+const tick = () => new Promise(resolve => setTimeout(resolve))
+const settle = async () => {
+    await tick()
+    await tick()
+}
+
+function tests(workspace: Blockly.Workspace) {
+    return workspace.getAllBlocks().filter(block => block.type === "lws_testcase").map(testBlock => {
+        const later = new Set(testBlock.getNextBlock()?.getDescendants(false))
+        const own = testBlock.getDescendants(false).filter(block => !later.has(block))
+        return {
+            extractors: own.filter(block => block.getField("TO")),
+            vars: own.filter(block => block.type === "lws_variableexpression"),
+        }
+    })
+}
+
+const values = (blocks: Blockly.Block[], field: string) => blocks.map(block => block.getFieldValue(field))
+
+test("rename updates references", async () => {
+    const workspace = renamingWorkspace(true)
+    await settle()
+    const [first, second] = tests(workspace)
+    first.vars[0].setFieldValue("storageRoot", "VARIABLE")
+    Blockly.Events.setGroup(true)
+    first.extractors[0].setFieldValue("root", "TO")
+    Blockly.Events.setGroup(false)
+    await settle()
+    assert.deepEqual(values(first.vars, "VARIABLE"), ["storageRoot", "root", "newResource", "status"])
+    assert.deepEqual(values(second.vars, "VARIABLE"), ["baseUri", "storageRoot", "newResource", "status"])
+    Blockly.Events.setGroup(true)
+    first.extractors[2].setFieldValue("code", "TO")
+    Blockly.Events.setGroup(false)
+    await settle()
+    assert.deepEqual(values(first.vars, "VARIABLE"), ["storageRoot", "root", "newResource", "code"])
+    assert.deepEqual(values(second.vars, "VARIABLE"), ["baseUri", "storageRoot", "newResource", "status"])
+    workspace.undo(false)
+    await settle()
+    assert.deepEqual(values(first.vars, "VARIABLE"), ["storageRoot", "root", "newResource", "status"])
+    workspace.undo(false)
+    await settle()
+    assert.deepEqual(values(first.vars, "VARIABLE"), ["storageRoot", "storageRoot", "newResource", "status"])
+    workspace.dispose()
+})
+
+test("rename respects shadowing", async () => {
+    const workspace = renamingWorkspace(false)
+    await settle()
+    const [{ extractors, vars }] = tests(workspace)
+    extractors[1].setFieldValue("storageRoot", "TO")
+    await settle()
+    assert.deepEqual(values(vars, "VARIABLE"), ["baseUri", "storageRoot", "storageRoot", "status"])
+    extractors[0].setFieldValue("root", "TO")
+    await settle()
+    assert.deepEqual(values(vars, "VARIABLE"), ["baseUri", "root", "storageRoot", "status"])
     workspace.dispose()
 })

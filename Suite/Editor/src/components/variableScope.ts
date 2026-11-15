@@ -64,6 +64,36 @@ export function inScope(block: Blockly.Block) {
     return []
 }
 
+const variableField = "VARIABLE"
+
 export function configureScope(value: Names) {
     names = value
+}
+
+export function renameVariables(workspace: Blockly.Workspace, event: Blockly.Events.BlockChange) {
+    const block = workspace.getBlockById(event.blockId ?? "")
+    const old = event.oldValue as string | null
+    if (!block || block.isInFlyout || !event.recordUndo || !event.name || !names.to.has(event.name) || !old?.trim() || old === event.newValue) {
+        return
+    }
+    const targets = workspace.getAllBlocks(false).filter(candidate => {
+        const field = candidate.getField(variableField)
+        if (!field || candidate === block || candidate.getFieldValue(variableField) !== old) {
+            return false
+        }
+        const nearest = inScope(candidate).findLast(entry => entry.name === old || (entry.block === block && entry.field === event.name))
+        return nearest?.block === block && nearest.field === event.name
+    })
+    if (!targets.length) {
+        return
+    }
+    const previous = Blockly.Events.getGroup()
+    Blockly.Events.setGroup(event.group || true)
+    try {
+        for (const target of targets) {
+            target.setFieldValue(event.newValue, variableField)
+        }
+    } finally {
+        Blockly.Events.setGroup(previous || false)
+    }
 }
