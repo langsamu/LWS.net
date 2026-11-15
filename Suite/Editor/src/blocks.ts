@@ -3,6 +3,7 @@ import "@blockly/toolbox-search"
 import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 import { CollapseIcon } from "./components/CollapseIcon.ts"
 import { registerAddMenu } from "./components/AddMenu.ts"
+import { FieldVariableName } from "./components/FieldVariableName.ts"
 import { OpenIncludeIcon } from "./components/OpenIncludeIcon.ts"
 import { searchExtension } from "./search.ts"
 import type { BlockKind, Member, Schema } from "./schema/mod.ts"
@@ -14,6 +15,9 @@ function memberArgs(member: Member): Json {
         case "field":
             if (member.options) {
                 return { type: "field_dropdown", name: member.name, options: member.options.map(value => [value, value]) }
+            }
+            if (member.predicate === Vocabulary.variable) {
+                return { type: FieldVariableName.type, name: member.name, text: "" }
             }
             return member.datatype === XSD.integer
                 ? { type: "field_number", name: member.name, value: 0, precision: 1 }
@@ -95,6 +99,7 @@ export function toolbox(schema: Schema) {
 export function defineBlocks(schema: Schema) {
     CollapseIcon.register()
     OpenIncludeIcon.register()
+    FieldVariableName.register(schema)
     Blockly.common.defineBlocks(Blockly.common.createBlockDefinitionsFromJsonArray(blockDefinitions(schema)))
     registerAddMenu(schema)
 }

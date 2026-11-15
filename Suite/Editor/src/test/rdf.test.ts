@@ -142,3 +142,26 @@ for (const file of ["example", "touchstone"]) {
         workspace.dispose()
     })
 }
+
+function variableOptions(workspace: Blockly.Workspace, block: Blockly.Block) {
+    const field = block.getField("VARIABLE") as Blockly.FieldDropdown
+    return field.getOptions(false).map(([, value]) => value)
+}
+
+test("variable scope", () => {
+    defineBlocks(schema)
+    const workspace = new Blockly.Workspace()
+    Blockly.serialization.workspaces.load(datasetToState(load("example"), schema), workspace)
+    const vars = workspace.getAllBlocks().filter(block => block.type === "lws_variableexpression")
+    const byValue = (value: string) => vars.find(block => block.getFieldValue("VARIABLE") === value)!
+    assert.deepEqual(variableOptions(workspace, byValue("baseUri")), ["baseUri"])
+    assert.deepEqual(variableOptions(workspace, byValue("storageRoot")), ["baseUri", "storageRoot"])
+    assert.deepEqual(variableOptions(workspace, byValue("newResource")), ["baseUri", "storageRoot", "newResource"])
+    assert.deepEqual(variableOptions(workspace, byValue("status")), ["baseUri", "storageRoot", "newResource", "status"])
+    byValue("storageRoot").setFieldValue("early", "VARIABLE")
+    assert.deepEqual(variableOptions(workspace, vars.find(block => block.getFieldValue("VARIABLE") === "early")!), ["baseUri", "storageRoot", "early"])
+    byValue("status").setFieldValue("unknown", "VARIABLE")
+    assert.equal(vars.some(block => block.getFieldValue("VARIABLE") === "unknown"), true)
+    assert.deepEqual(variableOptions(workspace, vars.find(block => block.getFieldValue("VARIABLE") === "unknown")!), ["baseUri", "storageRoot", "newResource", "status", "unknown"])
+    workspace.dispose()
+})
