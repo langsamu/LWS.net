@@ -9,14 +9,18 @@ const editor = document.querySelector<ManifestEditor>("manifest-editor")!
 const pane = document.querySelector<TtlPane>("ttl-pane")!
 const download = document.querySelector<HTMLAnchorElement>("#download")!
 
-editor.addEventListener("state-changed", (event: Event) => {
-    const turtle = quadsToTurtle(stateToQuads((event as CustomEvent<State>).detail))
+function refresh(state: State) {
+    const turtle = quadsToTurtle(stateToQuads(state))
     pane.show(turtle)
     if (download.href) {
         URL.revokeObjectURL(download.href)
     }
     download.href = URL.createObjectURL(new Blob([turtle], { type: "text/turtle" }))
-})
+}
+
+editor.addEventListener("state-changed", (event: Event) => refresh((event as CustomEvent<State>).detail))
 
 const text = await (await fetch("../Model/Resources/new.ttl")).text()
-editor.load(datasetToState(parse(text)))
+const initial = datasetToState(parse(text))
+editor.load(initial)
+refresh(initial)
