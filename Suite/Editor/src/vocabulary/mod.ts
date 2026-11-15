@@ -1,2 +1,7 @@
+export * from "./DASH.ts"
+export * from "./Editor.ts"
+export * from "./RDF.ts"
+export * from "./RDFS.ts"
+export * from "./SHACL.ts"
 export * from "./Vocabulary.ts"
 export * from "./XSD.ts"

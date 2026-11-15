@@ -1,4 +1,5 @@
 ﻿@prefix : <http://example.com/> .
+@prefix dash: <http://datashapes.org/dash#> .
 @prefix ed: <http://example.com/editor#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -6,8 +7,9 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # Instances are untyped, so there are no class targets. Validation starts at the manifest
-# root and reaches the other nodes through sh:node. The members of the sh:or lists of the
-# abstract classes are in the order in which the C# reader tries them.
+# root and reaches the other nodes through sh:node. Abstract classes are marked with
+# dash:abstract. The members of the sh:xone lists of the abstract classes are in the order
+# in which the C# reader tries them.
 
 # Lists
 
@@ -95,7 +97,6 @@
         sh:node :Assertion ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:property [ sh:path :that ; sh:minCount 1 ] ;
     ] ;
 .
 
@@ -208,8 +209,9 @@
 
 :Extractor
     a rdfs:Class, sh:NodeShape ;
+    dash:abstract true ;
     ed:hue 260 ;
-    sh:or ( :BodyExtractor :GraphExtractor :HeaderExtractor :LinkExtractor :JsonPathExtractor :StatusCodeExtractor ) ;
+    sh:xone ( :BodyExtractor :GraphExtractor :HeaderExtractor :LinkExtractor :JsonPathExtractor :StatusCodeExtractor ) ;
     sh:property [
         sh:path :to ;
         sh:order 1 ;
@@ -275,8 +277,9 @@
 
 :Expression
     a rdfs:Class, sh:NodeShape ;
+    dash:abstract true ;
     ed:hue 120 ;
-    sh:or ( :ConstantExpression :VariableExpression :ResolveExpression :SingleExpression :CountExpression :FormExpression ) ;
+    sh:xone ( :ConstantExpression :VariableExpression :ResolveExpression :SingleExpression :CountExpression :FormExpression ) ;
 .
 
 :ConstantExpression
@@ -363,19 +366,27 @@
 
 :Assertion
     a rdfs:Class, sh:NodeShape ;
+    dash:abstract true ;
     ed:hue 340 ;
-    sh:or ( :EqualityAssertion :RegexAssertion :ContainsAssertion :GreaterThanAssertion :IsomorphicAssertion :NotAssertion ) ;
+    sh:xone ( :EqualityAssertion :RegexAssertion :ContainsAssertion :GreaterThanAssertion :IsomorphicAssertion :NotAssertion ) ;
+.
+
+:ValueAssertion
+    a rdfs:Class, sh:NodeShape ;
+    dash:abstract true ;
     sh:property [
         sh:path :that ;
         sh:order 1 ;
         sh:name "that" ;
         sh:node :Expression ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
 .
 
 :EqualityAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:node :ValueAssertion ;
     sh:property [
         sh:path :equals ;
         sh:order 2 ;
@@ -388,6 +399,7 @@
 
 :RegexAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:node :ValueAssertion ;
     sh:property [
         sh:path :matches ;
         sh:order 2 ;
@@ -400,6 +412,7 @@
 
 :ContainsAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:node :ValueAssertion ;
     sh:property [
         sh:path :contains ;
         sh:order 2 ;
@@ -412,6 +425,7 @@
 
 :GreaterThanAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:node :ValueAssertion ;
     sh:property [
         sh:path :greaterThan ;
         sh:order 2 ;
@@ -424,6 +438,7 @@
 
 :IsomorphicAssertion
     a rdfs:Class, sh:NodeShape ;
+    sh:node :ValueAssertion ;
     sh:property [
         sh:path :isomorphicWith ;
         sh:order 2 ;
@@ -437,12 +452,15 @@
 :NotAssertion
     a rdfs:Class, sh:NodeShape ;
     sh:property [
+        sh:path :that ;
+        sh:maxCount 0 ;
+    ] ;
+    sh:property [
         sh:path :not ;
-        sh:order 2 ;
+        sh:order 1 ;
         sh:name "not" ;
         sh:node :Assertion ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:property [ sh:path :that ; sh:maxCount 0 ] ;
     ] ;
 .

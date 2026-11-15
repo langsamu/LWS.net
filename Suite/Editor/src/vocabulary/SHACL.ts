@@ -1,0 +1,15 @@
+export const SHACL = {
+    NodeShape: "http://www.w3.org/ns/shacl#NodeShape",
+    targetSubjectsOf: "http://www.w3.org/ns/shacl#targetSubjectsOf",
+    property: "http://www.w3.org/ns/shacl#property",
+    path: "http://www.w3.org/ns/shacl#path",
+    order: "http://www.w3.org/ns/shacl#order",
+    name: "http://www.w3.org/ns/shacl#name",
+    datatype: "http://www.w3.org/ns/shacl#datatype",
+    node: "http://www.w3.org/ns/shacl#node",
+    minCount: "http://www.w3.org/ns/shacl#minCount",
+    maxCount: "http://www.w3.org/ns/shacl#maxCount",
+    hasValue: "http://www.w3.org/ns/shacl#hasValue",
+    or: "http://www.w3.org/ns/shacl#or",
+    xone: "http://www.w3.org/ns/shacl#xone",
+} as const
