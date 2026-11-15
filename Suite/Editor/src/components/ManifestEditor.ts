@@ -21,12 +21,17 @@ export class ManifestEditor extends HTMLElement {
             pending = true
             setTimeout(() => {
                 pending = false
-                this.dispatchEvent(new CustomEvent("state-changed", { detail: Blockly.serialization.workspaces.save(this.workspace) }))
+                this.dispatchEvent(new CustomEvent("state-changed", { detail: this.state() }))
             })
         })
     }
 
+    state(): State {
+        return Blockly.serialization.workspaces.save(this.workspace)
+    }
+
     load(state: State) {
+        this.workspace.clear()
         Blockly.serialization.workspaces.load(state, this.workspace)
         this.workspace.scrollCenter()
     }

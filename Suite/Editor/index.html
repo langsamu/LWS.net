@@ -47,6 +47,12 @@
                 align-items: center;
             }
 
+            file-toolbar {
+                display: flex;
+                gap: .5rem;
+                align-items: center;
+            }
+
             main {
                 flex: 1;
                 display: grid;
@@ -83,7 +89,7 @@
     <body>
         <header>
             <strong>LWS manifest editor</strong>
-            <a id="download" download="manifest.ttl">Download Turtle</a>
+            <file-toolbar></file-toolbar>
         </header>
         <main>
             <manifest-editor></manifest-editor>

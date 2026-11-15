@@ -160,6 +160,10 @@ export function datasetToState(dataset: DatasetCore, schema: Schema) {
     return { blocks: { languageVersion: 0, blocks: [block] } }
 }
 
+export function emptyState(schema: Schema) {
+    return { blocks: { languageVersion: 0, blocks: [{ type: rootOf(schema).type, deletable: false }] } }
+}
+
 function* chain(first: Block | undefined) {
     for (let block = first; block; block = block.next?.block) {
         yield block
