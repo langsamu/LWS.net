@@ -2,6 +2,7 @@ import * as Blockly from "blockly"
 import "@blockly/toolbox-search"
 import { Vocabulary, XSD } from "./vocabulary/mod.ts"
 import { CollapseIcon } from "./components/CollapseIcon.ts"
+import { ExpandAllIcon } from "./components/ExpandAllIcon.ts"
 import { registerAddMenu } from "./components/AddMenu.ts"
 import { FieldVariableName } from "./components/FieldVariableName.ts"
 import { OpenIncludeIcon } from "./components/OpenIncludeIcon.ts"
@@ -62,7 +63,7 @@ export function blockDefinition(block: BlockKind): Json {
     }
     const extensions = [searchExtension(block)]
     if (block.members.some(member => member.kind === "statements")) {
-        extensions.push(CollapseIcon.extension)
+        extensions.push(CollapseIcon.extension, ExpandAllIcon.extension)
     }
     if (block.literal && block.predicate === Vocabulary.include) {
         extensions.push(OpenIncludeIcon.extension)
@@ -98,6 +99,7 @@ export function toolbox(schema: Schema) {
 
 export function defineBlocks(schema: Schema) {
     CollapseIcon.register()
+    ExpandAllIcon.register()
     OpenIncludeIcon.register()
     FieldVariableName.register(schema)
     Blockly.common.defineBlocks(Blockly.common.createBlockDefinitionsFromJsonArray(blockDefinitions(schema)))
