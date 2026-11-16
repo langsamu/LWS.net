@@ -31,8 +31,8 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: |
-          mkdir -p ../../_site/Model/Resources
-          cp -r index.html dist ../../_site/
+          mkdir -p ../../_site/Editor ../../_site/Model/Resources
+          cp -r index.html shapes.ttl dist ../../_site/Editor/
           cp -r ../Model/Resources/. ../../_site/Model/Resources/
       - uses: actions/upload-pages-artifact@v4
 
