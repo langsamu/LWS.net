@@ -1,0 +1,161 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Ported from manifest.jsonld: LWS Protocol 1.0 Test Suite: Authorization server" ;
+    :test
+        _:authorizationServerMetadataReturns200 ,
+        _:authorizationServerMetadataReturnsJsonMediaType ,
+        _:tokenExchangeForUnknownResourceReturns400 ;
+] .
+
+# Tests
+
+_:authorizationServerMetadataReturns200
+    :testName "authz-server-metadata-well-known-status" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:getAuthorizationServerMetadataStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:authorizationServerMetadataReturnsJsonMediaType
+    :testName "authz-server-metadata-well-known-content-type" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:getAuthorizationServerMetadataContentType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "contentType" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)^application/json\\s*(;|$)" ] ;
+    ] ;
+.
+
+_:tokenExchangeForUnknownResourceReturns400
+    :testName "authz-token-exchange-invalid-resource-status" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:exchangeTokenForUnknownResourceStatus
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :equals [ :constant "400" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverAuthorizationServer
+    :stepName "Discover authorization server" ;
+    :request _:getStorage ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'AuthorizationServer'].serviceEndpoint" ;
+            :to "authorizationServer" ;
+        ]
+    ) ;
+.
+
+_:getAuthorizationServerMetadataStatus
+    :stepName "Get authorization server metadata status" ;
+    :request _:getAuthorizationServerMetadata ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getAuthorizationServerMetadataContentType
+    :stepName "Get authorization server metadata Content-Type" ;
+    :request _:getAuthorizationServerMetadata ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:exchangeTokenForUnknownResourceStatus
+    :stepName "Exchange token for unknown resource status" ;
+    :request [
+        :method "POST" ;
+        :uri _:tokenEndpoint ;
+        :headers _:contentTypeFormUrlEncoded ;
+        :body [ :constant "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&resource=https%3A%2F%2Funknown.example%2F&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token&subject_token=<subject-token>" ] ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getStorage
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getAuthorizationServerMetadata
+    :method "GET" ;
+    :uri [
+        :base _:authorizationServer ;
+        :relative [
+            :constant "/.well-known/lws-configuration" ;
+        ] ;
+    ] ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/json" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:authorizationServer
+    :single [
+        :variable "authorizationServer" ;
+    ] ;
+.
+
+_:tokenEndpoint
+    :base _:authorizationServer ;
+    :relative [
+        :constant "/token" ;
+    ] ;
+.
+
+# Headers
+
+_:contentTypeFormUrlEncoded
+    :key "Content-Type" ;
+    :value [ :constant "application/x-www-form-urlencoded" ] ;
+.
+
+# Extractors
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.

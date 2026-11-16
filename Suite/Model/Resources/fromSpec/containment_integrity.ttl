@@ -1,0 +1,369 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Containment integrity" ;
+    :test
+        _:createdResourceIsAddedToContainerItems ,
+        _:deletedResourceIsRemovedFromParentContainerItems ,
+        _:containerRepresentationIncludesAllContainedResources ,
+        _:serverRejectsDeletionOfNonEmptyContainerWithoutRecursionRequestedWith409Conflict ,
+        _:createdContainerIsAddedToParentContainerItems ,
+        _:deletedContainerIsRemovedFromParentContainerItems ;
+] .
+
+# Tests
+
+_:createdResourceIsAddedToContainerItems
+    :testName "Created resource is added to container items" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment-integrity"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:textResource ;
+    ] ;
+.
+
+_:deletedResourceIsRemovedFromParentContainerItems
+    :testName "Deleted resource is removed from parent container items" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment-integrity"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:createSecondTextResource
+        _:deleteTextResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:secondTextResource ;
+    ] ;
+.
+
+_:containerRepresentationIncludesAllContainedResources
+    :testName "Container representation includes identifiers of all contained resources" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-membership-and-authorization"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:createSecondTextResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "itemIds" ;
+            ] ;
+        ] ;
+        :equals [ :constant 2 ] ;
+    ] ;
+.
+
+_:serverRejectsDeletionOfNonEmptyContainerWithoutRecursionRequestedWith409Conflict
+    :testName "Server rejects deletion of non-empty container without recursion requested with 409 Conflict" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment-integrity"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:deleteContainer
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :equals [ :constant "409" ] ;
+    ] ;
+.
+
+_:createdContainerIsAddedToParentContainerItems
+    :testName "Created container is added to parent container items" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment-integrity"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:nestedContainer ;
+    ] ;
+.
+
+_:deletedContainerIsRemovedFromParentContainerItems
+    :testName "Deleted container is removed from parent container items" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment-integrity"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:deleteNestedContainer
+        _:getContainerItemsArray
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemsArray" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[\\s*\\]$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getContainerItemIds
+    :stepName "Get container item ids" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items[*].id" ;
+            :to "itemIds" ;
+        ]
+    ) ;
+.
+
+_:createSecondTextResource
+    :stepName "Create second text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:secondTextResourceLocation
+    ) ;
+.
+
+_:deleteTextResource
+    :stepName "Delete text resource" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:textResource ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:deleteContainer
+    :stepName "Delete container" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:container ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:nestedContainerLocation
+    ) ;
+.
+
+_:getContainerItemsArray
+    :stepName "Get container items array" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items" ;
+            :to "itemsArray" ;
+        ]
+    ) ;
+.
+
+_:deleteNestedContainer
+    :stepName "Delete nested container" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:nestedContainer ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:secondTextResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "secondTextResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:nestedContainer
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "nestedContainerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:secondTextResourceLocation
+    :header "Location" ;
+    :to "secondTextResourceLocation" ;
+.
+
+_:nestedContainerLocation
+    :header "Location" ;
+    :to "nestedContainerLocation" ;
+.

@@ -1,0 +1,180 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Missing resources" ;
+    :test
+        _:missingResourceReturns404 ,
+        _:missingResourceReturnsProblemDetails ,
+        _:missingResourceProblemDetailsIsObject ;
+] .
+
+# Tests
+
+_:missingResourceReturns404
+    :testName "Missing resource returns 404" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getMissingResourceStatus
+    ) ;
+    :assert _:404 ;
+.
+
+_:missingResourceReturnsProblemDetails
+    :testName "Missing resource returns problem details" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getMissingResourceContentType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "contentType" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)^application/problem\\+json\\s*(;|$)" ] ;
+    ] ;
+.
+
+_:missingResourceProblemDetailsIsObject
+    :testName "Missing resource problem details is object" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getMissingResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "^\\s*\\{" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:getMissingResourceStatus
+    :stepName "Get missing resource status" ;
+    :request _:getMissingResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getMissingResourceContentType
+    :stepName "Get missing resource Content-Type" ;
+    :request _:getMissingResource ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getMissingResourceBody
+    :stepName "Get missing resource body" ;
+    :request _:getMissingResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+# Requests
+
+_:getMissingResource
+    :method "GET" ;
+    :uri [
+        :base _:container ;
+        :relative [
+            :constant "missing-resource" ;
+        ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:404
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "404" ] ;
+.

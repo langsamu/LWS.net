@@ -1,0 +1,414 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Read resource: GET" ;
+    :test
+        _:getDataResourceReturnsContentTypeMatchingStoredMediaType ,
+        _:getDataResourceResponseIncludesLinkHeaderWithRelType ,
+        _:serverSupportsRangeRequestsStatus206 ,
+        _:serverSupportsRangeRequestsRequestedBytes ,
+        _:serverSupportsRangeRequestsContentRange ,
+        _:getDataResourceResponseIncludesEtagHeader ,
+        _:getContainerResponseIncludesEtagHeader ,
+        _:getContainerResponseLinkHeaderWithRelTypeIndicatesContainer ;
+] .
+
+# Tests
+
+_:getDataResourceReturnsContentTypeMatchingStoredMediaType
+    :testName "GET data resource returns Content-Type matching stored media type" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceContentType
+    ) ;
+    :assert _:textPlainContentType ;
+.
+
+_:getDataResourceResponseIncludesLinkHeaderWithRelType
+    :testName "GET data resource response includes Link header with rel type" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceTypeLinks
+    ) ;
+    :assert _:typeLink ;
+.
+
+_:serverSupportsRangeRequestsStatus206
+    :testName "Server supports range requests: status 206" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesStatus
+    ) ;
+    :assert _:206 ;
+.
+
+_:serverSupportsRangeRequestsRequestedBytes
+    :testName "Server supports range requests: requested bytes" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "0123" ] ;
+    ] ;
+.
+
+_:serverSupportsRangeRequestsContentRange
+    :testName "Server supports range requests: Content-Range" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesContentRange
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "contentRange" ;
+            ] ;
+        ] ;
+        :equals [ :constant "bytes 0-3/10" ] ;
+    ] ;
+.
+
+_:getDataResourceResponseIncludesEtagHeader
+    :testName "GET data resource response includes ETag header" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceEtag
+    ) ;
+    :assert _:entityTag ;
+.
+
+_:getContainerResponseIncludesEtagHeader
+    :testName "GET container response includes ETag header" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerEtag
+    ) ;
+    :assert _:entityTag ;
+.
+
+_:getContainerResponseLinkHeaderWithRelTypeIndicatesContainer
+    :testName "GET container response Link header with rel type indicates container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerTypeLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "typeLinks" ;
+        ] ;
+        :contains [ :constant "https://www.w3.org/ns/lws#Container" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceContentType
+    :stepName "Get text resource Content-Type" ;
+    :request _:getTextResource ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getTextResourceTypeLinks
+    :stepName "Get text resource type links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:createDigitsResource
+    :stepName "Create digits resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "0123456789" ] ;
+    ] ;
+    :extract (
+        _:digitsResourceLocation
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesStatus
+    :stepName "Get digits resource first four bytes status" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesBody
+    :stepName "Get digits resource first four bytes body" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesContentRange
+    :stepName "Get digits resource first four bytes Content-Range" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        _:contentRange
+    ) ;
+.
+
+_:getTextResourceEtag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:getContainerEtag
+    :stepName "Get container ETag" ;
+    :request _:getContainer ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:getContainerTypeLinks
+    :stepName "Get container type links" ;
+    :request _:getContainer ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getDigitsResourceFirstFourBytes
+    :method "GET" ;
+    :uri _:digitsResource ;
+    :headers _:rangeFirstFourBytes ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:digitsResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "digitsResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:rangeFirstFourBytes
+    :key "Range" ;
+    :value [ :constant "bytes=0-3" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:etag
+    :header "ETag" ;
+    :to "etag" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:digitsResourceLocation
+    :header "Location" ;
+    :to "digitsResourceLocation" ;
+.
+
+_:contentRange
+    :header "Content-Range" ;
+    :to "contentRange" ;
+.
+
+# Assertions
+
+_:entityTag
+    :that [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+    :matches [ :constant "^(W/)?\"[^\"]*\"$" ] ;
+.
+
+_:textPlainContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^text/plain\\s*(;|$)" ] ;
+.
+
+_:typeLink
+    :that [
+        :count [
+            :variable "typeLinks" ;
+        ] ;
+    ] ;
+    :greaterThan [ :constant 0 ] ;
+.
+
+_:206
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "206" ] ;
+.

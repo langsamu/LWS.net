@@ -1,0 +1,444 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Update resource: PATCH" ;
+    :test
+        _:patchOnResourceUriHasNoDefaultImpactOnAssociatedLinksetResource ,
+        _:patchOnResourceUriWithLinkHeaderSucceeds ,
+        _:serverIgnoresPreferSetLinksetOrRespondsWith501NotImplemented ,
+        _:patchWithInvalidPayloadRespondsWith400BadRequest ,
+        _:serverMinimallySupportsJsonPatchApplicationJsonPatchJson ,
+        _:linksetPatchWithFailingPreconditionIsRejectedWith412PreconditionFailed ;
+] .
+
+# Tests
+
+_:patchOnResourceUriHasNoDefaultImpactOnAssociatedLinksetResource
+    :testName "PATCH on resource URI has no default impact on associated linkset resource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceLinksetLinks
+        _:patchJsonResourceReplacingValueWithLinkHeader
+        _:getLinksetBody
+    ) ;
+    :assert [
+        :not [
+            :that [
+                :variable "body" ;
+            ] ;
+            :matches [ :constant "example\\.org\\?/s" ] ;
+        ] ;
+    ] ;
+.
+
+_:patchOnResourceUriWithLinkHeaderSucceeds
+    :testName "PATCH on resource URI with Link header succeeds" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceLinksetLinks
+        _:patchJsonResourceReplacingValueWithLinkHeader
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+_:serverIgnoresPreferSetLinksetOrRespondsWith501NotImplemented
+    :testName "Server ignores Prefer set-linkset or responds with 501 Not Implemented" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:putTextResourceReplacingContentWithPreferSetLinkset
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(200|204|501)$" ] ;
+    ] ;
+.
+
+_:patchWithInvalidPayloadRespondsWith400BadRequest
+    :testName "PATCH with invalid payload responds with 400 Bad Request" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:patchJsonResourceWithInvalidPayload
+    ) ;
+    :assert _:400 ;
+.
+
+_:serverMinimallySupportsJsonPatchApplicationJsonPatchJson
+    :testName "Server minimally supports JSON Patch application/json-patch+json" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:patchJsonResourceReplacingValue
+        _:getJsonResourceAValue
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "a" ;
+            ] ;
+        ] ;
+        :equals [ :constant "2" ] ;
+    ] ;
+.
+
+_:linksetPatchWithFailingPreconditionIsRejectedWith412PreconditionFailed
+    :testName "Linkset PATCH with failing precondition is rejected with 412 Precondition Failed" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:patchLinksetAddingDescribedByWithBogusIfMatch
+    ) ;
+    :assert _:412 ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetBody
+    :stepName "Get linkset body" ;
+    :request _:getLinkset ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:createJsonResource
+    :stepName "Create JSON resource" ;
+    :request _:postJsonResource ;
+    :extract (
+        _:jsonResourceLocation
+    ) ;
+.
+
+_:getJsonResourceLinksetLinks
+    :stepName "Get JSON resource linkset links" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:patchJsonResourceReplacingValueWithLinkHeader
+    :stepName "Patch JSON resource replacing value with Link header" ;
+    :request _:patchJsonResourceReplaceValueWithLinkHeader ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:putTextResourceReplacingContentWithPreferSetLinkset
+    :stepName "Put text resource replacing content with Prefer set-linkset" ;
+    :request _:putTextResourceReplaceContentWithPreferSetLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:patchJsonResourceWithInvalidPayload
+    :stepName "Patch JSON resource with invalid payload" ;
+    :request _:patchJsonResourceInvalidPayload ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:patchJsonResourceReplacingValue
+    :stepName "Patch JSON resource replacing value" ;
+    :request _:patchJsonResourceReplaceValue ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getJsonResourceAValue
+    :stepName "Get JSON resource a value" ;
+    :request _:getJsonResource ;
+    :extract (
+        [
+            :path "$.a" ;
+            :to "a" ;
+        ]
+    ) ;
+.
+
+_:patchLinksetAddingDescribedByWithBogusIfMatch
+    :stepName "Patch linkset adding describedby with bogus If-Match" ;
+    :request _:patchLinksetAddDescribedByWithBogusIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:postJsonResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeApplicationJson ;
+    :body [ :constant "{\"a\":1}" ] ;
+.
+
+_:getJsonResource
+    :method "GET" ;
+    :uri _:jsonResource ;
+.
+
+_:patchJsonResourceReplaceValueWithLinkHeader
+    :method "PATCH" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeJsonPatch ;
+    :headers _:linkDescribedBy ;
+    :body [ :constant "[{\"op\":\"replace\",\"path\":\"/a\",\"value\":2}]" ] ;
+.
+
+_:putTextResourceReplaceContentWithPreferSetLinkset
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers _:preferSetLinkset ;
+    :headers _:linkDescribedBy ;
+    :body [ :constant "new content" ] ;
+.
+
+_:patchJsonResourceInvalidPayload
+    :method "PATCH" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeJsonPatch ;
+    :body [ :constant "not json" ] ;
+.
+
+_:patchJsonResourceReplaceValue
+    :method "PATCH" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeJsonPatch ;
+    :body [ :constant "[{\"op\":\"replace\",\"path\":\"/a\",\"value\":2}]" ] ;
+.
+
+_:patchLinksetAddDescribedByWithBogusIfMatch
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :headers _:ifMatchBogus ;
+    :body [ :constant "[{\"op\":\"add\",\"path\":\"/linkset/0/describedby\",\"value\":[{\"href\":\"https://example.org/schema\"}]}]" ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+_:jsonResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "jsonResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:contentTypeJsonPatch
+    :key "Content-Type" ;
+    :value [ :constant "application/json-patch+json" ] ;
+.
+
+_:linkDescribedBy
+    :key "Link" ;
+    :value [ :constant "<https://example.org/s>; rel=\"describedby\"" ] ;
+.
+
+_:contentTypeApplicationJson
+    :key "Content-Type" ;
+    :value [ :constant "application/json" ] ;
+.
+
+_:preferSetLinkset
+    :key "Prefer" ;
+    :value [ :constant "set-linkset" ] ;
+.
+
+_:ifMatchBogus
+    :key "If-Match" ;
+    :value [ :constant "\"bogus\"" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:jsonResourceLocation
+    :header "Location" ;
+    :to "jsonResourceLocation" ;
+.
+
+# Assertions
+
+_:412
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "412" ] ;
+.
+
+_:400
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "400" ] ;
+.

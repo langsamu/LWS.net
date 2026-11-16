@@ -1,0 +1,315 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Ported from manifest.jsonld: LWS Protocol 1.0 Test Suite: Data resources and linksets" ;
+    :test
+        _:readDataResourceReturns200 ,
+        _:readDataResourceReturnsTextPlain ,
+        _:readDataResourceLinksDataResourceType ,
+        _:readDataResourceReturnsBody ,
+        _:getLinksetReturns200 ,
+        _:getLinksetReturnsLinksetJsonMediaType ;
+] .
+
+# Tests
+
+_:readDataResourceReturns200
+    :testName "readDataResource-status" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getShoppingListStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:readDataResourceReturnsTextPlain
+    :testName "readDataResource-content-type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getShoppingListContentType
+    ) ;
+    :assert _:textPlainContentType ;
+.
+
+_:readDataResourceLinksDataResourceType
+    :testName "readDataResource-type-link" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getShoppingListTypeLinks
+    ) ;
+    :assert _:dataResourceTypeLink ;
+.
+
+_:readDataResourceReturnsBody
+    :testName "readDataResource-body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getShoppingListBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+.
+
+_:getLinksetReturns200
+    :testName "getLinkset-status" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:getLinksetReturnsLinksetJsonMediaType
+    :testName "getLinkset-content-type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:getLinksetContentType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "contentType" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)^application/linkset\\+json\\s*(;|$)" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorage ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "containerLocation" ;
+        ]
+    ) ;
+.
+
+_:createShoppingList
+    :stepName "Create shopping list" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "shoppingListLocation" ;
+        ]
+    ) ;
+.
+
+_:getShoppingListStatus
+    :stepName "Get shopping list status" ;
+    :request _:getShoppingList ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getShoppingListContentType
+    :stepName "Get shopping list Content-Type" ;
+    :request _:getShoppingList ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getShoppingListTypeLinks
+    :stepName "Get shopping list type links" ;
+    :request _:getShoppingList ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:getShoppingListBody
+    :stepName "Get shopping list body" ;
+    :request _:getShoppingList ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getContainerLinksetLinks
+    :stepName "Get container linkset links" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :link "linkset" ;
+            :to "linksetLinks" ;
+        ]
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetContentType
+    :stepName "Get linkset Content-Type" ;
+    :request _:getLinkset ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+# Requests
+
+_:getStorage
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+.
+
+_:getShoppingList
+    :method "GET" ;
+    :uri _:shoppingList ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri [
+        :single [
+            :variable "linksetLinks" ;
+        ] ;
+    ] ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/linkset+json" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:shoppingList
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "shoppingListLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:textPlainContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^text/plain\\s*(;|$)" ] ;
+.
+
+_:dataResourceTypeLink
+    :that [
+        :variable "typeLinks" ;
+    ] ;
+    :contains [ :constant "https://www.w3.org/ns/lws#DataResource" ] ;
+.

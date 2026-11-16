@@ -1,0 +1,254 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Delete resource" ;
+    :test
+        _:onSuccessDeleteRespondsWith204NoContent ,
+        _:serverRemovesResourceContentOnDelete ,
+        _:onSuccessDeleteOfContainerRespondsWith204NoContent ,
+        _:deleteWithMatchingIfMatchRespondsWith204NoContent ;
+] .
+
+# Tests
+
+_:onSuccessDeleteRespondsWith204NoContent
+    :testName "On success DELETE responds with 204 No Content" ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:deleteTextResource
+    ) ;
+    :assert _:204 ;
+.
+
+_:serverRemovesResourceContentOnDelete
+    :testName "Server removes resource content on delete" ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:deleteTextResource
+        _:getTextResourceStatus
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(404|410)$" ] ;
+    ] ;
+.
+
+_:onSuccessDeleteOfContainerRespondsWith204NoContent
+    :testName "On success DELETE of container responds with 204 No Content" ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:deleteContainer
+    ) ;
+    :assert _:204 ;
+.
+
+_:deleteWithMatchingIfMatchRespondsWith204NoContent
+    :testName "DELETE with matching If-Match responds with 204 No Content" ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceEtag
+        _:deleteTextResourceWithMatchingIfMatch
+    ) ;
+    :assert _:204 ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:deleteTextResource
+    :stepName "Delete text resource" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:textResource ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:deleteContainer
+    :stepName "Delete container" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:container ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceStatus
+    :stepName "Get text resource status" ;
+    :request _:getTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceEtag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:deleteTextResourceWithMatchingIfMatch
+    :stepName "Delete text resource with matching If-Match" ;
+    :request _:deleteTextResourceIfMatchEtag ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:deleteTextResourceIfMatchEtag
+    :method "DELETE" ;
+    :uri _:textResource ;
+    :headers _:ifMatchEtag ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:ifMatchEtag
+    :key "If-Match" ;
+    :value [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:etag
+    :header "ETag" ;
+    :to "etag" ;
+.
+
+# Assertions
+
+_:204
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "204" ] ;
+.

@@ -1,0 +1,345 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Linksets: Reads" ;
+    :test
+        _:linksetGetReturns200 ,
+        _:linksetNamedByCreateReturns200 ,
+        _:linksetNamedByCreateReturnsLinksetMediaType ,
+        _:linksetNamedByCreateHasLinksetArray ,
+        _:linksetNamedByCreateReturnsETag ,
+        _:containerLinksetReturns200 ,
+        _:containerLinksetReturnsLinksetMediaType ,
+        _:containerLinksetHasLinksetArray ;
+] .
+
+# Tests
+
+_:linksetGetReturns200
+    :testName "Linkset GET returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:linksetNamedByCreateReturns200
+    :testName "Linkset named by create returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:linksetNamedByCreateReturnsLinksetMediaType
+    :testName "Linkset named by create returns linkset media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetContentType
+    ) ;
+    :assert _:linksetJsonContentType ;
+.
+
+_:linksetNamedByCreateHasLinksetArray
+    :testName "Linkset named by create has linkset array" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetMembers
+    ) ;
+    :assert _:linksetArray ;
+.
+
+_:linksetNamedByCreateReturnsETag
+    :testName "Linkset named by create returns ETag" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetETag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+        :matches [ :constant "." ] ;
+    ] ;
+.
+
+_:containerLinksetReturns200
+    :testName "Container linkset returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerLinksetReturnsLinksetMediaType
+    :testName "Container linkset returns linkset media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:getLinksetContentType
+    ) ;
+    :assert _:linksetJsonContentType ;
+.
+
+_:containerLinksetHasLinksetArray
+    :testName "Container linkset has linkset array" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:getLinksetMembers
+    ) ;
+    :assert _:linksetArray ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getContainerLinksetLinks
+    :stepName "Get container linkset links" ;
+    :request _:getContainer ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetContentType
+    :stepName "Get linkset Content-Type" ;
+    :request _:getLinkset ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getLinksetMembers
+    :stepName "Get linkset members" ;
+    :request _:getLinkset ;
+    :extract (
+        _:linksetMembers
+    ) ;
+.
+
+_:getLinksetETag
+    :stepName "Get linkset ETag" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:linksetMembers
+    :path "$.linkset" ;
+    :to "linksetMembers" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:linksetJsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/linkset\\+json\\s*(;|$)" ] ;
+.
+
+_:linksetArray
+    :that [
+        :single [
+            :variable "linksetMembers" ;
+        ] ;
+    ] ;
+    :matches [ :constant "^\\[" ] ;
+.

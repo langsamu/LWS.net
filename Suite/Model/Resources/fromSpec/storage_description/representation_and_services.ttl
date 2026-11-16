@@ -1,0 +1,159 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Storage description: Representation and services" ;
+    :test
+        _:storageDescriptionSerializableAsLwsCid ,
+        _:storageRootServiceEndpointIsStorageRootContainer ,
+        _:storageDescriptionContextStartsWithCidAndLws ;
+] .
+
+# Tests
+
+_:storageDescriptionSerializableAsLwsCid
+    :testName "Storage description serializable as application/lws+cid" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-representation"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionAsCidContentType
+    ) ;
+    :assert _:lwsCidContentType ;
+.
+
+_:storageRootServiceEndpointIsStorageRootContainer
+    :testName "StorageRoot serviceEndpoint is storage root container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-services"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:getStorageRootType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "type" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^Container$|\"Container\"" ] ;
+    ] ;
+.
+
+_:storageDescriptionContextStartsWithCidAndLws
+    :testName "Storage description @context starts with CID and LWS URIs" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-representation"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionAsCidContext
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "context" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[\\s*\"https://www\\.w3\\.org/ns/cid/v1\"\\s*,\\s*\"https://www\\.w3\\.org/ns/lws/v1\"" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionAsCidContentType
+    :stepName "Get storage description as CID Content-Type" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getStorageRootType
+    :stepName "Get storage root type" ;
+    :request _:getStorageRoot ;
+    :extract (
+        [
+            :path "$.type" ;
+            :to "type" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionAsCidContext
+    :stepName "Get storage description as CID context" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        [
+            :path "$['@context']" ;
+            :to "context" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getStorageDescriptionAsCid
+    :method "GET" ;
+    :uri _:storage ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/lws+cid" ] ;
+    ] ;
+.
+
+_:getStorageRoot
+    :method "GET" ;
+    :uri _:storageRoot ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+# Assertions
+
+_:lwsCidContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+cid\\s*(;|$)" ] ;
+.

@@ -1,0 +1,319 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Link headers: Resource types" ;
+    :test
+        _:containerGetLinksContainerType ,
+        _:createNestedContainerLinksContainerType ,
+        _:createDataResourceLinksDataResourceType ,
+        _:storageRootGetLinksContainerType ,
+        _:dataResourceGetLinksDataResourceType ,
+        _:dataResourceHeadLinksDataResourceType ,
+        _:containerHeadLinksContainerType ;
+] .
+
+# Tests
+
+_:containerGetLinksContainerType
+    :testName "Container GET links Container type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerTypeLinks
+    ) ;
+    :assert _:containerTypeLink ;
+.
+
+_:createNestedContainerLinksContainerType
+    :testName "Create nested container links Container type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+    ) ;
+    :assert _:containerTypeLink ;
+.
+
+_:createDataResourceLinksDataResourceType
+    :testName "Create data resource links DataResource type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTypedResource
+    ) ;
+    :assert _:dataResourceTypeLink ;
+.
+
+_:storageRootGetLinksContainerType
+    :testName "Storage root GET links Container type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:getStorageRootTypeLinks
+    ) ;
+    :assert _:containerTypeLink ;
+.
+
+_:dataResourceGetLinksDataResourceType
+    :testName "Data resource GET links DataResource type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceTypeLinks
+    ) ;
+    :assert _:dataResourceTypeLink ;
+.
+
+_:dataResourceHeadLinksDataResourceType
+    :testName "Data resource HEAD links DataResource type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceTypeLinks
+    ) ;
+    :assert _:dataResourceTypeLink ;
+.
+
+_:containerHeadLinksContainerType
+    :testName "Container HEAD links Container type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerTypeLinks
+    ) ;
+    :assert _:containerTypeLink ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:status
+        _:typeLinks
+    ) ;
+.
+
+_:getContainerTypeLinks
+    :stepName "Get container type links" ;
+    :request _:getContainer ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:createTypedResource
+    :stepName "Create typed resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "typed on creation" ] ;
+    ] ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:getStorageRootTypeLinks
+    :stepName "Get storage root type links" ;
+    :request _:getStorageRoot ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:getTextResourceTypeLinks
+    :stepName "Get text resource type links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:headTextResourceTypeLinks
+    :stepName "Head text resource type links" ;
+    :request _:headTextResource ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:headContainerTypeLinks
+    :stepName "Head container type links" ;
+    :request _:headContainer ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getStorageRoot
+    :method "GET" ;
+    :uri _:storageRoot ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:containerTypeLink
+    :that [
+        :variable "typeLinks" ;
+    ] ;
+    :contains [ :constant "https://www.w3.org/ns/lws#Container" ] ;
+.
+
+_:dataResourceTypeLink
+    :that [
+        :variable "typeLinks" ;
+    ] ;
+    :contains [ :constant "https://www.w3.org/ns/lws#DataResource" ] ;
+.

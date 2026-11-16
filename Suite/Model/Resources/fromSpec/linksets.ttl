@@ -1,0 +1,8 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Linksets" ;
+    :include "linksets/discovery.ttl"^^xsd:anyURI ;
+    :include "linksets/headers_and_updates.ttl"^^xsd:anyURI ;
+] .

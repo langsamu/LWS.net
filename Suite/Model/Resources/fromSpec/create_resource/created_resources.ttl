@@ -1,0 +1,333 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Create resource: Created resources" ;
+    :test
+        _:successfulCreationReturns201StatusCode ,
+        _:successfulCreationReturnsNewUriInLocationHeader ,
+        _:createdResourceCanBeRetrievedUsingGetOnItsNewUri ,
+        _:dataResourceIsCreatedWithContentFromRequestBody ,
+        _:linksetResourceIsCreatedAndPopulatedBeforeReturningSuccess ,
+        _:serverGeneratesUniqueIdentifierWhenNoHintIsProvided ;
+] .
+
+# Tests
+
+_:successfulCreationReturns201StatusCode
+    :testName "Successful creation returns 201 status code" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceStatus
+    ) ;
+    :assert _:201 ;
+.
+
+_:successfulCreationReturnsNewUriInLocationHeader
+    :testName "Successful creation returns new URI in Location header" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "textResourceLocation" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\S+$" ] ;
+    ] ;
+.
+
+_:createdResourceCanBeRetrievedUsingGetOnItsNewUri
+    :testName "Created resource can be retrieved using GET on its new URI" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:dataResourceIsCreatedWithContentFromRequestBody
+    :testName "Data resource is created with content from request body" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+.
+
+_:linksetResourceIsCreatedAndPopulatedBeforeReturningSuccess
+    :testName "Linkset resource is created and populated before returning success" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceLinksetLinks
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:serverGeneratesUniqueIdentifierWhenNoHintIsProvided
+    :testName "Server generates unique identifier when no hint is provided" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:createSecondTextResource
+    ) ;
+    :assert [
+        :not [
+            :that _:textResource ;
+            :equals _:secondTextResource ;
+        ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:createSecondTextResource
+    :stepName "Create second text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:secondTextResourceLocation
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createTextResourceLinksetLinks
+    :stepName "Create text resource linkset links" ;
+    :request _:postTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:createTextResourceStatus
+    :stepName "Create text resource status" ;
+    :request _:postTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceStatus
+    :stepName "Get text resource status" ;
+    :request _:getTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceBody
+    :stepName "Get text resource body" ;
+    :request _:getTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:postTextResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:secondTextResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "secondTextResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:secondTextResourceLocation
+    :header "Location" ;
+    :to "secondTextResourceLocation" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:201
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "201" ] ;
+.

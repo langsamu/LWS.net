@@ -1,0 +1,477 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Linksets: PATCH" ;
+    :test
+        _:linksetPatchWithStaleValidatorReturns412 ,
+        _:linksetPatchRedirectingUpReturns4xx ,
+        _:resourceUpLinkNamesContainerAfterForgedUpPatch ,
+        _:resourceUpLinkOmitsForgedParentAfterForgedUpPatch ,
+        _:linksetPatchReplacingArrayReturns2xxOr4xx ,
+        _:linksetAfterArrayReplacePatchReturns200 ,
+        _:linksetAfterArrayReplacePatchReturnsLinksetMediaType ,
+        _:linksetAfterArrayReplacePatchHasLinksetArray ,
+        _:linksetJsonPatchReturns200Or204 ,
+        _:linksetJsonPatchAddsLicense ;
+] .
+
+# Tests
+
+_:linksetPatchWithStaleValidatorReturns412
+    :testName "Linkset PATCH with a stale validator returns 412" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:patchLinksetStaleIfMatchStatus
+    ) ;
+    :assert _:412 ;
+.
+
+_:linksetPatchRedirectingUpReturns4xx
+    :testName "Linkset PATCH redirecting up to a missing container returns 4xx" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetForgedUpStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^4\\d\\d$" ] ;
+    ] ;
+.
+
+_:resourceUpLinkNamesContainerAfterForgedUpPatch
+    :testName "Resource up link still names its container after a forged up PATCH" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetForgedUpStatus
+        _:getTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :equals _:container ;
+    ] ;
+.
+
+_:resourceUpLinkOmitsForgedParentAfterForgedUpPatch
+    :testName "Resource up link omits the forged parent after a forged up PATCH" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetForgedUpStatus
+        _:getTextResourceUpLinks
+    ) ;
+    :assert [
+        :not [ :that [ :variable "upLinks" ] ; :contains [ :constant "https://linkset.invalid/forged-parent/" ] ] ;
+    ] ;
+.
+
+_:linksetPatchReplacingArrayReturns2xxOr4xx
+    :testName "Linkset PATCH replacing the linkset array with a string returns 2xx or 4xx" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetReplaceArrayStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^[24]\\d\\d$" ] ;
+    ] ;
+.
+
+_:linksetAfterArrayReplacePatchReturns200
+    :testName "Linkset GET after a PATCH replacing the linkset array returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetReplaceArrayStatus
+        _:getLinksetStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:linksetAfterArrayReplacePatchReturnsLinksetMediaType
+    :testName "Linkset GET after a PATCH replacing the linkset array returns linkset media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetReplaceArrayStatus
+        _:getLinksetContentType
+    ) ;
+    :assert _:linksetJsonContentType ;
+.
+
+_:linksetAfterArrayReplacePatchHasLinksetArray
+    :testName "Linkset after a PATCH replacing the linkset array has linkset array" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:patchLinksetReplaceArrayStatus
+        _:getLinksetMembers
+    ) ;
+    :assert _:linksetArray ;
+.
+
+_:linksetJsonPatchReturns200Or204
+    :testName "Linkset JSON Patch with a current If-Match returns 200 or 204" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetETag
+        _:patchLinksetLicenseIfMatchStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+_:linksetJsonPatchAddsLicense
+    :testName "Linkset JSON Patch adds a license link" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getLinksetETag
+        _:patchLinksetLicenseIfMatchStatus
+        _:getLinksetLicenseHrefs
+    ) ;
+    :assert [
+        :that [ :variable "linksetLicenseHrefs" ] ;
+        :contains [ :constant "https://creativecommons.org/licenses/by/4.0/" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:patchLinksetStaleIfMatchStatus
+    :stepName "Patch linkset stale If-Match status" ;
+    :request _:patchLinksetStaleIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetContentType
+    :stepName "Get linkset Content-Type" ;
+    :request _:getLinkset ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getLinksetMembers
+    :stepName "Get linkset members" ;
+    :request _:getLinkset ;
+    :extract (
+        _:linksetMembers
+    ) ;
+.
+
+_:getLinksetETag
+    :stepName "Get linkset ETag" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:patchLinksetForgedUpStatus
+    :stepName "Patch linkset forged up status" ;
+    :request _:patchLinksetForgedUp ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceUpLinks
+    :stepName "Get text resource up links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:patchLinksetReplaceArrayStatus
+    :stepName "Patch linkset replace array status" ;
+    :request _:patchLinksetReplaceArray ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:patchLinksetLicenseIfMatchStatus
+    :stepName "Patch linkset license If-Match status" ;
+    :request _:patchLinksetLicenseIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetLicenseHrefs
+    :stepName "Get linkset license hrefs" ;
+    :request _:getLinkset ;
+    :extract (
+        _:linksetLicenseHrefs
+    ) ;
+.
+
+# Requests
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:patchLinksetStaleIfMatch
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :headers [
+        :key "If-Match" ;
+        :value [ :constant "\"touchstone-stale-etag\"" ] ;
+    ] ;
+    :body [ :constant "[{\"op\":\"add\",\"path\":\"/linkset/0/license\",\"value\":[{\"href\":\"https://creativecommons.org/licenses/by/4.0/\"}]}]" ] ;
+.
+
+_:patchLinksetForgedUp
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :body [ :constant "[{\"op\":\"add\",\"path\":\"/linkset/0/up\",\"value\":[{\"href\":\"https://linkset.invalid/forged-parent/\"}]}]" ] ;
+.
+
+_:patchLinksetReplaceArray
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :body [ :constant "[{\"op\":\"replace\",\"path\":\"/linkset\",\"value\":\"not a linkset\"}]" ] ;
+.
+
+_:patchLinksetLicenseIfMatch
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "[{\"op\":\"add\",\"path\":\"/linkset/0/license\",\"value\":[{\"href\":\"https://creativecommons.org/licenses/by/4.0/\"}]}]" ] ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:contentTypeJsonPatch
+    :key "Content-Type" ;
+    :value [ :constant "application/json-patch+json" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:linksetMembers
+    :path "$.linkset" ;
+    :to "linksetMembers" ;
+.
+
+_:linksetLicenseHrefs
+    :path "$.linkset[*].license[*].href" ;
+    :to "linksetLicenseHrefs" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:412
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "412" ] ;
+.
+
+_:linksetJsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/linkset\\+json\\s*(;|$)" ] ;
+.
+
+_:linksetArray
+    :that [
+        :single [
+            :variable "linksetMembers" ;
+        ] ;
+    ] ;
+    :matches [ :constant "^\\[" ] ;
+.

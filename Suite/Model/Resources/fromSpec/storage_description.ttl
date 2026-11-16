@@ -1,0 +1,8 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Storage description" ;
+    :include "storage_description/data_model.ttl"^^xsd:anyURI ;
+    :include "storage_description/representation_and_services.ttl"^^xsd:anyURI ;
+] .

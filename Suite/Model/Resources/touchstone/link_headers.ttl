@@ -1,0 +1,9 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Touchstone: Link headers" ;
+    :include "link_headers/resource_types.ttl"^^xsd:anyURI ;
+    :include "link_headers/up_and_storage.ttl"^^xsd:anyURI ;
+    :include "link_headers/linkset.ttl"^^xsd:anyURI ;
+] .

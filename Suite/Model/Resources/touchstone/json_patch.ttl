@@ -1,0 +1,452 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: JSON Patch" ;
+    :test
+        _:jsonPatchReturns200Or204 ,
+        _:jsonPatchReplacesMember ,
+        _:jsonPatchAddsMember ,
+        _:jsonPatchRemovesMember ,
+        _:jsonPatchKeepsMember ,
+        _:jsonPatchKeepsFirstArrayElement ,
+        _:jsonPatchAppendsArrayElement ,
+        _:jsonPatchWithFailingTestReturns4xx ,
+        _:jsonPatchWithFailingTestKeepsTitle ,
+        _:jsonPatchWithFailingTestKeepsMember ;
+] .
+
+# Tests
+
+_:jsonPatchReturns200Or204
+    :testName "PATCH applies JSON Patch to a JSON data resource with 200 or 204" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+_:jsonPatchReplacesMember
+    :testName "JSON Patch replace changes a member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceTitle
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonTitle" ;
+            ] ;
+        ] ;
+        :equals [ :constant "second" ] ;
+    ] ;
+.
+
+_:jsonPatchAddsMember
+    :testName "JSON Patch add creates a member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceAdded
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonAdded" ;
+            ] ;
+        ] ;
+        :equals [ :constant "42" ] ;
+    ] ;
+.
+
+_:jsonPatchRemovesMember
+    :testName "JSON Patch remove deletes a member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceDrop
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "jsonDrop" ;
+            ] ;
+        ] ;
+        :equals [ :constant 0 ] ;
+    ] ;
+.
+
+_:jsonPatchKeepsMember
+    :testName "JSON Patch keeps a member it does not touch" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceKeep
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonKeep" ;
+            ] ;
+        ] ;
+        :equals [ :constant "true" ] ;
+    ] ;
+.
+
+_:jsonPatchKeepsFirstArrayElement
+    :testName "JSON Patch keeps the first array element" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceFirstTag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonFirstTag" ;
+            ] ;
+        ] ;
+        :equals [ :constant "a" ] ;
+    ] ;
+.
+
+_:jsonPatchAppendsArrayElement
+    :testName "JSON Patch add with the - index appends an array element" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceETag
+        _:patchJsonResourceIfMatchStatus
+        _:getJsonResourceThirdTag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonThirdTag" ;
+            ] ;
+        ] ;
+        :equals [ :constant "c" ] ;
+    ] ;
+.
+
+_:jsonPatchWithFailingTestReturns4xx
+    :testName "JSON Patch whose test operation fails returns 4xx" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:patchJsonResourceFailingTestStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^4\\d\\d$" ] ;
+    ] ;
+.
+
+_:jsonPatchWithFailingTestKeepsTitle
+    :testName "JSON Patch whose test operation fails does not apply its first operation" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:patchJsonResourceFailingTestStatus
+        _:getJsonResourceTitle
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonTitle" ;
+            ] ;
+        ] ;
+        :equals [ :constant "first" ] ;
+    ] ;
+.
+
+_:jsonPatchWithFailingTestKeepsMember
+    :testName "JSON Patch whose test operation fails keeps an untouched member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:patchJsonResourceFailingTestStatus
+        _:getJsonResourceKeep
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "jsonKeep" ;
+            ] ;
+        ] ;
+        :equals [ :constant "true" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createJsonResource
+    :stepName "Create JSON resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeJson ;
+        :body [ :constant "{\"title\":\"first\",\"keep\":true,\"drop\":\"gone\",\"tags\":[\"a\",\"b\"]}" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "jsonResourceLocation" ;
+        ]
+    ) ;
+.
+
+_:getJsonResourceETag
+    :stepName "Get JSON resource ETag" ;
+    :request _:getJsonResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:patchJsonResourceIfMatchStatus
+    :stepName "Patch JSON resource If-Match status" ;
+    :request _:patchJsonResourceIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:patchJsonResourceFailingTestStatus
+    :stepName "Patch JSON resource failing test status" ;
+    :request _:patchJsonResourceFailingTest ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getJsonResourceTitle
+    :stepName "Get JSON resource title" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonTitle
+    ) ;
+.
+
+_:getJsonResourceAdded
+    :stepName "Get JSON resource added member" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonAdded
+    ) ;
+.
+
+_:getJsonResourceKeep
+    :stepName "Get JSON resource keep member" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonKeep
+    ) ;
+.
+
+_:getJsonResourceDrop
+    :stepName "Get JSON resource drop member" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonDrop
+    ) ;
+.
+
+_:getJsonResourceFirstTag
+    :stepName "Get JSON resource first tag" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonFirstTag
+    ) ;
+.
+
+_:getJsonResourceThirdTag
+    :stepName "Get JSON resource third tag" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:jsonThirdTag
+    ) ;
+.
+
+# Requests
+
+_:getJsonResource
+    :method "GET" ;
+    :uri _:jsonResource ;
+    :headers _:acceptJson ;
+.
+
+_:patchJsonResourceIfMatch
+    :method "PATCH" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeJsonPatch ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "[{\"op\":\"test\",\"path\":\"/title\",\"value\":\"first\"},{\"op\":\"replace\",\"path\":\"/title\",\"value\":\"second\"},{\"op\":\"add\",\"path\":\"/added\",\"value\":42},{\"op\":\"remove\",\"path\":\"/drop\"},{\"op\":\"add\",\"path\":\"/tags/-\",\"value\":\"c\"}]" ] ;
+.
+
+_:patchJsonResourceFailingTest
+    :method "PATCH" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeJsonPatch ;
+    :body [ :constant "[{\"op\":\"replace\",\"path\":\"/title\",\"value\":\"second\"},{\"op\":\"test\",\"path\":\"/keep\",\"value\":false}]" ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:jsonResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "jsonResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeJson
+    :key "Content-Type" ;
+    :value [ :constant "application/json" ] ;
+.
+
+_:acceptJson
+    :key "Accept" ;
+    :value [ :constant "application/json" ] ;
+.
+
+_:contentTypeJsonPatch
+    :key "Content-Type" ;
+    :value [ :constant "application/json-patch+json" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:jsonTitle
+    :path "$.title" ;
+    :to "jsonTitle" ;
+.
+
+_:jsonAdded
+    :path "$.added" ;
+    :to "jsonAdded" ;
+.
+
+_:jsonKeep
+    :path "$.keep" ;
+    :to "jsonKeep" ;
+.
+
+_:jsonDrop
+    :path "$.drop" ;
+    :to "jsonDrop" ;
+.
+
+_:jsonFirstTag
+    :path "$.tags[0]" ;
+    :to "jsonFirstTag" ;
+.
+
+_:jsonThirdTag
+    :path "$.tags[2]" ;
+    :to "jsonThirdTag" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.

@@ -1,0 +1,194 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Creation: Containers" ;
+    :test
+        _:newNestedContainerHasNoItems ,
+        _:newContainerHasNoItems ,
+        _:createNestedContainerReturns201 ,
+        _:createContainerReturnsLocation ;
+] .
+
+# Tests
+
+_:newNestedContainerHasNoItems
+    :testName "New nested container has no items" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getContainerItems
+    ) ;
+    :assert _:emptyItems ;
+.
+
+_:newContainerHasNoItems
+    :testName "New container has no items" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerItems
+    ) ;
+    :assert _:emptyItems ;
+.
+
+_:createNestedContainerReturns201
+    :testName "Create nested container returns 201" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+    ) ;
+    :assert _:201 ;
+.
+
+_:createContainerReturnsLocation
+    :testName "Create container returns Location" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "containerLocation" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:status
+        _:typeLinks
+    ) ;
+.
+
+_:getContainerItems
+    :stepName "Get container items" ;
+    :request _:getContainer ;
+    :extract (
+        _:items
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:items
+    :path "$.items" ;
+    :to "items" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:201
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "201" ] ;
+.
+
+_:emptyItems
+    :that [
+        :single [
+            :variable "items" ;
+        ] ;
+    ] ;
+    :equals [ :constant "[]" ] ;
+.

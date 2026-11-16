@@ -1,0 +1,9 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Create resource" ;
+    :include "create_resource/created_resources.ttl"^^xsd:anyURI ;
+    :include "create_resource/creation_links.ttl"^^xsd:anyURI ;
+    :include "create_resource/container_creation.ttl"^^xsd:anyURI ;
+] .

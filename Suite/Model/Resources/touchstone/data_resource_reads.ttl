@@ -1,0 +1,360 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Data resource reads" ;
+    :test
+        _:dataResourceHeadReturnsNoBody ,
+        _:dataResourceGetReturns200 ,
+        _:dataResourceGetReturnsItsMediaType ,
+        _:dataResourceGetReturnsETag ,
+        _:dataResourceGetReturnsLastModified ,
+        _:dataResourceHeadReturns200 ,
+        _:dataResourceHeadReturnsItsMediaType ,
+        _:dataResourceHeadReturnsGetETag ;
+] .
+
+# Tests
+
+_:dataResourceHeadReturnsNoBody
+    :testName "Data resource HEAD returns no body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceBody
+    ) ;
+    :assert _:emptyBody ;
+.
+
+_:dataResourceGetReturns200
+    :testName "Data resource GET returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:dataResourceGetReturnsItsMediaType
+    :testName "Data resource GET returns its media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceContentType
+    ) ;
+    :assert _:textPlainContentType ;
+.
+
+_:dataResourceGetReturnsETag
+    :testName "Data resource GET returns ETag" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+        :matches [ :constant "." ] ;
+    ] ;
+.
+
+_:dataResourceGetReturnsLastModified
+    :testName "Data resource GET returns Last-Modified" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "lastModified" ;
+            ] ;
+        ] ;
+        :matches [ :constant "." ] ;
+    ] ;
+.
+
+_:dataResourceHeadReturns200
+    :testName "Data resource HEAD returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:dataResourceHeadReturnsItsMediaType
+    :testName "Data resource HEAD returns its media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceContentType
+    ) ;
+    :assert _:textPlainContentType ;
+.
+
+_:dataResourceHeadReturnsGetETag
+    :testName "Data resource HEAD returns the GET ETag" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:headTextResourceETag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "headEtag" ;
+            ] ;
+        ] ;
+        :equals [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:headTextResourceBody
+    :stepName "Head text resource body" ;
+    :request _:headTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getTextResourceStatus
+    :stepName "Get text resource status" ;
+    :request _:getTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceContentType
+    :stepName "Get text resource Content-Type" ;
+    :request _:getTextResource ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getTextResourceETag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:getTextResourceLastModified
+    :stepName "Get text resource Last-Modified" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "Last-Modified" ;
+            :to "lastModified" ;
+        ]
+    ) ;
+.
+
+_:headTextResourceStatus
+    :stepName "Head text resource status" ;
+    :request _:headTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:headTextResourceContentType
+    :stepName "Head text resource Content-Type" ;
+    :request _:headTextResource ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:headTextResourceETag
+    :stepName "Head text resource ETag" ;
+    :request _:headTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "headEtag" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:emptyBody
+    :that [
+        :variable "body" ;
+    ] ;
+    :equals [ :constant "" ] ;
+.
+
+_:textPlainContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^text/plain\\s*(;|$)" ] ;
+.

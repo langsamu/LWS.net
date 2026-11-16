@@ -1,0 +1,353 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Create resource: Creation links" ;
+    :test
+        _:serverManagedMetadataIsGeneratedAutomaticallyUponCreation ,
+        _:serverManagedUpLinkIsNotOverriddenByClientProvidedLink ,
+        _:serverManagedLinksetLinkIsNotOverriddenByClientProvidedLink ,
+        _:createResponseIncludesLinkHeaderWithRelUp ,
+        _:createResponseLinkHeaderWithRelUpTargetsParentContainer ,
+        _:createResponseIncludesLinkHeaderWithRelLinkset ;
+] .
+
+# Tests
+
+_:serverManagedMetadataIsGeneratedAutomaticallyUponCreation
+    :testName "Server-managed metadata is generated automatically upon creation" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceLinksetLinks
+        _:getLinksetUpHrefs
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "upHrefs" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:serverManagedUpLinkIsNotOverriddenByClientProvidedLink
+    :testName "Server-managed up link is not overridden by client-provided link" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceWithForgedUpLink
+        _:getTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :equals _:container ;
+    ] ;
+.
+
+_:serverManagedLinksetLinkIsNotOverriddenByClientProvidedLink
+    :testName "Server-managed linkset link is not overridden by client-provided link" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceWithForgedLinksetLink
+        _:getTextResourceLinksetLinks
+        _:getLinksetBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "(?i)^(?![\\s\\S]*example\\.org\\\\?/evil)(?=[\\s\\S]*\"up\")" ] ;
+    ] ;
+.
+
+_:createResponseIncludesLinkHeaderWithRelUp
+    :testName "Create response includes Link header with rel up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:createResponseLinkHeaderWithRelUpTargetsParentContainer
+    :testName "Create response Link header with rel up targets parent container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:container ;
+    ] ;
+.
+
+_:createResponseIncludesLinkHeaderWithRelLinkset
+    :testName "Create response includes Link header with rel linkset" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResourceLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:getTextResourceUpLinks
+    :stepName "Get text resource up links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:createTextResourceLinksetLinks
+    :stepName "Create text resource linkset links" ;
+    :request _:postTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetUpHrefs
+    :stepName "Get linkset up hrefs" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :path "$.linkset[*].up[*].href" ;
+            :to "upHrefs" ;
+        ]
+    ) ;
+.
+
+_:createTextResourceWithForgedUpLink
+    :stepName "Create text resource with forged up link" ;
+    :request _:postTextResourceWithForgedUpLink ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:createTextResourceWithForgedLinksetLink
+    :stepName "Create text resource with forged linkset link" ;
+    :request _:postTextResourceWithForgedLinksetLink ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getLinksetBody
+    :stepName "Get linkset body" ;
+    :request _:getLinkset ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:createTextResourceUpLinks
+    :stepName "Create text resource up links" ;
+    :request _:postTextResource ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:postTextResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+.
+
+_:postTextResourceWithForgedUpLink
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :headers _:linkForgedUp ;
+    :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+.
+
+_:postTextResourceWithForgedLinksetLink
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :headers _:linkForgedLinkset ;
+    :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:linkForgedUp
+    :key "Link" ;
+    :value [ :constant "<https://example.org/evil>; rel=\"up\"" ] ;
+.
+
+_:linkForgedLinkset
+    :key "Link" ;
+    :value [ :constant "<https://example.org/evil>; rel=\"linkset\"" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+# Assertions
+
+_:linksetLink
+    :that [
+        :count [
+            :variable "linksetLinks" ;
+        ] ;
+    ] ;
+    :greaterThan [ :constant 0 ] ;
+.

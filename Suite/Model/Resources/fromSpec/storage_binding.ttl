@@ -1,0 +1,391 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Storage binding" ;
+    :test
+        _:getDataResourceLinksStorage ,
+        _:getContainerLinksStorage ,
+        _:headDataResourceLinksStorage ,
+        _:headContainerLinksStorage ,
+        _:getStorageDescriptionLinksStorage ,
+        _:getStorageUriReturns200 ,
+        _:getStorageUriReturnsLwsCid ,
+        _:headStorageDescriptionLinksStorage ,
+        _:getStorageRootContainerLinksStorage ,
+        _:headStorageRootContainerLinksStorage ;
+] .
+
+# Tests
+
+_:getDataResourceLinksStorage
+    :testName "GET data resource links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:getContainerLinksStorage
+    :testName "GET container links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:headDataResourceLinksStorage
+    :testName "HEAD data resource links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:headContainerLinksStorage
+    :testName "HEAD container links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:getStorageDescriptionLinksStorage
+    :testName "GET storage description links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:getStorageUriReturns200
+    :testName "GET storage URI returns 200" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:getStorageUriReturnsLwsCid
+    :testName "GET storage URI returns application/lws+cid" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionContentType
+    ) ;
+    :assert _:lwsCidContentType ;
+.
+
+_:headStorageDescriptionLinksStorage
+    :testName "HEAD storage description links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:headStorageDescriptionStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:getStorageRootContainerLinksStorage
+    :testName "GET storage root container links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:getStorageRootStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+_:headStorageRootContainerLinksStorage
+    :testName "HEAD storage root container links canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-binding"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:headStorageRootStorageLinks
+    ) ;
+    :assert _:storageLinkTargetsStorage ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceStorageLinks
+    :stepName "Get text resource storage links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:getContainerStorageLinks
+    :stepName "Get container storage links" ;
+    :request _:getContainer ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:headTextResourceStorageLinks
+    :stepName "Head text resource storage links" ;
+    :request _:headTextResource ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:headContainerStorageLinks
+    :stepName "Head container storage links" ;
+    :request _:headContainer ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:getStorageDescriptionStorageLinks
+    :stepName "Get storage description storage links" ;
+    :request _:getStorageDescription ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:getStorageDescriptionStatus
+    :stepName "Get storage description status" ;
+    :request _:getStorageDescription ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getStorageDescriptionContentType
+    :stepName "Get storage description Content-Type" ;
+    :request _:getStorageDescription ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:headStorageDescriptionStorageLinks
+    :stepName "Head storage description storage links" ;
+    :request _:headStorageDescription ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:getStorageRootStorageLinks
+    :stepName "Get storage root storage links" ;
+    :request _:getStorageRoot ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+_:headStorageRootStorageLinks
+    :stepName "Head storage root storage links" ;
+    :request _:headStorageRoot ;
+    :extract (
+        _:storageLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getStorageRoot
+    :method "GET" ;
+    :uri _:storageRoot ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headStorageDescription
+    :method "HEAD" ;
+    :uri _:storage ;
+.
+
+_:headStorageRoot
+    :method "HEAD" ;
+    :uri _:storageRoot ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:storageLinks
+    :link "https://www.w3.org/ns/lws#storage" ;
+    :to "storageLinks" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+# Assertions
+
+_:storageLinkTargetsStorage
+    :that [
+        :variable "storageLinks" ;
+    ] ;
+    :contains _:storage ;
+.
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:lwsCidContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+cid\\s*(;|$)" ] ;
+.

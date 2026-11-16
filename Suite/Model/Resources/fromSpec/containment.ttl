@@ -1,0 +1,312 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Containment" ;
+    :test
+        _:getNonRootDataResourceLinksParentContainerAsUp ,
+        _:getNonRootContainerLinksParentContainerAsUp ,
+        _:headNonRootDataResourceLinksParentContainerAsUp ,
+        _:headNonRootContainerLinksParentContainerAsUp ,
+        _:getNestedContainerLinksParentContainerAsUp ;
+] .
+
+# Tests
+
+_:getNonRootDataResourceLinksParentContainerAsUp
+    :testName "GET non-root data resource links parent container as up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:container ;
+    ] ;
+.
+
+_:getNonRootContainerLinksParentContainerAsUp
+    :testName "GET non-root container links parent container as up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:storageRoot ;
+    ] ;
+.
+
+_:headNonRootDataResourceLinksParentContainerAsUp
+    :testName "HEAD non-root data resource links parent container as up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:container ;
+    ] ;
+.
+
+_:headNonRootContainerLinksParentContainerAsUp
+    :testName "HEAD non-root container links parent container as up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:storageRoot ;
+    ] ;
+.
+
+_:getNestedContainerLinksParentContainerAsUp
+    :testName "GET nested container links parent container as up" ;
+    :specification "https://www.w3.org/TR/lws10-core/#containment"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getNestedContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:container ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceUpLinks
+    :stepName "Get text resource up links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:getContainerUpLinks
+    :stepName "Get container up links" ;
+    :request _:getContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:headTextResourceUpLinks
+    :stepName "Head text resource up links" ;
+    :request _:headTextResource ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:headContainerUpLinks
+    :stepName "Head container up links" ;
+    :request _:headContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:nestedContainerLocation
+    ) ;
+.
+
+_:getNestedContainerUpLinks
+    :stepName "Get nested container up links" ;
+    :request _:getNestedContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getNestedContainer
+    :method "GET" ;
+    :uri _:nestedContainer ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:nestedContainer
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "nestedContainerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+_:nestedContainerLocation
+    :header "Location" ;
+    :to "nestedContainerLocation" ;
+.

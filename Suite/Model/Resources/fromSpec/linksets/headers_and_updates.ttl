@@ -1,0 +1,455 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Linksets: Headers and updates" ;
+    :test
+        _:allowHeaderOfLinksetAdvertisesGet ,
+        _:allowHeaderOfLinksetAdvertisesPatch ,
+        _:acceptPatchHeaderOfLinksetAdvertisesJsonPatch ,
+        _:linksetGetResponseIncludesEtagHeader ,
+        _:linksetHeadResponseIncludesEtagHeader ,
+        _:linksetResourceSupportsPatchUsingApplicationJsonPatchJson ,
+        _:serverPreservesLinksClientIsNotPermittedToModifyWhenApplyingPatch ,
+        _:deletingResourceRemovesItsAssociatedLinksetResource ;
+] .
+
+# Tests
+
+_:allowHeaderOfLinksetAdvertisesGet
+    :testName "Allow header of linkset advertises GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:headLinksetAllow
+    ) ;
+    :assert [
+        :that [
+            :variable "allow" ;
+        ] ;
+        :contains [ :constant "GET" ] ;
+    ] ;
+.
+
+_:allowHeaderOfLinksetAdvertisesPatch
+    :testName "Allow header of linkset advertises PATCH" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:headLinksetAllow
+    ) ;
+    :assert [
+        :that [
+            :variable "allow" ;
+        ] ;
+        :contains [ :constant "PATCH" ] ;
+    ] ;
+.
+
+_:acceptPatchHeaderOfLinksetAdvertisesJsonPatch
+    :testName "Accept-Patch header of linkset advertises JSON Patch" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:headLinksetAcceptPatch
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "acceptPatch" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)(^|,)\\s*application/json-patch\\+json\\s*(;[^,]*)?(,|$)" ] ;
+    ] ;
+.
+
+_:linksetGetResponseIncludesEtagHeader
+    :testName "Linkset GET response includes ETag header" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetEtag
+    ) ;
+    :assert _:entityTag ;
+.
+
+_:linksetHeadResponseIncludesEtagHeader
+    :testName "Linkset HEAD response includes ETag header" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:headLinksetEtag
+    ) ;
+    :assert _:entityTag ;
+.
+
+_:linksetResourceSupportsPatchUsingApplicationJsonPatchJson
+    :testName "Linkset resource supports PATCH using application/json-patch+json" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetEtag
+        _:patchLinksetAddingDescribedBy
+        _:getLinksetDescribedByHref
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "describedByHref" ;
+            ] ;
+        ] ;
+        :equals [ :constant "https://example.org/schema" ] ;
+    ] ;
+.
+
+_:serverPreservesLinksClientIsNotPermittedToModifyWhenApplyingPatch
+    :testName "Server preserves links client is not permitted to modify when applying patch" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetEtag
+        _:patchLinksetRemovingType
+        _:getLinksetTypeHrefs
+    ) ;
+    :assert [
+        :that [
+            :variable "typeHrefs" ;
+        ] ;
+        :contains [ :constant "https://www.w3.org/ns/lws#DataResource" ] ;
+    ] ;
+.
+
+_:deletingResourceRemovesItsAssociatedLinksetResource
+    :testName "Deleting resource removes its associated linkset resource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#metadata-0"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#delete-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:deleteTextResource
+        _:getLinksetStatus
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(404|410)$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:deleteTextResource
+    :stepName "Delete text resource" ;
+    :request [
+        :method "DELETE" ;
+        :uri _:textResource ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:headLinksetAllow
+    :stepName "Head linkset Allow" ;
+    :request _:headLinkset ;
+    :extract (
+        _:allow
+    ) ;
+.
+
+_:headLinksetAcceptPatch
+    :stepName "Head linkset Accept-Patch" ;
+    :request _:headLinkset ;
+    :extract (
+        _:acceptPatch
+    ) ;
+.
+
+_:getLinksetEtag
+    :stepName "Get linkset ETag" ;
+    :request _:getLinkset ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:headLinksetEtag
+    :stepName "Head linkset ETag" ;
+    :request _:headLinkset ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:patchLinksetAddingDescribedBy
+    :stepName "Patch linkset adding describedby" ;
+    :request _:patchLinksetAddDescribedBy ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetDescribedByHref
+    :stepName "Get linkset describedby href" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :path "$.linkset[?(@.describedby)].describedby[0].href" ;
+            :to "describedByHref" ;
+        ]
+    ) ;
+.
+
+_:patchLinksetRemovingType
+    :stepName "Patch linkset removing type" ;
+    :request _:patchLinksetRemoveType ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetTypeHrefs
+    :stepName "Get linkset type hrefs" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :path "$.linkset[*].type[*].href" ;
+            :to "typeHrefs" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:headLinkset
+    :method "HEAD" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:patchLinksetAddDescribedBy
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :headers _:ifMatchEtag ;
+    :body [ :constant "[{\"op\":\"add\",\"path\":\"/linkset/0/describedby\",\"value\":[{\"href\":\"https://example.org/schema\"}]}]" ] ;
+.
+
+_:patchLinksetRemoveType
+    :method "PATCH" ;
+    :uri _:linkset ;
+    :headers _:contentTypeJsonPatch ;
+    :headers _:ifMatchEtag ;
+    :body [ :constant "[{\"op\":\"remove\",\"path\":\"/linkset/0/type\"}]" ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:contentTypeJsonPatch
+    :key "Content-Type" ;
+    :value [ :constant "application/json-patch+json" ] ;
+.
+
+_:ifMatchEtag
+    :key "If-Match" ;
+    :value [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:allow
+    :header "Allow" ;
+    :to "allow" ;
+.
+
+_:acceptPatch
+    :header "Accept-Patch" ;
+    :to "acceptPatch" ;
+.
+
+_:etag
+    :header "ETag" ;
+    :to "etag" ;
+.
+
+# Assertions
+
+_:entityTag
+    :that [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+    :matches [ :constant "^(W/)?\"[^\"]*\"$" ] ;
+.

@@ -1,0 +1,225 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Container reads: Content negotiation" ;
+    :test
+        _:containerGetWithWeightedAcceptReturns200 ,
+        _:containerResponseVariesByAccept ,
+        _:containerGetWithWeightedAcceptReturnsLwsMediaType ,
+        _:containerGetWithWeightedAcceptReturnsContainerType ;
+] .
+
+# Tests
+
+_:containerGetWithWeightedAcceptReturns200
+    :testName "Container GET with weighted Accept returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerWithWeightedAcceptStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerResponseVariesByAccept
+    :testName "Container response varies by Accept" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerVary
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "vary" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)(^|[\\s,])accept($|[\\s,])" ] ;
+    ] ;
+.
+
+_:containerGetWithWeightedAcceptReturnsLwsMediaType
+    :testName "Container GET with weighted Accept returns LWS media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerWithWeightedAcceptContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+_:containerGetWithWeightedAcceptReturnsContainerType
+    :testName "Container GET with weighted Accept returns Container type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerWithWeightedAcceptType
+    ) ;
+    :assert _:containerType ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:getContainerWithWeightedAcceptStatus
+    :stepName "Get container with weighted Accept status" ;
+    :request _:getContainerWithWeightedAccept ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getContainerVary
+    :stepName "Get container Vary" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :header "Vary" ;
+            :to "vary" ;
+        ]
+    ) ;
+.
+
+_:getContainerWithWeightedAcceptContentType
+    :stepName "Get container with weighted Accept Content-Type" ;
+    :request _:getContainerWithWeightedAccept ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getContainerWithWeightedAcceptType
+    :stepName "Get container with weighted Accept type" ;
+    :request _:getContainerWithWeightedAccept ;
+    :extract (
+        _:type
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getContainerWithWeightedAccept
+    :method "GET" ;
+    :uri _:container ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/x-touchstone-unservable;q=0.9, application/lws+json;q=0.5" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:type
+    :path "$.type" ;
+    :to "type" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:lwsJsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+json\\s*(;|$)" ] ;
+.
+
+_:containerType
+    :that [
+        :single [
+            :variable "type" ;
+        ] ;
+    ] ;
+    :matches [ :constant "^Container$|\"Container\"" ] ;
+.

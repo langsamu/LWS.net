@@ -1,0 +1,331 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Byte ranges" ;
+    :test
+        _:rangeBeyondEndReturns416 ,
+        _:byteRangeReturns206 ,
+        _:suffixByteRangeReturns206 ,
+        _:dataResourceAdvertisesByteRanges ,
+        _:suffixByteRangeReturnsLastBytes ,
+        _:byteRangeReturnsContentRange ,
+        _:byteRangeReturnsRequestedBytes ;
+] .
+
+# Tests
+
+_:rangeBeyondEndReturns416
+    :testName "Range beyond end returns 416" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceBeyondEndStatus
+    ) ;
+    :assert _:416 ;
+.
+
+_:byteRangeReturns206
+    :testName "Byte range returns 206" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesStatus
+    ) ;
+    :assert _:206 ;
+.
+
+_:suffixByteRangeReturns206
+    :testName "Suffix byte range returns 206" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceLastTwoBytesStatus
+    ) ;
+    :assert _:206 ;
+.
+
+_:dataResourceAdvertisesByteRanges
+    :testName "Data resource advertises byte ranges" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceAcceptRanges
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "acceptRanges" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)\\bbytes\\b" ] ;
+    ] ;
+.
+
+_:suffixByteRangeReturnsLastBytes
+    :testName "Suffix byte range returns last bytes" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceLastTwoBytesBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "^89$" ] ;
+    ] ;
+.
+
+_:byteRangeReturnsContentRange
+    :testName "Byte range returns Content-Range" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesContentRange
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "contentRange" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^bytes 0-3/10$" ] ;
+    ] ;
+.
+
+_:byteRangeReturnsRequestedBytes
+    :testName "Byte range returns requested bytes" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDigitsResource
+        _:getDigitsResourceFirstFourBytesBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "^0123$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createDigitsResource
+    :stepName "Create digits resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "0123456789" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "digitsResourceLocation" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceBeyondEndStatus
+    :stepName "Get digits resource beyond end status" ;
+    :request [
+        :method "GET" ;
+        :uri _:digitsResource ;
+        :headers [
+            :key "Range" ;
+            :value [ :constant "bytes=100-200" ] ;
+        ] ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesStatus
+    :stepName "Get digits resource first four bytes status" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getDigitsResourceLastTwoBytesStatus
+    :stepName "Get digits resource last two bytes status" ;
+    :request _:getDigitsResourceLastTwoBytes ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getDigitsResourceAcceptRanges
+    :stepName "Get digits resource Accept-Ranges" ;
+    :request [
+        :method "GET" ;
+        :uri _:digitsResource ;
+    ] ;
+    :extract (
+        [
+            :header "Accept-Ranges" ;
+            :to "acceptRanges" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceLastTwoBytesBody
+    :stepName "Get digits resource last two bytes body" ;
+    :request _:getDigitsResourceLastTwoBytes ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesContentRange
+    :stepName "Get digits resource first four bytes Content-Range" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        [
+            :header "Content-Range" ;
+            :to "contentRange" ;
+        ]
+    ) ;
+.
+
+_:getDigitsResourceFirstFourBytesBody
+    :stepName "Get digits resource first four bytes body" ;
+    :request _:getDigitsResourceFirstFourBytes ;
+    :extract (
+        _:body
+    ) ;
+.
+
+# Requests
+
+_:getDigitsResourceFirstFourBytes
+    :method "GET" ;
+    :uri _:digitsResource ;
+    :headers [
+        :key "Range" ;
+        :value [ :constant "bytes=0-3" ] ;
+    ] ;
+.
+
+_:getDigitsResourceLastTwoBytes
+    :method "GET" ;
+    :uri _:digitsResource ;
+    :headers [
+        :key "Range" ;
+        :value [ :constant "bytes=-2" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:digitsResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "digitsResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:206
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "206" ] ;
+.
+
+_:416
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "416" ] ;
+.

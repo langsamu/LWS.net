@@ -1,0 +1,557 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Deleting resources" ;
+    :test
+        _:containerMemberDeleteWithCurrentIfMatchReturns204 ,
+        _:containerTotalItemsCountsOneMemberAfterDelete ,
+        _:containerListingOmitsDeletedMember ,
+        _:emptyContainerDeleteReturns204 ,
+        _:deletedEmptyContainerGetReturnsNotFoundOrGone ,
+        _:parentContainerListingOmitsDeletedEmptyContainer ,
+        _:deletedDataResourceGetReturnsNotFoundOrGone ,
+        _:nonEmptyContainerDeleteReturns409 ,
+        _:nonEmptyContainerDeleteKeepsMember ,
+        _:nonEmptyContainerDeleteKeepsContainer ;
+] .
+
+# Tests
+
+_:containerMemberDeleteWithCurrentIfMatchReturns204
+    :testName "DELETE with a current If-Match returns 204" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:createSecondTextResource
+        _:getTextResourceETag
+        _:deleteTextResourceIfMatchStatus
+    ) ;
+    :assert _:204 ;
+.
+
+_:containerTotalItemsCountsOneMemberAfterDelete
+    :testName "Container totalItems counts one member after a delete" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:createSecondTextResource
+        _:getTextResourceETag
+        _:deleteTextResourceIfMatchStatus
+        _:getContainerTotalItems
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "totalItems" ;
+            ] ;
+        ] ;
+        :equals [ :constant "1" ] ;
+    ] ;
+.
+
+_:containerListingOmitsDeletedMember
+    :testName "Container listing omits a deleted member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:deleteTextResourceIfMatchStatus
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :not [
+            :that [
+                :variable "itemIds" ;
+            ] ;
+            :contains _:textResource ;
+        ] ;
+    ] ;
+.
+
+_:emptyContainerDeleteReturns204
+    :testName "Empty container DELETE returns 204" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+    ) ;
+    :assert _:204 ;
+.
+
+_:deletedEmptyContainerGetReturnsNotFoundOrGone
+    :testName "Deleted empty container GET returns 404 or 410" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+        _:getInnerContainerStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^(404|410)$" ] ;
+    ] ;
+.
+
+_:parentContainerListingOmitsDeletedEmptyContainer
+    :testName "Parent container listing omits a deleted empty container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+        _:getOuterContainerItemIds
+    ) ;
+    :assert [
+        :not [ :that [ :variable "itemIds" ] ; :contains _:inner ] ;
+    ] ;
+.
+
+_:deletedDataResourceGetReturnsNotFoundOrGone
+    :testName "Deleted data resource GET returns 404 or 410" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:deleteTextResourceIfMatchStatus
+        _:getTextResourceStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^(404|410)$" ] ;
+    ] ;
+.
+
+_:nonEmptyContainerDeleteReturns409
+    :testName "Non-empty container DELETE returns 409" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+    ) ;
+    :assert _:409 ;
+.
+
+_:nonEmptyContainerDeleteKeepsMember
+    :testName "Non-empty container DELETE keeps its member" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+        _:getLeafStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:nonEmptyContainerDeleteKeepsContainer
+    :testName "Non-empty container DELETE keeps the container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getInnerContainerETag
+        _:deleteInnerContainerStatus
+        _:getInnerContainerStatus
+    ) ;
+    :assert _:200 ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:createSecondTextResource
+    :stepName "Create second text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "secondTextResourceLocation" ;
+        ]
+    ) ;
+.
+
+_:getContainerTotalItems
+    :stepName "Get container total items" ;
+    :request _:getContainer ;
+    :extract (
+        _:totalItems
+    ) ;
+.
+
+_:getTextResourceStatus
+    :stepName "Get text resource status" ;
+    :request _:getTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceETag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:deleteTextResourceIfMatchStatus
+    :stepName "Delete text resource If-Match status" ;
+    :request _:deleteTextResourceIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createOuterContainer
+    :stepName "Create outer container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "outerLocation" ;
+        ]
+    ) ;
+.
+
+_:createInnerContainer
+    :stepName "Create inner container" ;
+    :request [
+        :method "POST" ;
+        :uri _:outer ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "innerLocation" ;
+        ]
+    ) ;
+.
+
+_:createLeafResource
+    :stepName "Create leaf resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:inner ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "two containers deep" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "leafLocation" ;
+        ]
+    ) ;
+.
+
+_:getOuterContainerItemIds
+    :stepName "Get outer container item ids" ;
+    :request _:getOuterContainer ;
+    :extract (
+        _:itemIds
+    ) ;
+.
+
+_:getContainerItemIds
+    :stepName "Get container item ids" ;
+    :request _:getContainer ;
+    :extract (
+        _:itemIds
+    ) ;
+.
+
+_:getInnerContainerETag
+    :stepName "Get inner container ETag" ;
+    :request _:getInnerContainer ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:deleteInnerContainerStatus
+    :stepName "Delete inner container status" ;
+    :request _:deleteInnerContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLeafStatus
+    :stepName "Get leaf status" ;
+    :request _:getLeaf ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getInnerContainerStatus
+    :stepName "Get inner container status" ;
+    :request _:getInnerContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:deleteTextResourceIfMatch
+    :method "DELETE" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:getInnerContainer
+    :method "GET" ;
+    :uri _:inner ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getOuterContainer
+    :method "GET" ;
+    :uri _:outer ;
+    :headers _:acceptLwsJson ;
+.
+
+_:deleteInnerContainer
+    :method "DELETE" ;
+    :uri _:inner ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:getLeaf
+    :method "GET" ;
+    :uri _:leaf ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:outer
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "outerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:inner
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "innerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:leaf
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "leafLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:totalItems
+    :path "$.totalItems" ;
+    :to "totalItems" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:itemIds
+    :path "$.items[*].id" ;
+    :to "itemIds" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:204
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "204" ] ;
+.
+
+_:409
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "409" ] ;
+.

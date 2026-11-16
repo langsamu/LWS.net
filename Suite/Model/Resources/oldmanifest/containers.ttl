@@ -1,0 +1,227 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Ported from manifest.jsonld: LWS Protocol 1.0 Test Suite: Containers" ;
+    :test
+        _:getContainerReturns200 ,
+        _:getContainerReturnsLwsJsonMediaType ,
+        _:getContainerLinksContainerType ,
+        _:containerWithMemberReturns200 ,
+        _:containerWithMemberReturnsLwsJsonMediaType ;
+] .
+
+# Tests
+
+_:getContainerReturns200
+    :testName "getContainer-status" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerAsLwsJsonStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:getContainerReturnsLwsJsonMediaType
+    :testName "getContainer-content-type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerAsLwsJsonContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+_:getContainerLinksContainerType
+    :testName "getContainer-type-link" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerAsLwsJsonTypeLinks
+    ) ;
+    :assert _:containerTypeLink ;
+.
+
+_:containerWithMemberReturns200
+    :testName "getContainer-containmentIntegrity-status" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getContainerAsLwsJsonStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerWithMemberReturnsLwsJsonMediaType
+    :testName "getContainer-containmentIntegrity-content-type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createShoppingList
+        _:getContainerAsLwsJsonContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorage ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "containerLocation" ;
+        ]
+    ) ;
+.
+
+_:getContainerAsLwsJsonStatus
+    :stepName "Get container as LWS JSON status" ;
+    :request _:getContainerAsLwsJson ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getContainerAsLwsJsonContentType
+    :stepName "Get container as LWS JSON Content-Type" ;
+    :request _:getContainerAsLwsJson ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getContainerAsLwsJsonTypeLinks
+    :stepName "Get container as LWS JSON type links" ;
+    :request _:getContainerAsLwsJson ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:createShoppingList
+    :stepName "Create shopping list" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "shoppingListLocation" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorage
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainerAsLwsJson
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+# Assertions
+
+_:containerTypeLink
+    :that [
+        :variable "typeLinks" ;
+    ] ;
+    :contains [ :constant "https://www.w3.org/ns/lws#Container" ] ;
+.
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:lwsJsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+json\\s*(;|$)" ] ;
+.

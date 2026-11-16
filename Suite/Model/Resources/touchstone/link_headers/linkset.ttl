@@ -1,0 +1,318 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Link headers: Linkset" ;
+    :test
+        _:createWithForgedLinksetLinkReturns201 ,
+        _:containerGetLinksLinkset ,
+        _:dataResourceGetLinksLinkset ,
+        _:containerHeadLinksLinkset ,
+        _:dataResourceHeadLinksLinkset ,
+        _:createWithForgedLinksetLinkLinksLinkset ,
+        _:resourceCreatedWithForgedLinksetLinkGetLinksLinkset ;
+] .
+
+# Tests
+
+_:createWithForgedLinksetLinkReturns201
+    :testName "Create with forged linkset Link returns 201" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceWithForgedLinkset
+    ) ;
+    :assert _:201 ;
+.
+
+_:containerGetLinksLinkset
+    :testName "Container GET links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+_:dataResourceGetLinksLinkset
+    :testName "Data resource GET links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+_:containerHeadLinksLinkset
+    :testName "Container HEAD links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+_:dataResourceHeadLinksLinkset
+    :testName "Data resource HEAD links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+_:createWithForgedLinksetLinkLinksLinkset
+    :testName "Create with forged linkset Link links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceWithForgedLinkset
+    ) ;
+    :assert _:linksetLink ;
+.
+
+_:resourceCreatedWithForgedLinksetLinkGetLinksLinkset
+    :testName "Resource created with forged linkset Link GET links linkset" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceWithForgedLinkset
+        _:getForgedLinksetResourceLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:createResourceWithForgedLinkset
+    :stepName "Create resource with forged linkset" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers
+            _:contentTypeTextPlain ,
+            [
+                :key "Link" ;
+                :value [ :constant "<https://linkset.invalid/forged>; rel=\"linkset\"" ] ;
+            ] ;
+        :body [ :constant "metadata override attempt" ] ;
+    ] ;
+    :extract (
+        _:status
+        _:linksetLinks
+        [
+            :header "Location" ;
+            :to "forgedLinksetLocation" ;
+        ]
+    ) ;
+.
+
+_:getContainerLinksetLinks
+    :stepName "Get container linkset links" ;
+    :request _:getContainer ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:headContainerLinksetLinks
+    :stepName "Head container linkset links" ;
+    :request _:headContainer ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:headTextResourceLinksetLinks
+    :stepName "Head text resource linkset links" ;
+    :request _:headTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getForgedLinksetResourceLinksetLinks
+    :stepName "Get forged linkset resource linkset links" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base _:storageRoot ;
+            :relative [
+                :single [
+                    :variable "forgedLinksetLocation" ;
+                ] ;
+            ] ;
+        ] ;
+    ] ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:201
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "201" ] ;
+.
+
+_:linksetLink
+    :that [
+        :count [
+            :variable "linksetLinks" ;
+        ] ;
+    ] ;
+    :greaterThan [ :constant 0 ] ;
+.

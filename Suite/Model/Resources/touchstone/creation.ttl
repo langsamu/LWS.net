@@ -1,0 +1,9 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Touchstone: Creation" ;
+    :include "creation/data_resources.ttl"^^xsd:anyURI ;
+    :include "creation/containers.ttl"^^xsd:anyURI ;
+    :include "creation/rejected_creates.ttl"^^xsd:anyURI ;
+] .

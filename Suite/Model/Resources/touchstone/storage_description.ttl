@@ -1,0 +1,267 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Storage description" ;
+    :test
+        _:storageDescriptionDefaultsToCidMediaType ,
+        _:storageDescriptionAsCidReturns200 ,
+        _:storageDescriptionAsCidReturnsCidMediaType ,
+        _:storageDescriptionFirstContextIsCid ,
+        _:storageDescriptionSecondContextIsLws ,
+        _:storageDescriptionWithoutAcceptReturns200 ,
+        _:storageDescriptionAsCidReturnsStorageType ,
+        _:storageDescriptionContextIsArray ,
+        _:storageDescriptionServiceIsArray ;
+] .
+
+# Tests
+
+_:storageDescriptionDefaultsToCidMediaType
+    :testName "Storage description defaults to CID media type" ;
+    :steps (
+        _:getStorageDescriptionContentType
+    ) ;
+    :assert _:lwsCidContentType ;
+.
+
+_:storageDescriptionAsCidReturns200
+    :testName "Storage description as CID returns 200" ;
+    :steps (
+        _:getStorageDescriptionAsCidStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:storageDescriptionAsCidReturnsCidMediaType
+    :testName "Storage description as CID returns CID media type" ;
+    :steps (
+        _:getStorageDescriptionAsCidContentType
+    ) ;
+    :assert _:lwsCidContentType ;
+.
+
+_:storageDescriptionFirstContextIsCid
+    :testName "Storage description first context is CID" ;
+    :steps (
+        _:getStorageDescriptionFirstContext
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "context" ;
+            ] ;
+        ] ;
+        :equals [ :constant "https://www.w3.org/ns/cid/v1" ] ;
+    ] ;
+.
+
+_:storageDescriptionSecondContextIsLws
+    :testName "Storage description second context is LWS" ;
+    :steps (
+        _:getStorageDescriptionSecondContext
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "context" ;
+            ] ;
+        ] ;
+        :equals [ :constant "https://www.w3.org/ns/lws/v1" ] ;
+    ] ;
+.
+
+_:storageDescriptionWithoutAcceptReturns200
+    :testName "Storage description without Accept returns 200" ;
+    :steps (
+        _:getStorageDescriptionStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:storageDescriptionAsCidReturnsStorageType
+    :testName "Storage description as CID returns Storage type" ;
+    :steps (
+        _:getStorageDescriptionAsCidType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "type" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^Storage$|\"Storage\"" ] ;
+    ] ;
+.
+
+_:storageDescriptionContextIsArray
+    :testName "Storage description context is array" ;
+    :steps (
+        _:getStorageDescriptionContext
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "context" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[" ] ;
+    ] ;
+.
+
+_:storageDescriptionServiceIsArray
+    :testName "Storage description service is array" ;
+    :steps (
+        _:getStorageDescriptionService
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "service" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[" ] ;
+    ] ;
+.
+
+# Steps
+
+_:getStorageDescriptionContentType
+    :stepName "Get storage description Content-Type" ;
+    :request _:getStorageDescription ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getStorageDescriptionStatus
+    :stepName "Get storage description status" ;
+    :request _:getStorageDescription ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getStorageDescriptionAsCidStatus
+    :stepName "Get storage description as CID status" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getStorageDescriptionAsCidContentType
+    :stepName "Get storage description as CID Content-Type" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getStorageDescriptionFirstContext
+    :stepName "Get storage description first context" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        [
+            :path "$['@context'][0]" ;
+            :to "context" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionSecondContext
+    :stepName "Get storage description second context" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        [
+            :path "$['@context'][1]" ;
+            :to "context" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionAsCidType
+    :stepName "Get storage description as CID type" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        _:type
+    ) ;
+.
+
+_:getStorageDescriptionContext
+    :stepName "Get storage description context" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        [
+            :path "$['@context']" ;
+            :to "context" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionService
+    :stepName "Get storage description service" ;
+    :request _:getStorageDescriptionAsCid ;
+    :extract (
+        [
+            :path "$.service" ;
+            :to "service" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getStorageDescriptionAsCid
+    :method "GET" ;
+    :uri _:storage ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/lws+cid" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:type
+    :path "$.type" ;
+    :to "type" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:lwsCidContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+cid\\s*(;|$)" ] ;
+.

@@ -1,0 +1,280 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Contained resource descriptions" ;
+    :test
+        _:containedResourceDescriptionHasIdProperty ,
+        _:containedResourceDescriptionIdIsUriOfContainedResource ,
+        _:containedDataResourceDescriptionTypeEqualsOrContainsDataResource ,
+        _:containedContainerDescriptionTypeEqualsOrContainsContainer ,
+        _:containedDataResourceDescriptionFormatIsMediaTypeOfDataResource ;
+] .
+
+# Tests
+
+_:containedResourceDescriptionHasIdProperty
+    :testName "Contained resource description has id property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#contained-resource-description"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemIds" ;
+            ] ;
+        ] ;
+        :matches [ :constant ".+" ] ;
+    ] ;
+.
+
+_:containedResourceDescriptionIdIsUriOfContainedResource
+    :testName "Contained resource description id is URI of contained resource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#contained-resource-description"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:textResource ;
+    ] ;
+.
+
+_:containedDataResourceDescriptionTypeEqualsOrContainsDataResource
+    :testName "Contained data resource description type equals or contains DataResource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#contained-resource-description"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemTypes
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemTypes" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^DataResource$|\"DataResource\"" ] ;
+    ] ;
+.
+
+_:containedContainerDescriptionTypeEqualsOrContainsContainer
+    :testName "Contained container description type equals or contains Container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#contained-resource-description"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getContainerItemTypes
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemTypes" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^Container$|\"Container\"" ] ;
+    ] ;
+.
+
+_:containedDataResourceDescriptionFormatIsMediaTypeOfDataResource
+    :testName "Contained data resource description format is media type of data resource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#contained-resource-description"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemFormats
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemFormats" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)^text/plain\\s*(;|$)" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getContainerItemIds
+    :stepName "Get container item ids" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items[*].id" ;
+            :to "itemIds" ;
+        ]
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:nestedContainerLocation
+    ) ;
+.
+
+_:getContainerItemTypes
+    :stepName "Get container item types" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items[*].type" ;
+            :to "itemTypes" ;
+        ]
+    ) ;
+.
+
+_:getContainerItemFormats
+    :stepName "Get container item formats" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items[*].format" ;
+            :to "itemFormats" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:nestedContainerLocation
+    :header "Location" ;
+    :to "nestedContainerLocation" ;
+.

@@ -1,0 +1,8 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Update resource" ;
+    :include "update_resource/put.ttl"^^xsd:anyURI ;
+    :include "update_resource/patch.ttl"^^xsd:anyURI ;
+] .

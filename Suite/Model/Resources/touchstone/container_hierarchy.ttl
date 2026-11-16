@@ -1,0 +1,371 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Container hierarchy" ;
+    :test
+        _:leafUpLinkNamesInnerContainer ,
+        _:innerContainerListsLeaf ,
+        _:innerContainerUpLinkNamesOuterContainer ,
+        _:outerContainerListsInnerContainer ,
+        _:outerContainerUpLinkNamesTestContainer ,
+        _:testContainerListsOuterContainer ;
+] .
+
+# Tests
+
+_:leafUpLinkNamesInnerContainer
+    :testName "Leaf up link names inner container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:headLeafUpLinks
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :equals _:inner ;
+    ] ;
+.
+
+_:innerContainerListsLeaf
+    :testName "Inner container lists leaf" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getInnerContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:inner ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:leaf ;
+    ] ;
+.
+
+_:innerContainerUpLinkNamesOuterContainer
+    :testName "Inner container up link names outer container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getInnerContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :equals _:outer ;
+    ] ;
+.
+
+_:outerContainerListsInnerContainer
+    :testName "Outer container lists inner container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getOuterContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:outer ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:inner ;
+    ] ;
+.
+
+_:outerContainerUpLinkNamesTestContainer
+    :testName "Outer container up link names test container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getOuterContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "upLinks" ;
+            ] ;
+        ] ;
+        :equals _:container ;
+    ] ;
+.
+
+_:testContainerListsOuterContainer
+    :testName "Test container lists outer container" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createOuterContainer
+        _:createInnerContainer
+        _:createLeafResource
+        _:getContainerItemIds
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "itemIds" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:outer ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createOuterContainer
+    :stepName "Create outer container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "outerLocation" ;
+        ]
+    ) ;
+.
+
+_:createInnerContainer
+    :stepName "Create inner container" ;
+    :request [
+        :method "POST" ;
+        :uri _:outer ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "innerLocation" ;
+        ]
+    ) ;
+.
+
+_:createLeafResource
+    :stepName "Create leaf resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:inner ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "two containers deep" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "leafLocation" ;
+        ]
+    ) ;
+.
+
+_:headLeafUpLinks
+    :stepName "Head leaf up links" ;
+    :request _:headLeaf ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:getInnerContainerItemIds
+    :stepName "Get inner container item ids" ;
+    :request _:getInnerContainer ;
+    :extract (
+        _:itemIds
+    ) ;
+.
+
+_:getInnerContainerUpLinks
+    :stepName "Get inner container up links" ;
+    :request _:getInnerContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:getOuterContainerItemIds
+    :stepName "Get outer container item ids" ;
+    :request _:getOuterContainer ;
+    :extract (
+        _:itemIds
+    ) ;
+.
+
+_:getOuterContainerUpLinks
+    :stepName "Get outer container up links" ;
+    :request _:getOuterContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:getContainerItemIds
+    :stepName "Get container item ids" ;
+    :request _:getContainer ;
+    :extract (
+        _:itemIds
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headLeaf
+    :method "HEAD" ;
+    :uri _:leaf ;
+.
+
+_:getInnerContainer
+    :method "GET" ;
+    :uri _:inner ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getOuterContainer
+    :method "GET" ;
+    :uri _:outer ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:outer
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "outerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:inner
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "innerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:leaf
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "leafLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:itemIds
+    :path "$.items[*].id" ;
+    :to "itemIds" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.

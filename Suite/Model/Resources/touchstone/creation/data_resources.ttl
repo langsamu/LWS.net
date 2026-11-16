@@ -1,0 +1,318 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Creation: Data resources" ;
+    :test
+        _:createdDataResourceReturnsPostedBody ,
+        _:firstOfTwoIdenticalCreatesKeepsItsBody ,
+        _:secondOfTwoIdenticalCreatesKeepsItsBody ,
+        _:createDataResourceReturns201 ,
+        _:createDataResourceReturnsLocation ,
+        _:secondOfTwoIdenticalCreatesReturns201 ,
+        _:twoIdenticalCreatesReturnDistinctLocations ;
+] .
+
+# Tests
+
+_:createdDataResourceReturnsPostedBody
+    :testName "Created data resource returns posted body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+.
+
+_:firstOfTwoIdenticalCreatesKeepsItsBody
+    :testName "First of two identical creates keeps its body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+        _:getFirstSameBytesResourceBody
+    ) ;
+    :assert _:sameBytesBody ;
+.
+
+_:secondOfTwoIdenticalCreatesKeepsItsBody
+    :testName "Second of two identical creates keeps its body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+        _:getSecondSameBytesResourceBody
+    ) ;
+    :assert _:sameBytesBody ;
+.
+
+_:createDataResourceReturns201
+    :testName "Create data resource returns 201" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+    ) ;
+    :assert _:201 ;
+.
+
+_:createDataResourceReturnsLocation
+    :testName "Create data resource returns Location" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "textResourceLocation" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:secondOfTwoIdenticalCreatesReturns201
+    :testName "Second of two identical creates returns 201" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+    ) ;
+    :assert _:201 ;
+.
+
+_:twoIdenticalCreatesReturnDistinctLocations
+    :testName "Two identical creates return distinct Locations" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createFirstSameBytesResource
+        _:createSecondSameBytesResource
+    ) ;
+    :assert [
+        :not [ :that [ :single [ :variable "secondSameBytesLocation" ] ] ; :equals [ :single [ :variable "firstSameBytesLocation" ] ] ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceBody
+    :stepName "Get text resource body" ;
+    :request _:getTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:createFirstSameBytesResource
+    :stepName "Create first same-bytes resource" ;
+    :request _:createSameBytesResource ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "firstSameBytesLocation" ;
+        ]
+    ) ;
+.
+
+_:createSecondSameBytesResource
+    :stepName "Create second same-bytes resource" ;
+    :request _:createSameBytesResource ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "secondSameBytesLocation" ;
+        ]
+        _:status
+    ) ;
+.
+
+_:getFirstSameBytesResourceBody
+    :stepName "Get first same-bytes resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base _:storageRoot ;
+            :relative [
+                :single [
+                    :variable "firstSameBytesLocation" ;
+                ] ;
+            ] ;
+        ] ;
+    ] ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getSecondSameBytesResourceBody
+    :stepName "Get second same-bytes resource body" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :base _:storageRoot ;
+            :relative [
+                :single [
+                    :variable "secondSameBytesLocation" ;
+                ] ;
+            ] ;
+        ] ;
+    ] ;
+    :extract (
+        _:body
+    ) ;
+.
+
+# Requests
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:createSameBytesResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeTextPlain ;
+    :body [ :constant "same bytes" ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:201
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "201" ] ;
+.
+
+_:sameBytesBody
+    :that [
+        :variable "body" ;
+    ] ;
+    :matches [ :constant "^same bytes$" ] ;
+.

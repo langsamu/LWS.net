@@ -1,0 +1,361 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Conditional requests: Conditional writes" ;
+    :test
+        _:conditionalPutStaleIfMatchReturns412 ,
+        _:conditionalPutStaleIfMatchKeepsResourceReturns200 ,
+        _:conditionalPutStaleIfMatchLeavesResourceUntouched ,
+        _:conditionalDeleteStaleIfMatchReturns412 ,
+        _:conditionalDeleteStaleIfMatchKeepsResourceReturns200 ,
+        _:conditionalDeleteStaleIfMatchLeavesResourceUntouched ;
+] .
+
+# Tests
+
+_:conditionalPutStaleIfMatchReturns412
+    :testName "PUT with a stale If-Match returns 412" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchStatus
+        _:conditionalPutTextResourceStaleIfMatchStatus
+    ) ;
+    :assert _:412 ;
+.
+
+_:conditionalPutStaleIfMatchKeepsResourceReturns200
+    :testName "PUT with a stale If-Match keeps the resource readable" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchStatus
+        _:conditionalPutTextResourceStaleIfMatchStatus
+        _:getTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:conditionalPutStaleIfMatchLeavesResourceUntouched
+    :testName "PUT with a stale If-Match leaves the resource untouched" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchStatus
+        _:conditionalPutTextResourceStaleIfMatchStatus
+        _:getTextResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "^second content$" ] ;
+    ] ;
+.
+
+_:conditionalDeleteStaleIfMatchReturns412
+    :testName "DELETE with a stale If-Match returns 412" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchChangedContentStatus
+        _:conditionalDeleteTextResourceStaleIfMatchStatus
+    ) ;
+    :assert _:412 ;
+.
+
+_:conditionalDeleteStaleIfMatchKeepsResourceReturns200
+    :testName "DELETE with a stale If-Match keeps the resource readable" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchChangedContentStatus
+        _:conditionalDeleteTextResourceStaleIfMatchStatus
+        _:getTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:conditionalDeleteStaleIfMatchLeavesResourceUntouched
+    :testName "DELETE with a stale If-Match leaves the resource untouched" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchChangedContentStatus
+        _:conditionalDeleteTextResourceStaleIfMatchStatus
+        _:getTextResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :matches [ :constant "^changed content$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceBody
+    :stepName "Get text resource body" ;
+    :request _:getTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getTextResourceStatus
+    :stepName "Get text resource status" ;
+    :request _:getTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceETag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:conditionalPutTextResourceIfMatchStatus
+    :stepName "Conditional put text resource If-Match status" ;
+    :request _:conditionalPutTextResourceIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalPutTextResourceStaleIfMatchStatus
+    :stepName "Conditional put text resource stale If-Match status" ;
+    :request _:conditionalPutTextResourceStaleIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalPutTextResourceIfMatchChangedContentStatus
+    :stepName "Conditional put text resource If-Match changed content status" ;
+    :request _:conditionalPutTextResourceIfMatchChangedContent ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalDeleteTextResourceStaleIfMatchStatus
+    :stepName "Conditional delete text resource stale If-Match status" ;
+    :request _:conditionalDeleteTextResourceStaleIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:conditionalPutTextResourceIfMatch
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "second content" ] ;
+.
+
+_:conditionalPutTextResourceStaleIfMatch
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "third content, must not land" ] ;
+.
+
+_:conditionalPutTextResourceIfMatchChangedContent
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "changed content" ] ;
+.
+
+_:conditionalDeleteTextResourceStaleIfMatch
+    :method "DELETE" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:412
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "412" ] ;
+.

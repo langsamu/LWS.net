@@ -1,0 +1,469 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Read resource: HEAD" ;
+    :test
+        _:headContainerLinkHeaderWithRelTypeIndicatesContainer ,
+        _:serverSupportsHeadForDataResources ,
+        _:serverSupportsHeadForContainers ,
+        _:headDataResourceReturnsSameContentTypeHeaderAsGet ,
+        _:headContainerReturnsSameContentTypeHeaderAsGet ,
+        _:headDataResourceReturnsSameEtagHeaderAsGet ,
+        _:headContainerReturnsSameEtagHeaderAsGet ,
+        _:headDataResourceReturnsSameLinkHeaderWithRelLinksetAsGet ,
+        _:headContainerReturnsSameLinkHeaderWithRelLinksetAsGet ;
+] .
+
+# Tests
+
+_:headContainerLinkHeaderWithRelTypeIndicatesContainer
+    :testName "HEAD container Link header with rel type indicates container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerTypeLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "typeLinks" ;
+        ] ;
+        :contains [ :constant "https://www.w3.org/ns/lws#Container" ] ;
+    ] ;
+.
+
+_:serverSupportsHeadForDataResources
+    :testName "Server supports HEAD for data resources" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:headTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:serverSupportsHeadForContainers
+    :testName "Server supports HEAD for containers" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:headDataResourceReturnsSameContentTypeHeaderAsGet
+    :testName "HEAD data resource returns same Content-Type header as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceContentType
+        _:headTextResourceContentType
+    ) ;
+    :assert _:headContentTypeEqualsGetContentType ;
+.
+
+_:headContainerReturnsSameContentTypeHeaderAsGet
+    :testName "HEAD container returns same Content-Type header as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerContentType
+        _:headContainerContentType
+    ) ;
+    :assert _:headContentTypeEqualsGetContentType ;
+.
+
+_:headDataResourceReturnsSameEtagHeaderAsGet
+    :testName "HEAD data resource returns same ETag header as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceEtag
+        _:headTextResourceEtag
+    ) ;
+    :assert _:headEtagEqualsGetEtag ;
+.
+
+_:headContainerReturnsSameEtagHeaderAsGet
+    :testName "HEAD container returns same ETag header as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerEtag
+        _:headContainerEtag
+    ) ;
+    :assert _:headEtagEqualsGetEtag ;
+.
+
+_:headDataResourceReturnsSameLinkHeaderWithRelLinksetAsGet
+    :testName "HEAD data resource returns same Link header with rel linkset as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:headTextResourceLinksetLinks
+    ) ;
+    :assert _:headLinksetLinkEqualsGetLinksetLink ;
+.
+
+_:headContainerReturnsSameLinkHeaderWithRelLinksetAsGet
+    :testName "HEAD container returns same Link header with rel linkset as GET" ;
+    :specification "https://www.w3.org/TR/lws10-core/#read-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerLinksetLinks
+        _:headContainerLinksetLinks
+    ) ;
+    :assert _:headLinksetLinkEqualsGetLinksetLink ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getContainerLinksetLinks
+    :stepName "Get container linkset links" ;
+    :request _:getContainer ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getTextResourceContentType
+    :stepName "Get text resource Content-Type" ;
+    :request _:getTextResource ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:getTextResourceEtag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:getContainerEtag
+    :stepName "Get container ETag" ;
+    :request _:getContainer ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:headContainerTypeLinks
+    :stepName "Head container type links" ;
+    :request _:headContainer ;
+    :extract (
+        _:typeLinks
+    ) ;
+.
+
+_:headTextResourceStatus
+    :stepName "Head text resource status" ;
+    :request _:headTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:headContainerStatus
+    :stepName "Head container status" ;
+    :request _:headContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:headTextResourceContentType
+    :stepName "Head text resource Content-Type" ;
+    :request _:headTextResource ;
+    :extract (
+        _:headContentType
+    ) ;
+.
+
+_:getContainerContentType
+    :stepName "Get container Content-Type" ;
+    :request _:getContainer ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:headContainerContentType
+    :stepName "Head container Content-Type" ;
+    :request _:headContainer ;
+    :extract (
+        _:headContentType
+    ) ;
+.
+
+_:headTextResourceEtag
+    :stepName "Head text resource ETag" ;
+    :request _:headTextResource ;
+    :extract (
+        _:headEtag
+    ) ;
+.
+
+_:headContainerEtag
+    :stepName "Head container ETag" ;
+    :request _:headContainer ;
+    :extract (
+        _:headEtag
+    ) ;
+.
+
+_:headTextResourceLinksetLinks
+    :stepName "Head text resource linkset links" ;
+    :request _:headTextResource ;
+    :extract (
+        _:headLinksetLinks
+    ) ;
+.
+
+_:headContainerLinksetLinks
+    :stepName "Head container linkset links" ;
+    :request _:headContainer ;
+    :extract (
+        _:headLinksetLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headTextResource
+    :method "HEAD" ;
+    :uri _:textResource ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:etag
+    :header "ETag" ;
+    :to "etag" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:headContentType
+    :header "Content-Type" ;
+    :to "headContentType" ;
+.
+
+_:headEtag
+    :header "ETag" ;
+    :to "headEtag" ;
+.
+
+_:headLinksetLinks
+    :link "linkset" ;
+    :to "headLinksetLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:headContentTypeEqualsGetContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :equals [
+        :single [
+            :variable "headContentType" ;
+        ] ;
+    ] ;
+.
+
+_:headEtagEqualsGetEtag
+    :that [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+    :equals [
+        :single [
+            :variable "headEtag" ;
+        ] ;
+    ] ;
+.
+
+_:headLinksetLinkEqualsGetLinksetLink
+    :that [
+        :single [
+            :variable "linksetLinks" ;
+        ] ;
+    ] ;
+    :equals [
+        :single [
+            :variable "headLinksetLinks" ;
+        ] ;
+    ] ;
+.

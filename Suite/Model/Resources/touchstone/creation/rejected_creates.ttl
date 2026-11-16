@@ -1,0 +1,273 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Creation: Rejected creates" ;
+    :test
+        _:createInMissingContainerReturns404 ,
+        _:rejectedCreateLeavesContainerEmpty ,
+        _:createBeneathDataResourceReturns405 ,
+        _:createInMissingContainerReturnsClientError ,
+        _:createBeneathDataResourceReturnsAllow ;
+] .
+
+# Tests
+
+_:createInMissingContainerReturns404
+    :testName "Create in missing container returns 404" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceInMissingContainer
+    ) ;
+    :assert _:404 ;
+.
+
+_:rejectedCreateLeavesContainerEmpty
+    :testName "Rejected create leaves container empty" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceInMissingContainer
+        _:getContainerItems
+    ) ;
+    :assert _:emptyItems ;
+.
+
+_:createBeneathDataResourceReturns405
+    :testName "Create beneath data resource returns 405" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDataResource
+        _:createResourceBeneathDataResourceStatus
+    ) ;
+    :assert _:405 ;
+.
+
+_:createInMissingContainerReturnsClientError
+    :testName "Create in missing container returns client error" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createResourceInMissingContainer
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^4\\d\\d$" ] ;
+    ] ;
+.
+
+_:createBeneathDataResourceReturnsAllow
+    :testName "Create beneath data resource returns Allow" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createDataResource
+        _:createResourceBeneathDataResourceAllow
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "allow" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:getContainerItems
+    :stepName "Get container items" ;
+    :request _:getContainer ;
+    :extract (
+        _:items
+    ) ;
+.
+
+_:createResourceInMissingContainer
+    :stepName "Create resource in missing container" ;
+    :request [
+        :method "POST" ;
+        :uri [
+            :base _:container ;
+            :relative [
+                :constant "missing-container/" ;
+            ] ;
+        ] ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "lost letter" ] ;
+    ] ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createDataResource
+    :stepName "Create data resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "not a container" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "notAContainerLocation" ;
+        ]
+    ) ;
+.
+
+_:createResourceBeneathDataResourceStatus
+    :stepName "Create resource beneath data resource status" ;
+    :request _:createResourceBeneathDataResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createResourceBeneathDataResourceAllow
+    :stepName "Create resource beneath data resource Allow" ;
+    :request _:createResourceBeneathDataResource ;
+    :extract (
+        [
+            :header "Allow" ;
+            :to "allow" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:createResourceBeneathDataResource
+    :method "POST" ;
+    :uri [
+        :base _:storageRoot ;
+        :relative [
+            :single [
+                :variable "notAContainerLocation" ;
+            ] ;
+        ] ;
+    ] ;
+    :headers _:contentTypeTextPlain ;
+    :body [ :constant "should be refused" ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:items
+    :path "$.items" ;
+    :to "items" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:404
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "404" ] ;
+.
+
+_:405
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "405" ] ;
+.
+
+_:emptyItems
+    :that [
+        :single [
+            :variable "items" ;
+        ] ;
+    ] ;
+    :equals [ :constant "[]" ] ;
+.

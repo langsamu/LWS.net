@@ -1,0 +1,190 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Create resource: Container creation" ;
+    :test
+        _:postWithLinkHeaderWithRelTypeContainerCreatesContainer ,
+        _:containerCreationResponseLinkRelUpTargetsParentContainer ,
+        _:containerCreationResponseIncludesLinkHeaderWithRelLinkset ;
+] .
+
+# Tests
+
+_:postWithLinkHeaderWithRelTypeContainerCreatesContainer
+    :testName "POST with Link header with rel type Container creates container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "containerType" ;
+            ] ;
+        ] ;
+        :equals [ :constant "Container" ] ;
+    ] ;
+.
+
+_:containerCreationResponseLinkRelUpTargetsParentContainer
+    :testName "Container creation response Link rel up targets parent container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainerUpLinks
+    ) ;
+    :assert [
+        :that [
+            :variable "upLinks" ;
+        ] ;
+        :contains _:storageRoot ;
+    ] ;
+.
+
+_:containerCreationResponseIncludesLinkHeaderWithRelLinkset
+    :testName "Container creation response includes Link header with rel linkset" ;
+    :specification "https://www.w3.org/TR/lws10-core/#create-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainerLinksetLinks
+    ) ;
+    :assert _:linksetLink ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:getContainerType
+    :stepName "Get container type" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.type" ;
+            :to "containerType" ;
+        ]
+    ) ;
+.
+
+_:createContainerUpLinks
+    :stepName "Create container up links" ;
+    :request _:postContainer ;
+    :extract (
+        _:upLinks
+    ) ;
+.
+
+_:createContainerLinksetLinks
+    :stepName "Create container linkset links" ;
+    :request _:postContainer ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:postContainer
+    :method "POST" ;
+    :uri _:storageRoot ;
+    :headers _:linkTypeContainer ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+# Assertions
+
+_:linksetLink
+    :that [
+        :count [
+            :variable "linksetLinks" ;
+        ] ;
+    ] ;
+    :greaterThan [ :constant 0 ] ;
+.

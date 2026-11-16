@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { test } from "node:test"
 import * as Blockly from "blockly"
 import { DataFactory, Store } from "n3"
@@ -15,7 +15,13 @@ import { ManifestDataset } from "../wrapping/ManifestDataset.ts"
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8")
 const schema = buildSchema(dataset_.dataset([...parse(read("../../../Model/Resources/vocabulary.ttl")), ...parse(read("../../shapes.ttl"))]))
-const files = ["new", "example", "touchstone", "oldmanifest", "fromSpec", "oldmanifest/did_key"]
+const resources = new URL("../../../Model/Resources/", import.meta.url)
+const files = readdirSync(resources, { recursive: true, encoding: "utf8" })
+    .map(path => path.replaceAll("\\", "/"))
+    .filter(path => path.endsWith(".ttl") && path !== "vocabulary.ttl")
+    .map(path => path.slice(0, -".ttl".length))
+    .sort()
+const large = "touchstone/conditional_requests/if_none_match"
 const load = (file: string) => parse(read(`../../../Model/Resources/${file}.ttl`))
 
 function rootOf(dataset: DatasetCore) {
@@ -110,7 +116,7 @@ test("turtle round trip", () => {
     assert.ok(isomorphic(original, [...parse(quadsToTurtle([...generated]))]))
 })
 
-for (const file of ["example", "touchstone"]) {
+for (const file of ["example", large]) {
     test(`turtle round trip ${file}`, () => {
         const { generated } = roundTrip(file)
         const turtle = quadsToTurtle([...generated])
@@ -127,10 +133,10 @@ test("lists and datatypes", () => {
     const { generated } = roundTrip("example")
     const turtle = quadsToTurtle([...generated])
     assert.ok(turtle.includes("rdf:first") || turtle.includes("("))
-    assert.ok(roundTrip("touchstone").generated.size > 0)
+    assert.ok(roundTrip(large).generated.size > 0)
 })
 
-for (const file of ["example", "touchstone"]) {
+for (const file of ["example", large]) {
     test(`headless workspace round trip ${file}`, () => {
         const dataset = load(file)
         const expected = tree(dataset, rootOf(dataset))

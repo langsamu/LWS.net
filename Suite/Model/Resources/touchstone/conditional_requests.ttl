@@ -1,0 +1,9 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Touchstone: Conditional requests" ;
+    :include "conditional_requests/if_none_match.ttl"^^xsd:anyURI ;
+    :include "conditional_requests/modification_time.ttl"^^xsd:anyURI ;
+    :include "conditional_requests/conditional_writes.ttl"^^xsd:anyURI ;
+] .

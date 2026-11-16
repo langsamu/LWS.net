@@ -1,0 +1,458 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Update resource: PUT" ;
+    :test
+        _:putOnResourceUriHasNoDefaultImpactOnAssociatedLinksetResource ,
+        _:putOnResourceUriWithLinkHeaderSucceeds ,
+        _:putToResourceUriReplacesFullResourceWithNewContent ,
+        _:successfulPutRespondsWith200OkOr204NoContent ,
+        _:putWithMatchingIfMatchReplacesContentWithProvidedJson ,
+        _:putWithNonMatchingIfMatchRespondsWith412PreconditionFailed ,
+        _:putIsIdempotentForExistingResources ;
+] .
+
+# Tests
+
+_:putOnResourceUriHasNoDefaultImpactOnAssociatedLinksetResource
+    :testName "PUT on resource URI has no default impact on associated linkset resource" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:putTextResourceReplacingContentWithLinkHeader
+        _:getLinksetBody
+    ) ;
+    :assert [
+        :not [
+            :that [
+                :variable "body" ;
+            ] ;
+            :matches [ :constant "example\\.org\\?/s" ] ;
+        ] ;
+    ] ;
+.
+
+_:putOnResourceUriWithLinkHeaderSucceeds
+    :testName "PUT on resource URI with Link header succeeds" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:putTextResourceReplacingContentWithLinkHeader
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+_:putToResourceUriReplacesFullResourceWithNewContent
+    :testName "PUT to resource URI replaces full resource with new content" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:putTextResourceReplacingContent
+        _:getTextResourceBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "new content" ] ;
+    ] ;
+.
+
+_:successfulPutRespondsWith200OkOr204NoContent
+    :testName "Successful PUT responds with 200 OK or 204 No Content" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:putTextResourceReplacingContent
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+_:putWithMatchingIfMatchReplacesContentWithProvidedJson
+    :testName "PUT with matching If-Match replaces content with provided JSON" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createJsonResource
+        _:getJsonResourceEtag
+        _:putJsonResourceReplacingContent
+        _:getJsonResourceCity
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "city" ;
+            ] ;
+        ] ;
+        :equals [ :constant "New London" ] ;
+    ] ;
+.
+
+_:putWithNonMatchingIfMatchRespondsWith412PreconditionFailed
+    :testName "PUT with non-matching If-Match responds with 412 Precondition Failed" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:putTextResourceReplacingContentWithBogusIfMatch
+    ) ;
+    :assert _:412 ;
+.
+
+_:putIsIdempotentForExistingResources
+    :testName "PUT is idempotent for existing resources" ;
+    :specification "https://www.w3.org/TR/lws10-core/#update-resource"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:putTextResourceReplacingContent
+        _:putTextResourceReplacingContent
+    ) ;
+    :assert [
+        :that [
+            :variable "status" ;
+        ] ;
+        :matches [ :constant "^(200|204)$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetBody
+    :stepName "Get linkset body" ;
+    :request _:getLinkset ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getTextResourceBody
+    :stepName "Get text resource body" ;
+    :request _:getTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:putTextResourceReplacingContentWithLinkHeader
+    :stepName "Put text resource replacing content with Link header" ;
+    :request _:putTextResourceReplaceContentWithLinkHeader ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createJsonResource
+    :stepName "Create JSON resource" ;
+    :request _:postJsonResource ;
+    :extract (
+        _:jsonResourceLocation
+    ) ;
+.
+
+_:putTextResourceReplacingContent
+    :stepName "Put text resource replacing content" ;
+    :request _:putTextResourceReplaceContent ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getJsonResourceEtag
+    :stepName "Get JSON resource ETag" ;
+    :request _:getJsonResource ;
+    :extract (
+        _:etag
+    ) ;
+.
+
+_:getJsonResourceCity
+    :stepName "Get JSON resource city" ;
+    :request _:getJsonResource ;
+    :extract (
+        [
+            :path "$.city" ;
+            :to "city" ;
+        ]
+    ) ;
+.
+
+_:putJsonResourceReplacingContent
+    :stepName "Put JSON resource replacing content" ;
+    :request _:putJsonResourceReplaceContent ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:putTextResourceReplacingContentWithBogusIfMatch
+    :stepName "Put text resource replacing content with bogus If-Match" ;
+    :request _:putTextResourceReplaceContentWithBogusIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:putTextResourceReplaceContentWithLinkHeader
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers _:linkDescribedBy ;
+    :body [ :constant "new content" ] ;
+.
+
+_:postJsonResource
+    :method "POST" ;
+    :uri _:container ;
+    :headers _:contentTypeApplicationJson ;
+    :body [ :constant "{\"a\":1}" ] ;
+.
+
+_:getJsonResource
+    :method "GET" ;
+    :uri _:jsonResource ;
+.
+
+_:putTextResourceReplaceContent
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :body [ :constant "new content" ] ;
+.
+
+_:putJsonResourceReplaceContent
+    :method "PUT" ;
+    :uri _:jsonResource ;
+    :headers _:contentTypeApplicationJson ;
+    :headers _:ifMatchEtag ;
+    :body [ :constant "{\"name\":\"Alice\",\"age\":30,\"city\":\"New London\",\"state\":\"Connecticut\"}" ] ;
+.
+
+_:putTextResourceReplaceContentWithBogusIfMatch
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers _:ifMatchBogus ;
+    :body [ :constant "new content" ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+_:jsonResource
+    :base _:container ;
+    :relative [
+        :single [
+            :variable "jsonResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:ifMatchEtag
+    :key "If-Match" ;
+    :value [
+        :single [
+            :variable "etag" ;
+        ] ;
+    ] ;
+.
+
+_:linkDescribedBy
+    :key "Link" ;
+    :value [ :constant "<https://example.org/s>; rel=\"describedby\"" ] ;
+.
+
+_:contentTypeApplicationJson
+    :key "Content-Type" ;
+    :value [ :constant "application/json" ] ;
+.
+
+_:ifMatchBogus
+    :key "If-Match" ;
+    :value [ :constant "\"bogus\"" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:etag
+    :header "ETag" ;
+    :to "etag" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:jsonResourceLocation
+    :header "Location" ;
+    :to "jsonResourceLocation" ;
+.
+
+# Assertions
+
+_:412
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "412" ] ;
+.

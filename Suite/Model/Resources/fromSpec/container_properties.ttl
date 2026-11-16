@@ -1,0 +1,275 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Container properties" ;
+    :test
+        _:containerRepresentationHasIdProperty ,
+        _:containerRepresentationIdIsUriOfContainer ,
+        _:containerRepresentationTypeIsContainer ,
+        _:containerRepresentationTotalItemsIsInteger ,
+        _:containerRepresentationItemsIsArrayOfContainedResourceDescriptions ,
+        _:emptyContainerItemsIsEmptyArray ;
+] .
+
+# Tests
+
+_:containerRepresentationHasIdProperty
+    :testName "Container representation has id property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerId
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "containerId" ;
+            ] ;
+        ] ;
+        :matches [ :constant ".+" ] ;
+    ] ;
+.
+
+_:containerRepresentationIdIsUriOfContainer
+    :testName "Container representation id is URI of container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerId
+    ) ;
+    :assert [
+        :that [
+            :base _:container ;
+            :relative [
+                :single [
+                    :variable "containerId" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:container ;
+    ] ;
+.
+
+_:containerRepresentationTypeIsContainer
+    :testName "Container representation type is Container" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "containerType" ;
+            ] ;
+        ] ;
+        :equals [ :constant "Container" ] ;
+    ] ;
+.
+
+_:containerRepresentationTotalItemsIsInteger
+    :testName "Container representation totalItems is integer" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerTotalItems
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "totalItems" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\d+$" ] ;
+    ] ;
+.
+
+_:containerRepresentationItemsIsArrayOfContainedResourceDescriptions
+    :testName "Container representation items is an array of contained resource descriptions" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getContainerItemsArray
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemsArray" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[\\s*\\{" ] ;
+    ] ;
+.
+
+_:emptyContainerItemsIsEmptyArray
+    :testName "Empty container items is an empty array" ;
+    :specification "https://www.w3.org/TR/lws10-core/#container-properties"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerItemsArray
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "itemsArray" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[\\s*\\]$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        _:textResourceLocation
+    ) ;
+.
+
+_:getContainerId
+    :stepName "Get container id" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.id" ;
+            :to "containerId" ;
+        ]
+    ) ;
+.
+
+_:getContainerType
+    :stepName "Get container type" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.type" ;
+            :to "containerType" ;
+        ]
+    ) ;
+.
+
+_:getContainerTotalItems
+    :stepName "Get container totalItems" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.totalItems" ;
+            :to "totalItems" ;
+        ]
+    ) ;
+.
+
+_:getContainerItemsArray
+    :stepName "Get container items array" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :path "$.items" ;
+            :to "itemsArray" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:storageRoot
+    :base _:storage ;
+    :relative [
+        :single [
+            :variable "storageRoot" ;
+        ] ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:textResourceLocation
+    :header "Location" ;
+    :to "textResourceLocation" ;
+.

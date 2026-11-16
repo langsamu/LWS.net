@@ -1,0 +1,285 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Linksets: Advertising and deletion" ;
+    :test
+        _:linksetAdvertisesGet ,
+        _:linksetAdvertisesPatch ,
+        _:linksetAdvertisesJsonPatch ,
+        _:linksetGoneAfterResourceDeleteReturnsNotFoundOrGone ;
+] .
+
+# Tests
+
+_:linksetAdvertisesGet
+    :testName "Linkset advertises GET" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetAllow
+    ) ;
+    :assert [
+        :that [
+            :variable "allow" ;
+        ] ;
+        :contains [ :constant "GET" ] ;
+    ] ;
+.
+
+_:linksetAdvertisesPatch
+    :testName "Linkset advertises PATCH" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetAllow
+    ) ;
+    :assert [
+        :that [
+            :variable "allow" ;
+        ] ;
+        :contains [ :constant "PATCH" ] ;
+    ] ;
+.
+
+_:linksetAdvertisesJsonPatch
+    :testName "Linkset advertises JSON Patch" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLinksetLinks
+        _:getLinksetAcceptPatch
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "acceptPatch" ;
+            ] ;
+        ] ;
+        :matches [ :constant "(?i)application/json-patch\\+json" ] ;
+    ] ;
+.
+
+_:linksetGoneAfterResourceDeleteReturnsNotFoundOrGone
+    :testName "Linkset GET after its resource is deleted returns 404 or 410" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:deleteTextResourceIfMatchStatus
+        _:getLinksetStatus
+    ) ;
+    :assert [
+        :that [ :variable "status" ] ;
+        :matches [ :constant "^(404|410)$" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceETag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:deleteTextResourceIfMatchStatus
+    :stepName "Delete text resource If-Match status" ;
+    :request _:deleteTextResourceIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getTextResourceLinksetLinks
+    :stepName "Get text resource linkset links" ;
+    :request _:getTextResource ;
+    :extract (
+        _:linksetLinks
+    ) ;
+.
+
+_:getLinksetStatus
+    :stepName "Get linkset status" ;
+    :request _:getLinkset ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getLinksetAllow
+    :stepName "Get linkset Allow" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :header "Allow" ;
+            :to "allow" ;
+        ]
+    ) ;
+.
+
+_:getLinksetAcceptPatch
+    :stepName "Get linkset Accept-Patch" ;
+    :request _:getLinkset ;
+    :extract (
+        [
+            :header "Accept-Patch" ;
+            :to "acceptPatch" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getLinkset
+    :method "GET" ;
+    :uri _:linkset ;
+    :headers _:acceptLinksetJson ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:deleteTextResourceIfMatch
+    :method "DELETE" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:linkset
+    :single [
+        :variable "linksetLinks" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLinksetJson
+    :key "Accept" ;
+    :value [ :constant "application/linkset+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.

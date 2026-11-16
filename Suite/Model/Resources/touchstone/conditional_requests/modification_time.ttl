@@ -1,0 +1,346 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Conditional requests: Modification time" ;
+    :test
+        _:ifModifiedSinceLastModifiedReturns304 ,
+        _:ifModifiedSinceLastModifiedReturnsNoBody ,
+        _:ifModifiedSinceEpochReturns200 ,
+        _:ifModifiedSinceEpochReturnsPostedBody ,
+        _:ifUnmodifiedSinceLastModifiedReturns200 ,
+        _:ifUnmodifiedSinceEpochReturns412 ;
+] .
+
+# Tests
+
+_:ifModifiedSinceLastModifiedReturns304
+    :testName "If-Modified-Since equal to Last-Modified returns 304" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfModifiedSinceStatus
+    ) ;
+    :assert _:304 ;
+.
+
+_:ifModifiedSinceLastModifiedReturnsNoBody
+    :testName "If-Modified-Since equal to Last-Modified returns no body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfModifiedSinceBody
+    ) ;
+    :assert _:emptyBody ;
+.
+
+_:ifModifiedSinceEpochReturns200
+    :testName "If-Modified-Since at the epoch returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfModifiedSinceEpochStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:ifModifiedSinceEpochReturnsPostedBody
+    :testName "If-Modified-Since at the epoch returns posted body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfModifiedSinceEpochBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+.
+
+_:ifUnmodifiedSinceLastModifiedReturns200
+    :testName "If-Unmodified-Since equal to Last-Modified returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfUnmodifiedSinceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:ifUnmodifiedSinceEpochReturns412
+    :testName "If-Unmodified-Since at the epoch returns 412" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceLastModified
+        _:conditionalGetTextResourceIfUnmodifiedSinceEpochStatus
+    ) ;
+    :assert _:412 ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceLastModified
+    :stepName "Get text resource Last-Modified" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "Last-Modified" ;
+            :to "lastModified" ;
+        ]
+    ) ;
+.
+
+_:conditionalGetTextResourceIfModifiedSinceStatus
+    :stepName "Conditional get text resource If-Modified-Since status" ;
+    :request _:conditionalGetTextResourceIfModifiedSince ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceIfModifiedSinceBody
+    :stepName "Conditional get text resource If-Modified-Since body" ;
+    :request _:conditionalGetTextResourceIfModifiedSince ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:conditionalGetTextResourceIfModifiedSinceEpochStatus
+    :stepName "Conditional get text resource If-Modified-Since epoch status" ;
+    :request _:conditionalGetTextResourceIfModifiedSinceEpoch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceIfModifiedSinceEpochBody
+    :stepName "Conditional get text resource If-Modified-Since epoch body" ;
+    :request _:conditionalGetTextResourceIfModifiedSinceEpoch ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:conditionalGetTextResourceIfUnmodifiedSinceStatus
+    :stepName "Conditional get text resource If-Unmodified-Since status" ;
+    :request _:conditionalGetTextResourceIfUnmodifiedSince ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceIfUnmodifiedSinceEpochStatus
+    :stepName "Conditional get text resource If-Unmodified-Since epoch status" ;
+    :request _:conditionalGetTextResourceIfUnmodifiedSinceEpoch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:conditionalGetTextResourceIfModifiedSince
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Modified-Since" ;
+        :value [
+            :single [
+                :variable "lastModified" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:conditionalGetTextResourceIfModifiedSinceEpoch
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Modified-Since" ;
+        :value [ :constant "Thu, 01 Jan 1970 00:00:00 GMT" ] ;
+    ] ;
+.
+
+_:conditionalGetTextResourceIfUnmodifiedSince
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Unmodified-Since" ;
+        :value [
+            :single [
+                :variable "lastModified" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:conditionalGetTextResourceIfUnmodifiedSinceEpoch
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-Unmodified-Since" ;
+        :value [ :constant "Thu, 01 Jan 1970 00:00:00 GMT" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:304
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "304" ] ;
+.
+
+_:412
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "412" ] ;
+.
+
+_:emptyBody
+    :that [
+        :variable "body" ;
+    ] ;
+    :equals [ :constant "" ] ;
+.

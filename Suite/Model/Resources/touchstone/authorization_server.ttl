@@ -1,0 +1,259 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Authorization server" ;
+    :test
+        _:authorizationServerMetadataReturns200 ,
+        _:subjectTokenTypesMetadataIsArray ,
+        _:subjectIdentifierTypesMetadataIsArray ,
+        _:tokenExchangeWithoutSubjectTokenReturns400 ,
+        _:tokenExchangeWithoutSubjectTokenReturnsJson ,
+        _:tokenExchangeWithoutSubjectTokenReturnsInvalidRequest ;
+] .
+
+# Tests
+
+_:authorizationServerMetadataReturns200
+    :testName "Authorization server metadata returns 200" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:getAuthorizationServerMetadataStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:subjectTokenTypesMetadataIsArray
+    :testName "Subject token types metadata is array" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:getSubjectTokenTypes
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "subjectTokenTypes" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[" ] ;
+    ] ;
+.
+
+_:subjectIdentifierTypesMetadataIsArray
+    :testName "Subject identifier types metadata is array" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:getSubjectIdentifierTypes
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "subjectIdentifierTypes" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^\\[" ] ;
+    ] ;
+.
+
+_:tokenExchangeWithoutSubjectTokenReturns400
+    :testName "Token exchange without subject token returns 400" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:exchangeTokenWithoutSubjectTokenStatus
+    ) ;
+    :assert _:400 ;
+.
+
+_:tokenExchangeWithoutSubjectTokenReturnsJson
+    :testName "Token exchange without subject token returns JSON" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:exchangeTokenWithoutSubjectTokenContentType
+    ) ;
+    :assert _:jsonContentType ;
+.
+
+_:tokenExchangeWithoutSubjectTokenReturnsInvalidRequest
+    :testName "Token exchange without subject token returns invalid_request" ;
+    :steps (
+        _:discoverAuthorizationServer
+        _:exchangeTokenWithoutSubjectTokenError
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "error" ;
+            ] ;
+        ] ;
+        :equals [ :constant "invalid_request" ] ;
+    ] ;
+.
+
+# Steps
+
+_:discoverAuthorizationServer
+    :stepName "Discover authorization server" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'AuthorizationServer'].serviceEndpoint" ;
+            :to "authorizationServer" ;
+        ]
+    ) ;
+.
+
+_:getAuthorizationServerMetadataStatus
+    :stepName "Get authorization server metadata status" ;
+    :request _:getAuthorizationServerMetadata ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:getSubjectTokenTypes
+    :stepName "Get subject token types" ;
+    :request _:getAuthorizationServerMetadata ;
+    :extract (
+        [
+            :path "$.subject_token_types_supported" ;
+            :to "subjectTokenTypes" ;
+        ]
+    ) ;
+.
+
+_:getSubjectIdentifierTypes
+    :stepName "Get subject identifier types" ;
+    :request _:getAuthorizationServerMetadata ;
+    :extract (
+        [
+            :path "$.subject_identifier_types_supported" ;
+            :to "subjectIdentifierTypes" ;
+        ]
+    ) ;
+.
+
+_:exchangeTokenWithoutSubjectTokenStatus
+    :stepName "Exchange token without subject token status" ;
+    :request _:exchangeTokenWithoutSubjectToken ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:exchangeTokenWithoutSubjectTokenContentType
+    :stepName "Exchange token without subject token Content-Type" ;
+    :request _:exchangeTokenWithoutSubjectToken ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:exchangeTokenWithoutSubjectTokenError
+    :stepName "Exchange token without subject token error" ;
+    :request _:exchangeTokenWithoutSubjectToken ;
+    :extract (
+        [
+            :path "$.error" ;
+            :to "error" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+_:getAuthorizationServerMetadata
+    :method "GET" ;
+    :uri _:authorizationServerMetadata ;
+    :headers [
+        :key "Accept" ;
+        :value [ :constant "application/json" ] ;
+    ] ;
+.
+
+_:exchangeTokenWithoutSubjectToken
+    :method "POST" ;
+    :uri _:tokenEndpoint ;
+    :body [
+        :form (
+            [
+                :formKey "grant_type" ;
+                :formValue [ :constant "urn:ietf:params:oauth:grant-type:token-exchange" ] ;
+            ]
+            [
+                :formKey "resource" ;
+                :formValue _:storage ;
+            ]
+            [
+                :formKey "subject_token_type" ;
+                :formValue [ :constant "urn:ietf:params:oauth:token-type:jwt" ] ;
+            ]
+        ) ;
+    ] ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
+
+_:authorizationServer
+    :single [
+        :variable "authorizationServer" ;
+    ] ;
+.
+
+_:authorizationServerMetadata
+    :base _:authorizationServer ;
+    :relative [
+        :constant "/.well-known/lws-configuration" ;
+    ] ;
+.
+
+_:tokenEndpoint
+    :base _:authorizationServer ;
+    :relative [
+        :constant "/token" ;
+    ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:400
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "400" ] ;
+.
+
+_:jsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/json\\s*(;|$)" ] ;
+.

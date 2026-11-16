@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { test } from "node:test"
 import * as Blockly from "blockly"
 import { Parser } from "n3"
@@ -168,7 +168,10 @@ test("matches and choose pick the alternative a node satisfies", () => {
 })
 
 test("choose classifies the nodes of the manifests", () => {
-    const manifest = ["example", "touchstone", "fromSpec", "oldmanifest"].flatMap(name => new Parser().parse(read(`../../../Model/Resources/${name}.ttl`)))
+    const manifest = readdirSync(new URL("../../../Model/Resources/", import.meta.url), { recursive: true, encoding: "utf8" })
+        .map(path => path.replaceAll("\\", "/"))
+        .filter(path => path.endsWith(".ttl") && path !== "vocabulary.ttl" && path !== "new.ttl")
+        .flatMap(path => new Parser().parse(read(`../../../Model/Resources/${path}`)))
     const bySubject = new Map<string, NodeFacts & { predicates: Set<string>, types: Set<string> }>()
     for (const q of manifest) {
         const key = q.subject.termType + q.subject.value

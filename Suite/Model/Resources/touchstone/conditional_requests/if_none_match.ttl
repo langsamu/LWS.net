@@ -1,0 +1,386 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Conditional requests: If-None-Match" ;
+    :test
+        _:conditionalGetReturns304 ,
+        _:conditionalGetReturnsNoBody ,
+        _:conditionalGetNeverMatchingValidatorReturns200 ,
+        _:conditionalGetNeverMatchingValidatorReturnsPostedBody ,
+        _:conditionalGetStaleValidatorReturns200 ,
+        _:conditionalContainerGetReturns304 ,
+        _:conditionalContainerGetReturnsNoBody ;
+] .
+
+# Tests
+
+_:conditionalGetReturns304
+    :testName "Conditional GET returns 304" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalGetTextResourceStatus
+    ) ;
+    :assert _:304 ;
+.
+
+_:conditionalGetReturnsNoBody
+    :testName "Conditional GET returns no body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalGetTextResourceBody
+    ) ;
+    :assert _:emptyBody ;
+.
+
+_:conditionalGetNeverMatchingValidatorReturns200
+    :testName "GET with a never-matching If-None-Match returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:conditionalGetTextResourceNeverMatchingStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:conditionalGetNeverMatchingValidatorReturnsPostedBody
+    :testName "GET with a never-matching If-None-Match returns posted body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:conditionalGetTextResourceNeverMatchingBody
+    ) ;
+    :assert [
+        :that [
+            :variable "body" ;
+        ] ;
+        :equals [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+.
+
+_:conditionalGetStaleValidatorReturns200
+    :testName "GET with a stale If-None-Match returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createTextResource
+        _:getTextResourceETag
+        _:conditionalPutTextResourceIfMatchStatus
+        _:conditionalGetTextResourceStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:conditionalContainerGetReturns304
+    :testName "Conditional container GET returns 304" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerETag
+        _:conditionalGetContainerStatus
+    ) ;
+    :assert _:304 ;
+.
+
+_:conditionalContainerGetReturnsNoBody
+    :testName "Conditional container GET returns no body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerETag
+        _:conditionalGetContainerBody
+    ) ;
+    :assert _:emptyBody ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:createTextResource
+    :stepName "Create text resource" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:contentTypeTextPlain ;
+        :body [ :constant "milk\neggs\nbread\nbutter\napples\norange juice\n" ] ;
+    ] ;
+    :extract (
+        [
+            :header "Location" ;
+            :to "textResourceLocation" ;
+        ]
+        _:status
+        _:linksetLinks
+        _:upLinks
+    ) ;
+.
+
+_:getTextResourceETag
+    :stepName "Get text resource ETag" ;
+    :request _:getTextResource ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:conditionalGetTextResourceStatus
+    :stepName "Conditional get text resource status" ;
+    :request _:conditionalGetTextResource ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceBody
+    :stepName "Conditional get text resource body" ;
+    :request _:conditionalGetTextResource ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:conditionalPutTextResourceIfMatchStatus
+    :stepName "Conditional put text resource If-Match status" ;
+    :request _:conditionalPutTextResourceIfMatch ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceNeverMatchingStatus
+    :stepName "Conditional get text resource never-matching If-None-Match status" ;
+    :request _:conditionalGetTextResourceNeverMatching ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetTextResourceNeverMatchingBody
+    :stepName "Conditional get text resource never-matching If-None-Match body" ;
+    :request _:conditionalGetTextResourceNeverMatching ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getContainerETag
+    :stepName "Get container ETag" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:conditionalGetContainerStatus
+    :stepName "Conditional get container status" ;
+    :request _:conditionalGetContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:conditionalGetContainerBody
+    :stepName "Conditional get container body" ;
+    :request _:conditionalGetContainer ;
+    :extract (
+        _:body
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:conditionalGetContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+    :headers [
+        :key "If-None-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:getTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+.
+
+_:conditionalGetTextResource
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-None-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:conditionalPutTextResourceIfMatch
+    :method "PUT" ;
+    :uri _:textResource ;
+    :headers _:contentTypeTextPlain ;
+    :headers [
+        :key "If-Match" ;
+        :value [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+    :body [ :constant "second content" ] ;
+.
+
+_:conditionalGetTextResourceNeverMatching
+    :method "GET" ;
+    :uri _:textResource ;
+    :headers [
+        :key "If-None-Match" ;
+        :value [ :constant "\"touchstone-never-a-real-etag\"" ] ;
+    ] ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+_:textResource
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "textResourceLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+_:contentTypeTextPlain
+    :key "Content-Type" ;
+    :value [ :constant "text/plain" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:linksetLinks
+    :link "linkset" ;
+    :to "linksetLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:304
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "304" ] ;
+.
+
+_:emptyBody
+    :that [
+        :variable "body" ;
+    ] ;
+    :equals [ :constant "" ] ;
+.

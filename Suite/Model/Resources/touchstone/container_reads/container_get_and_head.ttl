@@ -1,0 +1,359 @@
+﻿@prefix : <http://example.com/> .
+
+[
+    :manifestName "Touchstone: Container reads: Container GET and HEAD" ;
+    :test
+        _:containerGetReturns200 ,
+        _:containerHeadReturnsNoBody ,
+        _:nestedContainerGetReturnsLwsMediaType ,
+        _:containerHeadReturns200 ,
+        _:containerHeadReturnsLwsMediaType ,
+        _:containerHeadReturnsGetETag ,
+        _:containerGetReturnsLwsMediaType ,
+        _:nestedContainerGetReturns200 ,
+        _:containerGetReturnsETag ,
+        _:storageRootGetReturns200 ;
+] .
+
+# Tests
+
+_:containerGetReturns200
+    :testName "Container GET returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerHeadReturnsNoBody
+    :testName "Container HEAD returns no body" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerBody
+    ) ;
+    :assert _:emptyBody ;
+.
+
+_:nestedContainerGetReturnsLwsMediaType
+    :testName "Nested container GET returns LWS media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getContainerContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+_:containerHeadReturns200
+    :testName "Container HEAD returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerHeadReturnsLwsMediaType
+    :testName "Container HEAD returns LWS media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:headContainerContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+_:containerHeadReturnsGetETag
+    :testName "Container HEAD returns the GET ETag" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerETag
+        _:headContainerETag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "headEtag" ;
+            ] ;
+        ] ;
+        :equals [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+    ] ;
+.
+
+_:containerGetReturnsLwsMediaType
+    :testName "Container GET returns LWS media type" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerContentType
+    ) ;
+    :assert _:lwsJsonContentType ;
+.
+
+_:nestedContainerGetReturns200
+    :testName "Nested container GET returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:createNestedContainer
+        _:getContainerStatus
+    ) ;
+    :assert _:200 ;
+.
+
+_:containerGetReturnsETag
+    :testName "Container GET returns ETag" ;
+    :steps (
+        _:discoverStorageRoot
+        _:createContainer
+        _:getContainerETag
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "etag" ;
+            ] ;
+        ] ;
+        :matches [ :constant "." ] ;
+    ] ;
+.
+
+_:storageRootGetReturns200
+    :testName "Storage root GET returns 200" ;
+    :steps (
+        _:discoverStorageRoot
+        _:getStorageRootStatus
+    ) ;
+    :assert _:200 ;
+.
+
+# Steps
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request [
+        :method "GET" ;
+        :uri [
+            :variable "baseUri" ;
+        ] ;
+    ] ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot'].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+_:createContainer
+    :stepName "Create container" ;
+    :request [
+        :method "POST" ;
+        :uri _:storageRoot ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:upLinks
+    ) ;
+.
+
+_:getContainerStatus
+    :stepName "Get container status" ;
+    :request _:getContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:createNestedContainer
+    :stepName "Create nested container" ;
+    :request [
+        :method "POST" ;
+        :uri _:container ;
+        :headers _:linkTypeContainer ;
+    ] ;
+    :extract (
+        _:containerLocation
+        _:status
+        _:typeLinks
+    ) ;
+.
+
+_:headContainerBody
+    :stepName "Head container body" ;
+    :request _:headContainer ;
+    :extract (
+        _:body
+    ) ;
+.
+
+_:getContainerContentType
+    :stepName "Get container Content-Type" ;
+    :request _:getContainer ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:headContainerStatus
+    :stepName "Head container status" ;
+    :request _:headContainer ;
+    :extract (
+        _:status
+    ) ;
+.
+
+_:headContainerContentType
+    :stepName "Head container Content-Type" ;
+    :request _:headContainer ;
+    :extract (
+        _:contentType
+    ) ;
+.
+
+_:headContainerETag
+    :stepName "Head container ETag" ;
+    :request _:headContainer ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "headEtag" ;
+        ]
+    ) ;
+.
+
+_:getContainerETag
+    :stepName "Get container ETag" ;
+    :request _:getContainer ;
+    :extract (
+        [
+            :header "ETag" ;
+            :to "etag" ;
+        ]
+    ) ;
+.
+
+_:getStorageRootStatus
+    :stepName "Get storage root status" ;
+    :request _:getStorageRoot ;
+    :extract (
+        _:status
+    ) ;
+.
+
+# Requests
+
+_:getContainer
+    :method "GET" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:headContainer
+    :method "HEAD" ;
+    :uri _:container ;
+    :headers _:acceptLwsJson ;
+.
+
+_:getStorageRoot
+    :method "GET" ;
+    :uri _:storageRoot ;
+    :headers _:acceptLwsJson ;
+.
+
+# URIs
+
+_:storageRoot
+    :single [
+        :variable "storageRoot" ;
+    ] ;
+.
+
+_:container
+    :base _:storageRoot ;
+    :relative [
+        :single [
+            :variable "containerLocation" ;
+        ] ;
+    ] ;
+.
+
+# Headers
+
+_:linkTypeContainer
+    :key "Link" ;
+    :value [ :constant "<https://www.w3.org/ns/lws#Container>; rel=\"type\"" ] ;
+.
+
+_:acceptLwsJson
+    :key "Accept" ;
+    :value [ :constant "application/lws+json" ] ;
+.
+
+# Extractors
+
+_:status
+    a :StatusCodeExtractor ;
+    :to "status" ;
+.
+
+_:containerLocation
+    :header "Location" ;
+    :to "containerLocation" ;
+.
+
+_:body
+    a :BodyExtractor ;
+    :to "body" ;
+.
+
+_:contentType
+    :header "Content-Type" ;
+    :to "contentType" ;
+.
+
+_:typeLinks
+    :link "type" ;
+    :to "typeLinks" ;
+.
+
+_:upLinks
+    :link "up" ;
+    :to "upLinks" ;
+.
+
+# Assertions
+
+_:200
+    :that [
+        :variable "status" ;
+    ] ;
+    :equals [ :constant "200" ] ;
+.
+
+_:emptyBody
+    :that [
+        :variable "body" ;
+    ] ;
+    :equals [ :constant "" ] ;
+.
+
+_:lwsJsonContentType
+    :that [
+        :single [
+            :variable "contentType" ;
+        ] ;
+    ] ;
+    :matches [ :constant "(?i)^application/lws\\+json\\s*(;|$)" ] ;
+.

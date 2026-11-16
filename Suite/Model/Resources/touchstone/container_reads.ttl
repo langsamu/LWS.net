@@ -1,0 +1,9 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "Touchstone: Container reads" ;
+    :include "container_reads/container_get_and_head.ttl"^^xsd:anyURI ;
+    :include "container_reads/container_representation.ttl"^^xsd:anyURI ;
+    :include "container_reads/content_negotiation.ttl"^^xsd:anyURI ;
+] .

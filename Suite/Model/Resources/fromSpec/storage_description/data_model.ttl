@@ -1,0 +1,247 @@
+﻿@prefix : <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[
+    :manifestName "From specification: Linked Web Storage Protocol 1.0: Storage description: Data model" ;
+    :test
+        _:storageDescriptionHasIdProperty ,
+        _:storageDescriptionIdIsCanonicalStorageUri ,
+        _:storageDescriptionHasTypeProperty ,
+        _:storageDescriptionTypeIsOrContainsStorage ,
+        _:storageDescriptionHasServiceProperty ,
+        _:storageDescriptionServicesContainStorageRoot ,
+        _:storageRootServiceEndpointIsUri ,
+        _:storageDescriptionServiceEntriesHaveTypeProperty ,
+        _:storageDescriptionServiceEntriesHaveServiceEndpointProperty ;
+] .
+
+# Tests
+
+_:storageDescriptionHasIdProperty
+    :testName "Storage description has id property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionId
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "id" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^[A-Za-z][A-Za-z0-9+.-]*:" ] ;
+    ] ;
+.
+
+_:storageDescriptionIdIsCanonicalStorageUri
+    :testName "Storage description id is canonical URI of storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionId
+    ) ;
+    :assert [
+        :that [
+            :base _:storage ;
+            :relative [
+                :single [
+                    :variable "id" ;
+                ] ;
+            ] ;
+        ] ;
+        :equals _:storage ;
+    ] ;
+.
+
+_:storageDescriptionHasTypeProperty
+    :testName "Storage description has type property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "type" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^(?!\\[\\s*\\]$).+" ] ;
+    ] ;
+.
+
+_:storageDescriptionTypeIsOrContainsStorage
+    :testName "Storage description type equals or contains Storage" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionType
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "type" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^Storage$|\"Storage\"" ] ;
+    ] ;
+.
+
+_:storageDescriptionHasServiceProperty
+    :testName "Storage description has service property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getStorageDescriptionServices
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "services" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:storageDescriptionServicesContainStorageRoot
+    :testName "Storage description services contain StorageRoot" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-services"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "storageRoot" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:storageRootServiceEndpointIsUri
+    :testName "StorageRoot serviceEndpoint is URI" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:discoverStorageRoot
+    ) ;
+    :assert [
+        :that [
+            :single [
+                :variable "storageRoot" ;
+            ] ;
+        ] ;
+        :matches [ :constant "^https?://.+" ] ;
+    ] ;
+.
+
+_:storageDescriptionServiceEntriesHaveTypeProperty
+    :testName "Storage description service entries have type property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getServicesWhenAllHaveType
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "servicesAllHavingType" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+_:storageDescriptionServiceEntriesHaveServiceEndpointProperty
+    :testName "Storage description service entries have serviceEndpoint property" ;
+    :specification "https://www.w3.org/TR/lws10-core/#storage-description-data-model"^^xsd:anyURI ;
+    :steps (
+        _:getServicesWhenAllHaveServiceEndpoint
+    ) ;
+    :assert [
+        :that [
+            :count [
+                :variable "servicesAllHavingServiceEndpoint" ;
+            ] ;
+        ] ;
+        :greaterThan [ :constant 0 ] ;
+    ] ;
+.
+
+# Steps
+
+_:getStorageDescriptionId
+    :stepName "Get storage description id" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.id" ;
+            :to "id" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionType
+    :stepName "Get storage description type" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.type" ;
+            :to "type" ;
+        ]
+    ) ;
+.
+
+_:getStorageDescriptionServices
+    :stepName "Get storage description services" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[*]" ;
+            :to "services" ;
+        ]
+    ) ;
+.
+
+_:getServicesWhenAllHaveServiceEndpoint
+    :stepName "Get services when all have serviceEndpoint" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?count($.service[?!@.serviceEndpoint]) == 0]" ;
+            :to "servicesAllHavingServiceEndpoint" ;
+        ]
+    ) ;
+.
+
+_:getServicesWhenAllHaveType
+    :stepName "Get services when all have type" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?count($.service[?!@.type]) == 0]" ;
+            :to "servicesAllHavingType" ;
+        ]
+    ) ;
+.
+
+_:discoverStorageRoot
+    :stepName "Discover storage root" ;
+    :request _:getStorageDescription ;
+    :extract (
+        [
+            :path "$.service[?@.type == 'StorageRoot' || @.type[?@ == 'StorageRoot']].serviceEndpoint" ;
+            :to "storageRoot" ;
+        ]
+    ) ;
+.
+
+# Requests
+
+_:getStorageDescription
+    :method "GET" ;
+    :uri _:storage ;
+.
+
+# URIs
+
+_:storage
+    :variable "baseUri" ;
+.
